@@ -3,9 +3,38 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "bin": {
+    "algotia": "./algotia.sh"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": ""
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@babel/plugin-transform-runtime": "^7.9.6",
+    "@babel/polyfill": "^7.8.7",
+    "blessed": "^0.1.81",
+    "ccxt": "^1.27.85",
+    "dotenv": "^8.2.0",
+    "react": "^16.13.1",
+    "react-blessed": "^0.6.2",
+    "react-reconciler": "^0.25.1",
+    "sequelize": "^5.21.9",
+    "sqlite3": "^4.2.0",
+    "terminal-kit": "^1.35.2",
+    "ws": "^7.3.0"
+  },
+  "devDependencies": {
+    "invariant": "^2.2.0",
+    "react-motion": "^0.5.2",
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.9.6",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/plugin-proposal-object-rest-spread": "^7.9.6",
+    "@babel/plugin-transform-flow-strip-types": "^7.9.0",
+    "@babel/preset-env": "^7.9.6",
+    "@babel/preset-react": "^7.9.4",
+    "@babel/register": "^7.9.0"
+  }
 }
