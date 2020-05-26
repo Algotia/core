@@ -1,8 +1,6 @@
 const Sequelize = require('sequelize');
 const ccxt = require('ccxt');
-
 const userConfig = require('./config/config');
-
 
 module.exports = async () => {
     try {
@@ -67,4 +65,4 @@ const connectStore = async () => {
     } catch (err) {
         console.log('Error connecting to databse: ', err);
     }
-}
+ }

@@ -1,18 +1,15 @@
-require('@babel/register')({
-    presets: [
-      ["@babel/preset-env"],
-      ["@babel/preset-react"]
-    ]
-});
+require('dotenv').config();
 const boot = require('./boot');
 
+(async () => {
+  try {
 
-boot()
-    .then(async (startupData)=>{
-        const { config, store, exchange } = startupData;
-        const orderbook = await exchange.fetchOHLCV('BTC/USD', 1);
-        console.log(orderbook);
-    })
-    .catch((err)=>{
-        console.log(err);
-    });
+    const {config, store, exchange} = await boot();
+
+    const OHLCV = await exchange.fetchOHLCV('BTC/USD', 1);
+    console.log(OHLCV);
+
+  } catch (err) {
+    console.log(err); 
+  }
+})()
