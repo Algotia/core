@@ -6,8 +6,7 @@ const boot = require('./boot');
 
     const {config, store, exchange} = await boot();
 
-    const OHLCV = await exchange.fetchOHLCV('BTC/USD', 1);
-    console.log(OHLCV);
+    console.log(config);
 
   } catch (err) {
     console.log(err); 
