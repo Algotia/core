@@ -3,17 +3,18 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "bin": {
-    "algotia": "./algotia.sh"
-  },
   "scripts": {
-    "test": ""
+    "test": "",
+    "build": "tsc",
+    "start": "node src/algotia.js",
+    "generateJsonSchema": "node node_modules/typescript-json-schema/bin/typescript-json-schema ./src/config/utils/configInterface.ts Config --out ./src/config/configSchema.json"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@babel/plugin-transform-runtime": "^7.9.6",
     "@babel/polyfill": "^7.8.7",
+    "ajv": "^6.12.2",
     "blessed": "^0.1.81",
     "ccxt": "^1.27.85",
     "dotenv": "^8.2.0",
@@ -23,11 +24,11 @@
     "sequelize": "^5.21.9",
     "sqlite3": "^4.2.0",
     "terminal-kit": "^1.35.2",
-    "ws": "^7.3.0"
+    "typescript-json-schema": "^0.42.0",
+    "ws": "^7.3.0",
+    "yaml": "^1.10.0"
   },
   "devDependencies": {
-    "invariant": "^2.2.0",
-    "react-motion": "^0.5.2",
     "@babel/cli": "^7.8.4",
     "@babel/core": "^7.9.6",
     "@babel/plugin-proposal-class-properties": "^7.8.3",
@@ -35,6 +36,9 @@
     "@babel/plugin-transform-flow-strip-types": "^7.9.0",
     "@babel/preset-env": "^7.9.6",
     "@babel/preset-react": "^7.9.4",
-    "@babel/register": "^7.9.0"
+    "@babel/register": "^7.9.0",
+    "invariant": "^2.2.0",
+    "react-motion": "^0.5.2",
+    "typescript": "^3.9.3"
   }
 }
