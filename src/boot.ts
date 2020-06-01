@@ -1,15 +1,13 @@
-import Sequelize from 'sequelize'
 import ccxt from 'ccxt'
 import fs from 'fs'
 import Ajv  from 'ajv'
-
 import getConfig from './config/getConfig'
 import { kill } from './utils/index'
 
 export default async () => {
     try {
 
-        const config = await validateConfig();
+        const config = validateConfig();
         const store = await connectStore();
         const exchange = await connectExchange(config);
 
@@ -22,37 +20,32 @@ export default async () => {
     }
 }
 
-const validateConfig = async () => {
-    try {
-        // Schema is generated at build-time with typescript-json-schema
-        const schemaFile = fs.readFileSync(`${__dirname}/config/configSchema.json`, 'utf8');
-        const configScehma = JSON.parse(schemaFile);
+const validateConfig = () => {
+    // schema is generated at build-time with typescript-json-schema
+    const schemafile = fs.readFileSync(`${__dirname}/config/configschema.json`, 'utf8');
+    const configscehma = JSON.parse(schemafile);
+    const config = getConfig();
+    
+    const ajv = new Ajv();
+    const validate = ajv.compile(configscehma);
+    const valid = validate(config);
 
-        const config = getConfig();
-        const ajv = new Ajv();
-        const validate = ajv.compile(configScehma);
-        const valid = validate(config);
 
+    if(valid){
 
-        if(valid){
+        console.log('configuration validated');
+        return config
 
-            console.log('Configuration validated');
-            return config
+    } else {
 
-        } else {
+        validate.errors.forEach((errorobj)=>{
+            console.log(`error while validating schema: ${errorobj.dataPath}: ${errorobj.message}`);
 
-            validate.errors.forEach((errorObj)=>{
-                console.log(`Error while validating schema: ${errorObj.dataPath}: ${errorObj.message}`);
-            });
-            kill();
-
-        }
-
-    } catch (err) {
-
-        console.log('Error validating configuration: ', err);
+        });
+        kill();
 
     }
+
 }
 
 const connectExchange = async (config) => {
