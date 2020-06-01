@@ -1,8 +1,10 @@
 const Sequelize = require('sequelize');
 const ccxt = require('ccxt');
 const fs = require('fs');
-const YAML = require('yaml');
 const Ajv  = require('ajv');
+
+const getConfig = require('./config/getConfig');
+const { kill } = require('./utils/index')
 
 module.exports = async () => {
     try {
@@ -29,28 +31,26 @@ module.exports = async () => {
 const validateConfig = async () => {
     try {
         // Schema is generated at build-time with typescript-json-schema
-        const configFile = fs.readFileSync(`${__dirname}/config/config.yaml`, 'utf8');
-        const schemaFile = fs.readFileSync(`${__dirname}/config/utils/configSchema.json`, 'utf8');
-        
+        const schemaFile = fs.readFileSync(`${__dirname}/config/configSchema.json`, 'utf8');
         const configScehma = JSON.parse(schemaFile);
-        const userConfig = YAML.parse(configFile);
-        
-        const ajv = new Ajv();
 
+        const config = getConfig();
+        const ajv = new Ajv();
         const validate = ajv.compile(configScehma);
-        const valid = validate(userConfig);
+        const valid = validate(config);
+
 
         if(valid){
 
             console.log('Configuration validated');
-            return userConfig
+            return config
 
         } else {
 
             validate.errors.forEach((errorObj)=>{
-                console.log(`Error at ${errorObj.dataPath}: ${errorObj.message}`);
+                console.log(`Error while validating schema: ${errorObj.dataPath}: ${errorObj.message}`);
             });
-            process.kill(process.pid, 'SIGINT');
+            kill();
 
         }
 
