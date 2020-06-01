@@ -1,25 +1,19 @@
-const Sequelize = require('sequelize');
-const ccxt = require('ccxt');
-const fs = require('fs');
-const Ajv  = require('ajv');
+import Sequelize from 'sequelize'
+import ccxt from 'ccxt'
+import fs from 'fs'
+import Ajv  from 'ajv'
 
-const getConfig = require('./config/getConfig');
-const { kill } = require('./utils/index')
+import getConfig from './config/getConfig'
+import { kill } from './utils/index'
 
-module.exports = async () => {
+export default async () => {
     try {
-        
-        let bootData = {};
 
         const config = await validateConfig();
         const store = await connectStore();
         const exchange = await connectExchange(config);
 
-        bootData.config = config;
-        bootData.db = store;
-        bootData.exchange = exchange;
-
-        return bootData;
+        return {config, store, exchange};
         
     } catch (err) {
 
@@ -84,16 +78,11 @@ const connectExchange = async (config) => {
 const connectStore = async () => {
     try {
         // connect to db and return intance
-        let dbPath = `${__dirname}/db/store.sqlite`
-        const sequelize = new Sequelize({
-            dialect: 'sqlite',
-            storage: dbPath,
-            logging: false
-        })
-        await sequelize.authenticate();
+
+        const store = {}
         console.log('Connected to databse');
         
-        return sequelize;
+        return store;
 
     } catch (err) {
 

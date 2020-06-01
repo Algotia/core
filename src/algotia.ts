@@ -1,5 +1,5 @@
-require('dotenv').config();
-const boot = require('./boot');
+import dotenv from 'dotenv'
+import boot from './boot';
 
 (async () => {
   try {
