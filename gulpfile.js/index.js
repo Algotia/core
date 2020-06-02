@@ -1,4 +1,4 @@
-const { series, src, dest, pipe } = require('gulp');
+const { series } = require('gulp');
 
 const clean = require('./clean');
 const transpile = require('./transpile');
