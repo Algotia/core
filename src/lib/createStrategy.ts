@@ -1,22 +1,17 @@
-
-
 const useOnData = (exchange) => ({
-    onData: (cb: Function) => {
-        cb(exchange);
-    }
-})
+	onData: (cb: Function) => {
+		cb(exchange);
+	},
+});
+
+
 
 const createStrategy = (config, exchange) => {
-    let strategy = {};
-    strategy[`${config.exchangeId}`] = exchange;
-    
-    let userExchange = strategy[`${config.exchangeId}`];
+	let strategy = {
+		exchange,
+	};
 
-    return Object.assign(
-        strategy,
-        useOnData(userExchange)
-    )
-
-}
+	return Object.assign(strategy, useOnData(exchange));
+};
 
 export default createStrategy;

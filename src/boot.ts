@@ -1,85 +1,68 @@
-import ccxt from 'ccxt'
-import fs from 'fs'
-import Ajv  from 'ajv'
-import getConfig from './config/getConfig'
-import { kill } from './utils/index'
+import ccxt from "ccxt";
+import fs from "fs";
+import Ajv from "ajv";
+import getConfig from "./config/getConfig";
+import { kill } from "./utils/index";
 
 export default async () => {
-    try {
+  try {
+    const config = validateConfig();
+    const store = await connectStore();
+    const exchange = await connectExchange(config);
 
-        const config = validateConfig();
-        const store = await connectStore();
-        const exchange = await connectExchange(config);
-
-        return {config, store, exchange};
-        
-    } catch (err) {
-
-        console.log('Error in boot phase: ', err);
-
-    }
-}
+    return { config, store, exchange };
+  } catch (err) {
+    console.log("Error in boot phase: ", err);
+  }
+};
 
 const validateConfig = () => {
-    // schema is generated at build-time with typescript-json-schema
-    const schemafile = fs.readFileSync(`${__dirname}/config/configschema.json`, 'utf8');
-    const configscehma = JSON.parse(schemafile);
-    const config = getConfig();
-    
-    const ajv = new Ajv();
-    const validate = ajv.compile(configscehma);
-    const valid = validate(config);
+  // schema is generated at build-time with typescript-json-schema
+  const schemaFile = fs.readFileSync(`${__dirname}/config/config.schema.json`, "utf8");
+  const configSchema = JSON.parse(schemaFile);
+  const config = getConfig();
 
+  const ajv = new Ajv();
+  const validate = ajv.compile(configSchema);
+  const valid = validate(config);
 
-    if(valid){
-
-        console.log('configuration validated');
-        return config
-
-    } else {
-
-        validate.errors.forEach((errorobj)=>{
-            console.log(`error while validating schema: ${errorobj.dataPath}: ${errorobj.message}`);
-
-        });
-        kill();
-
-    }
-
-}
+  if (valid) {
+    console.log("configuration validated");
+    return config;
+  } else {
+    validate.errors.forEach((errObj) => {
+      console.log(`error while validating schema: ${errObj.dataPath}: ${errObj.message}`);
+    });
+    kill();
+  }
+};
 
 const connectExchange = async (config) => {
-    try {
 
-        const { exchangeId, apiKey, secret, timeout } = config.exchange;   
+  try {
+    const { exchangeId, apiKey, secret, timeout } = config.exchange;
 
-        const exchange = new ccxt[exchangeId]({
-            apiKey,
-            secret,
-            timeout
-        });
+    const exchange = new ccxt[exchangeId]({
+      apiKey,
+      secret,
+      timeout,
+    });
 
-        return exchange;
+    return exchange;
 
-    } catch (err) {
-
-        console.log(err);
-
-    }
-}
+  } catch (err) {
+    console.log(err);
+  }
+};
 
 const connectStore = async () => {
-    try {
-        // connect to db and return intance
+  try {
+    // connect to db and return instance
+    const store = {};
+    console.log("Connected to database");
 
-        const store = {}
-        console.log('Connected to databse');
-        
-        return store;
-
-    } catch (err) {
-
-        console.log('Error connecting to databse: ', err);
-
-    }
- }
+    return store;
+  } catch (err) {
+    console.log("Error connecting to database: ", err);
+  }
+};

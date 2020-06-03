@@ -1,5 +1,3 @@
-import kill from './kill';
+import kill from "./kill";
 
-export {
-    kill
-}
+export { kill };
