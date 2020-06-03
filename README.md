@@ -11,7 +11,7 @@
     - ```git clone https://github.com/Algotia/Algotia.git```
 - **Create configuration file** 
     - In order for the bot to work, you must create a configuration file named `config.yaml`. As of now the file can be placed in an arbitrary location inside the project. I recommend creating a `config`folder and placing `config.yaml` inside.
-    - Must follow [configuration shape](#Configuration).
+    - Must follow [configuration shape](#Configuration). See example config at `config.example.yaml`.
     - ``` mkdir config && touch config.yaml```
 
 - **Install dependencies**
@@ -35,6 +35,10 @@ exchange:
     exchangeId: EXCHANGE ID (string)            // Exchange ID, from cxxt (https://github.com/ccxt/ccxt)
     apiKey: API KEY (string)                    // API Key from exchange. Note: Only use 1 API Key / Secret per bot instance.
     apiSecret: API SECRET (sting)               // API Secret from exchange. 
-    timeout: TIMEOUT (number)                   // Timeout between API calls. 
+    timeout: TIMEOUT (number)                   // Timeout between API calls. Number is in milliseconds.
 
 ```
+
+Find the list of ccxt Exchange IDs here:
+[Exchange Markets · ccxt/ccxt Wiki](https://github.com/ccxt/ccxt/wiki/Exchange-Markets)
+
