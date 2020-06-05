@@ -9,12 +9,24 @@
 At it's core, Algotia is a platform for executing automated cryptocurrency trading strategies written in Javascript. Inspired by projects like [Gekko](https://github.com/askmike/gekko) and [Zenbot](https://github.com/DeviaVir/zenbot), Algotia seeks to iterate on the ideas of exisiting projects while focusing on performance, strategy authoribility, and providing an inituitive API for modern algorithmic trading.
 
 ### Roadmap to V1
-| Feature                                     | Complete | Issue |
-|---------------------------------------------|----------|-------|
-| Import/back-fill historical data            |<ul><li>-[ ] Started</li><li>-[ ] Working</li><li>-[ ] Done</li></ul>|       |
-| Back-test strategies against historical data|<ul><li>-[ ] Started</li><li>-[ ] Working</li><li>-[ ] Done</li></ul>|       |
-| Live/paper trading with supported Exchanges |<ul><li>-[ ] Started</li><li>-[ ] Working</li><li>-[ ] Done</li></ul>|       |
 
+**Import/back-fill historical data**
+
+- [x] Started
+
+Issue #18
+
+**Backtest strategies against historical data**
+
+- [ ] Started
+
+No issue :(
+
+**Live/paper trading with supported exchanges**
+
+- [ ] Started
+
+No issue :(
 
 ---
 ### Quick start guide
