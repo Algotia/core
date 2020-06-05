@@ -1,11 +1,23 @@
 # Algotia
 
-- [Usage](#Usage)
-- [Configuration](#Configuration)
+- [What is Algotia?](#what-is-algotia)
+- [Roadmap to V1](#roadmap-to-v1)
+- [Quick start guide](#quick-start-guide)
+- [Configuration](#configuration)
+
+### What is Algotia?
+At it's core, Algotia is a platform for executing automated cryptocurrency trading strategies written in Javascript. Inspired by projects like [Gekko](https://github.com/askmike/gekko) and [Zenbot](https://github.com/DeviaVir/zenbot), Algotia seeks to iterate on the ideas of exisiting projects while focusing on performance, strategy authoribility, and providing an inituitive API for modern algorithmic trading.
+
+### Roadmap to V1
+| Feature                                     | Complete | Issue |
+|---------------------------------------------|----------|-------|
+| Import/back-fill historical data            |<ul><li>-[ ] Started</li><li>-[ ] Working</li><li>-[ ] Done</li></ul>|       |
+| Back-test strategies against historical data|<ul><li>-[ ] Started</li><li>-[ ] Working</li><li>-[ ] Done</li></ul>|       |
+| Live/paper trading with supported Exchanges |<ul><li>-[ ] Started</li><li>-[ ] Working</li><li>-[ ] Done</li></ul>|       |
+
 
 ---
-
-### Usage
+### Quick start guide
 
 - **Clone the project**
     - ```git clone https://github.com/Algotia/Algotia.git```
@@ -23,6 +35,7 @@
 
 - **Start** 
     - ```npm start```
+
 
 ---
 
