@@ -1,20 +1,19 @@
 import dotenv from "dotenv";
 import boot from "./boot";
 import createStrategy from "./lib/createStrategy";
+import program from './lib/cli';
+import backfill from './lib/commands/backfill';
 
 (async () => {
 	try {
-		const { config, store, exchange } = await boot();
+		const { exchange, config, store } = await boot();
+		const { args } = program;
 
-		const strategy = createStrategy(config, exchange);
-		strategy.onData(async (kraken) => {
-			try {
-				const test = await kraken.fetchTickers();
-				console.log(test);
-			} catch (err) {
-				console.log(err);
-			}
-		});
+		if (program.backfill) {
+			backfill(exchange)
+		}
+
+
 	} catch (err) {
 		console.log(err);
 	}

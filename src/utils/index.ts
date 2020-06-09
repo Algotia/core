@@ -1,3 +1,3 @@
-import kill from "./kill";
+import bail from "./bail";
 
-export { kill };
+export { bail };

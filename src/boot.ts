@@ -1,15 +1,17 @@
 import ccxt from "ccxt";
 import fs from "fs";
 import Ajv from "ajv";
+import { createConnection } from 'typeorm';
+
 import getConfig from "./config/getConfig";
-import { kill } from "./utils/index";
+import { bail } from "./utils/index";
+
 
 export default async () => {
   try {
     const config = validateConfig();
     const store = await connectStore();
     const exchange = await connectExchange(config);
-
     return { config, store, exchange };
   } catch (err) {
     console.log("Error in boot phase: ", err);
@@ -33,7 +35,7 @@ const validateConfig = () => {
     validate.errors.forEach((errObj) => {
       console.log(`error while validating schema: ${errObj.dataPath}: ${errObj.message}`);
     });
-    kill();
+    bail("Could not validate configuration file.");
   }
 };
 
@@ -41,11 +43,10 @@ const connectExchange = async (config) => {
 
   try {
     const { exchangeId, apiKey, secret, timeout } = config.exchange;
-
     const exchange = new ccxt[exchangeId]({
       apiKey,
       secret,
-      timeout,
+      timeout
     });
 
     return exchange;
@@ -58,10 +59,23 @@ const connectExchange = async (config) => {
 const connectStore = async () => {
   try {
     // connect to db and return instance
-    const store = {};
+    const dbPath = `${__dirname}/../db/backfill.sqlite`
+
+    if (!fs.existsSync(dbPath)) {
+      bail("Could not find database file")
+    }
+
+    const store = await createConnection({
+      type: "sqlite",
+      database: dbPath,
+      entities: [__dirname + "/entities/*{.js,.ts}"]
+    })
+    await store.synchronize();
+
     console.log("Connected to database");
 
     return store;
+
   } catch (err) {
     console.log("Error connecting to database: ", err);
   }

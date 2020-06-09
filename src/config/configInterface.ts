@@ -4,10 +4,10 @@ in the build process (gulp/grunt task?)
 */
 
 export interface Config {
-	exchange: Exchange;
+	exchange: ExchangeConfig;
 }
 
-interface Exchange {
+interface ExchangeConfig {
 	/**
 	 * The name of the exchange you'd like to use. For now, must match an ID from https://github.com/ccxt/ccxt
 	 */
