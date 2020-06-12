@@ -1,3 +1,7 @@
-import kill from "./kill";
+import bail from "./bail";
+import convertTimeFrame from "./convertTimeFrame";
 
-export { kill };
+export { 
+  bail,
+  convertTimeFrame
+};

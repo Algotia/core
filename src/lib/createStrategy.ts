@@ -1,10 +1,9 @@
+
 const useOnData = (exchange) => ({
 	onData: (cb: Function) => {
 		cb(exchange);
 	},
 });
-
-
 
 const createStrategy = (config, exchange) => {
 	let strategy = {
