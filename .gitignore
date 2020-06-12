@@ -3,3 +3,4 @@ package-lock.json
 /dist/
 /**/config.yaml
 .env
+*.sqlite

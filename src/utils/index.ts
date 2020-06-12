@@ -1,3 +1,7 @@
 import bail from "./bail";
+import convertTimeFrame from "./convertTimeFrame";
 
-export { bail };
+export { 
+  bail,
+  convertTimeFrame
+};

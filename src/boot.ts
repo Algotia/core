@@ -1,8 +1,9 @@
 import ccxt from "ccxt";
 import fs from "fs";
 import Ajv from "ajv";
-import { createConnection } from 'typeorm';
+import { createConnection, getConnectionOptions } from 'typeorm';
 
+import Candle from "./entities/candle"
 import getConfig from "./config/getConfig";
 import { bail } from "./utils/index";
 
@@ -64,15 +65,15 @@ const connectStore = async () => {
     if (!fs.existsSync(dbPath)) {
       bail("Could not find database file")
     }
+    
+    let dbOptions = await getConnectionOptions();
 
     const store = await createConnection({
-      type: "sqlite",
-      database: dbPath,
-      entities: [__dirname + "/entities/*{.js,.ts}"]
-    })
+      ...dbOptions,
+      entities: [ Candle ]
+    });
+    
     await store.synchronize();
-
-    console.log("Connected to database");
 
     return store;
 

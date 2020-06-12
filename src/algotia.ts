@@ -10,7 +10,7 @@ import backfill from './lib/commands/backfill';
 		const { args } = program;
 
 		if (program.backfill) {
-			backfill(exchange)
+			backfill(exchange);
 		}
 
 

@@ -1,29 +1,7 @@
-import { getRepository } from 'typeorm'
-import Candle from '../../entities/candle';
-//TODO: Probably should split these utility functions out as they will be useful in a bunch of other modules. 
+import dayjs from 'dayjs';
+import { convertTimeFrame } from '../../utils/index'
 
-const batchWriteCandles = async (candles: Object[]) => {
-    try {
-        console.log(candles[0])
-        const repo = getRepository(Candle);
-        await repo.save(candles);
-        console.log("Wrote to database");
-
-    } catch (err) {
-        console.log("Error writing to database: ", err);
-    }
-}
-
-const readCandles = async () => {
-    const repo = getRepository(Candle);
-    const [candles, count] = await repo.findAndCount({})
-    console.log(candles, count);
-}
-
-const removeCandles = async () => {
-    const repo = getRepository(Candle);
-    await repo.clear();
-}
+//TODO: Probably should split some of these utility functions out as they will be useful in a bunch of other modules. 
 
 const reshape = (arr) => (arr.map((ohlcv) => ({
     timestamp: ohlcv[0],
@@ -32,37 +10,59 @@ const reshape = (arr) => (arr.map((ohlcv) => ({
     low: ohlcv[3],
     close: ohlcv[4],
     volume: ohlcv[5]
-}))
+  }))
 )
 
-const sleep = (ms) => (new Promise(resolve => setTimeout(resolve, ms)));
+const sleep = (ms) => (new Promise(resolve => setTimeout(resolve, ms))); // This is a sync function that WILL block the main thread, might want to do something else instead
+
 
 export default async (exchange) => {
     try {
-        // The timestamps used in the following example 
+         
+        // TODO: These should be args passed in either as flags from the CLI
+        
+        let since = 1591826400000 
+        const until = 1591912800000
+        const period = '1m'
+        const symbolPair = 'BTC/USD'
+        let recordLimit = 200 // could be much higher, this value (as all of the above values) are for testing. 
 
-        let allTrades = []
-        let since = 1591480800000 // -1 day from now -- change to programmatic 
-        const until = 1591567200000
+        const allowedTimeframes = Object.keys(exchange.timeframes);
+        if (!allowedTimeframes.includes(period)) throw new Error('Period does not exist as an exchange timeframe');
+        
+        const {unit: periodUnit, ammount: periodAmmount} = convertTimeFrame(period);
+        
+        let allTrades = [] 
 
-        await removeCandles();
+        let sinceParsed = dayjs(since);
+        let untilparsed = dayjs(until);
+        let recordsBetween = untilparsed.diff(sinceParsed, periodUnit); 
+        if (periodAmmount !== 1) recordsBetween = recordsBetween / periodAmmount;
 
-        while (since < until) {
-            const recordLimit = 5 // should be var dependent on config -- also each exchange has their own internal limit on how many records can be requested at once.
+        while (recordsBetween > 0) {
 
-            const rawOHLCV = await exchange.fetchOHLCV('BTC/USD', '1h', since, recordLimit);
+            if (recordsBetween < recordLimit) recordLimit = recordsBetween;
+ 
+            console.log('records left - ', recordsBetween);
+
+            const rawOHLCV = await exchange.fetchOHLCV(symbolPair, period, since, recordLimit);
             const ohlcv = reshape(rawOHLCV);
-
-            const diff = (ohlcv[ohlcv.length - 1].timestamp) - (ohlcv[ohlcv.length - 2].timestamp); // maybe use date manipulation lib instead
-            since = ohlcv[ohlcv.length - 1].timestamp + diff; // + diff to avoid duplicated for the last time period of each req
-
-            allTrades = allTrades.concat(ohlcv) // maybe write to db in between requests to improve performance for large backfills? 
-
-            await sleep(2000); // must sleep to avoid getting rate limited. prob should change this to be configurable
+            
+            const diff = (ohlcv[1].timestamp - ohlcv[0].timestamp); 
+            since = ohlcv[ohlcv.length - 1].timestamp + diff;
+            
+            recordsBetween -= ohlcv.length;
+            allTrades = allTrades.concat(ohlcv);
+            
+            // we should know what the rate limit of each exchange is.
+            await sleep(2000); // must sleep to avoid get rate limited on SOME EXCHANGES (check exchange API docs).
 
         }
-        await batchWriteCandles(allTrades);
-        await readCandles();
+        console.log(allTrades[0]);        
+        console.log(`Fetched ${allTrades.length} trades`);
+        console.log(`First trade - ${allTrades[0].timestamp}`)
+        console.log(`Last trade - ${allTrades[allTrades.length - 1].timestamp}`)
+        
     }
     catch (err) {
         console.log(err)
