@@ -46,7 +46,7 @@ No issue :(
     - ```npm run build```
 
 - **Start** 
-    - ```npm start```
+    - ```node dist/algotia.js [COMMAND] [...OPTIONS]```
 
 
 ---
