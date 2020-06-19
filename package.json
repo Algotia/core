@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "bin": {
+    "algotia": "./algotia.sh"
+  },
   "scripts": {
     "build": "npx gulp build",
     "dev": "npx gulp watch",
@@ -11,6 +14,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@material-ui/core": "^4.10.2",
     "ajv": "^6.12.2",
     "array-includes-with-glob": "^2.12.36",
     "ccxt": "^1.27.85",
