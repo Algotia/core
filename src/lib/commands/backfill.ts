@@ -42,7 +42,7 @@ export default async (exchange, opts: Options) => {
         const allowedTimeframes = Object.keys(exchange.timeframes);
         if (!allowedTimeframes.includes(period)) throw new Error('Period does not exist as an exchange timeframe');
 
-        const periodUnitMS = {
+        const unitsMs = {
             minute: 60000,
             hour: 3600000,
             day: 86400000
@@ -50,8 +50,10 @@ export default async (exchange, opts: Options) => {
 
         const msDiff = until - since;
         const {unit, ammount }= convertTimeFrame(period);
+        const periodMs = (unitsMs[unit] * ammount)
 
-        let recrodsToFetch = (msDiff / (periodUnitMS[unit] * ammount));
+        let recrodsToFetch = Math.round((msDiff / periodMs));
+
         console.log(`Records to fetch ${recrodsToFetch}`);
         
         let allTrades = []

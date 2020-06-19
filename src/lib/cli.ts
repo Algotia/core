@@ -16,7 +16,6 @@ export default (bootData) => {
       .option('-u, --until <until>', 'Unix timestamp (ms) of time to retrieve records to', pInt, exchange.milliseconds())
       .option('-l, --limit <limit>', 'Number of records to retrieve at one time', pInt, 10)
       .action(async (options) => {
-//        await backfill(exchange, options)
           const {
             since,
             pair,
