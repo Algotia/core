@@ -1,5 +1,9 @@
-import dayjs from 'dayjs';
+import log from 'fancy-log'
+import { program } from "commander"
+import readline from 'readline'
+import timestamp from "time-stamp" 
 import { convertTimeFrame } from '../../utils/index'
+import gray from "ansi-gray"
 
 //TODO: Probably should split some of these utility functions out as they will be useful in a bunch of other modules. 
 
@@ -27,7 +31,7 @@ export default async (exchange, opts: Options) => {
     try {
          
 
-        // properties that are not assigned a default value are required
+        // De structure mutable and immutable properties separately
         const {
           pair,                       
           until,
@@ -36,8 +40,8 @@ export default async (exchange, opts: Options) => {
 
         let {
           since,                           
-          recordLimit, // TODO: change the default to a dynamic value
-        } = opts; // destructure mutable properties seperately (maybe better way to do this?)
+          recordLimit, 
+        } = opts; 
         
         const allowedTimeframes = Object.keys(exchange.timeframes);
         if (!allowedTimeframes.includes(period)) throw new Error('Period does not exist as an exchange timeframe');
@@ -50,41 +54,43 @@ export default async (exchange, opts: Options) => {
 
         const msDiff = until - since;
         const {unit, ammount }= convertTimeFrame(period);
-        const periodMs = (unitsMs[unit] * ammount)
+        const periodMs = (unitsMs[unit] * ammount);
 
         let recrodsToFetch = Math.round((msDiff / periodMs));
 
-        console.log(`Records to fetch ${recrodsToFetch}`);
+        log.info(`Records to fetch ${recrodsToFetch}`);
         
-        let allTrades = []
+        let allTrades = [];
 
-        // TODO: calculate how many periods total to fetch, and if the record
-        // limit is greater than the remaining periods to fetch, set the record
-        // limit to the remaining number of periods
-        await sleep(500)
+        await sleep(500);
+
         while (since < until) {
             
             if (recordLimit > recrodsToFetch) recordLimit = recrodsToFetch;
               
             const rawOHLCV = await exchange.fetchOHLCV(pair, period, since, recordLimit);
             const ohlcv = reshape(rawOHLCV);
-            const diff = (ohlcv[1].timestamp - ohlcv[0].timestamp); 
-            since = ohlcv[ohlcv.length - 1].timestamp + diff;
+
+            since = ohlcv[ohlcv.length - 1].timestamp + periodMs;
             
-            console.log(`Fetch ${ohlcv.length} records`);
-            
+            if (program.verbose) log(`Fetched ${ohlcv.length} records`);
+
+            readline.cursorTo(process.stdout, 0);
+            process.stdout.write(`[${gray(timestamp("HH:mm:ss"))}] ${recrodsToFetch} records left to fetch...`)
+
             recrodsToFetch -= ohlcv.length;
             allTrades = [...allTrades, ...ohlcv];
             // we should know what the rate limit of each exchange is.
             await sleep(2000); // must sleep to avoid get rate limited on SOME EXCHANGES (check exchange API docs).
 
         }
-        console.log(allTrades[0]);        
-        console.log(`Fetched ${allTrades.length} trades`);
-        console.log(`First trade - ${allTrades[0].timestamp}`)
-        console.log(`Last trade - ${allTrades[allTrades.length - 1].timestamp}`) 
+        console.log()
+        log(`Fetched ${allTrades.length} trades`);
+
     }
     catch (err) {
-        console.log(err)
+        log.error(err)
     }
 }
+
+

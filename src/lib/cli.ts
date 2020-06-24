@@ -1,19 +1,24 @@
-import { program } from 'commander';
+import { convertDateToTimestamp }  from '../utils/index'
 import backfill from './commands/backfill'
+import { program } from "commander"
 
 const pInt = (str: string) =>  parseInt(str);
+const pDate = (str: string) => convertDateToTimestamp(str);
 
+// should create an interface for this
 export default (bootData) => {
   const { exchange } = bootData;
   program.version('0.0.1');
 
   program
+      .option('-v, --verbose', 'verbose output')
+      .option('-c, --config <config>')
       .command('backfill')
       .description('backfill historical data')
-      .option('-s, --since <since>', 'Unix timestamp (ms) of time to retrieve records from', pInt)
-      .option('-p, --pair <pair>', 'Pair to retrieve records for') 
+      .requiredOption('-s, --since <since>', 'Unix timestamp (ms) of time to retrieve records from', pDate)
+      .requiredOption('-p, --pair <pair>', 'Pair to retrieve records for') 
       .option('-P, --period <period>', 'Timeframe to retrieve records for', '1m')
-      .option('-u, --until <until>', 'Unix timestamp (ms) of time to retrieve records to', pInt, exchange.milliseconds())
+      .option('-u, --until <until>', 'Unix timestamp (ms) of time to retrieve records to', pDate, exchange.milliseconds())
       .option('-l, --limit <limit>', 'Number of records to retrieve at one time', pInt, 10)
       .action(async (options) => {
           const {

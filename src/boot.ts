@@ -2,82 +2,87 @@ import ccxt from "ccxt";
 import fs from "fs";
 import Ajv from "ajv";
 import { createConnection, getConnectionOptions } from 'typeorm';
+import log from 'fancy-log'
+import program from 'commander'
 
-import Candle from "./entities/candle"
-import getConfig from "./config/getConfig";
+import getConfig from "./lib/getConfig";
 import { bail } from "./utils/index";
+import { Config }from "./types/interfaces/config"
+import createCli from "./lib/cli"
 
+let userConfig: Config; 
 
 export default async () => {
   try {
+    // Register base options and return program (CLI) object
+    getUserConfig()
+    
     const config = validateConfig();
     const store = await connectStore();
-    const exchange = await connectExchange(config);
-    return { config, store, exchange };
+    const exchange = await connectExchange();
+    
+    const bootData = {
+      config,
+      store,
+      exchange
+    }
+    createCli(bootData)
+    return bootData;
+
   } catch (err) {
     console.log("Error in boot phase: ", err);
   }
 };
 
+
+const getUserConfig = () => {
+  userConfig = getConfig()
+}
+
 const validateConfig = () => {
   // schema is generated at build-time with typescript-json-schema
   const schemaFile = fs.readFileSync(`${__dirname}/config/config.schema.json`, "utf8");
   const configSchema = JSON.parse(schemaFile);
-  const config = getConfig();
 
   const ajv = new Ajv();
   const validate = ajv.compile(configSchema);
-  const valid = validate(config);
+  const valid = validate(userConfig);
 
   if (valid) {
-    console.log("configuration validated");
-    return config;
+    if (program.verbose) log("Configuration validated");
+    return userConfig;
   } else {
     validate.errors.forEach((errObj) => {
-      console.log(`error while validating schema: ${errObj.dataPath}: ${errObj.message}`);
+      log.error(`error while validating schema: ${errObj.dataPath}: ${errObj.message}`);
     });
     bail("Could not validate configuration file.");
   }
 };
 
-const connectExchange = async (config) => {
-
+const connectExchange = async () => {
   try {
-    const { exchangeId, apiKey, secret, timeout } = config.exchange;
+
+    const { exchangeId, apiKey, apiSecret, timeout } = userConfig.exchange;
     const exchange = new ccxt[exchangeId]({
       apiKey,
-      secret,
+      apiSecret,
       timeout
     });
 
     return exchange;
 
   } catch (err) {
-    console.log(err);
+    log.error(err);
   }
 };
 
 const connectStore = async () => {
   try {
-    // connect to db and return instance
-    const dbPath = `${__dirname}/../db/backfill.sqlite`
 
-    if (!fs.existsSync(dbPath)) {
-      bail("Could not find database file")
-    }
-    
-    let dbOptions = await getConnectionOptions();
-
-    const store = await createConnection({
-      ...dbOptions,
-      entities: [ Candle ]
-    });
-    
-    await store.synchronize();
-
+    const store = {}
     return store;
 
   } catch (err) {
-    console.log("Error connecting to database: ", err);
+    log.error("Error connecting to database: ", err);
   }
 };
