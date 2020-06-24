@@ -1,9 +1,11 @@
-import log from 'fancy-log'
 import { program } from "commander"
+import { MongoClient } from "mongodb"
 import readline from 'readline'
-import timestamp from "time-stamp" 
-import { convertTimeFrame } from '../../utils/index'
+import log from 'fancy-log'
 import gray from "ansi-gray"
+import timestamp from "time-stamp" 
+
+import { convertTimeFrame } from '../../utils/index'
 
 //TODO: Probably should split some of these utility functions out as they will be useful in a bunch of other modules. 
 
@@ -12,10 +14,20 @@ interface Options {
   pair: string,
   until: number,
   period: string,
-  recordLimit: number
+  recordLimit: number,
+  name: string,
 }
 
-const reshape = (arr) => (arr.map((ohlcv) => ({
+interface OHLCV {
+  timestamp: number,
+  open: number,
+  high: number,
+  low: number,
+  close: number,
+  volume: number
+}
+
+const reshape = (arr: OHLCV[]) => (arr.map((ohlcv: OHLCV) => ({
     timestamp: ohlcv[0],
     open: ohlcv[1],
     high: ohlcv[2],
@@ -36,6 +48,7 @@ export default async (exchange, opts: Options) => {
           pair,                       
           until,
           period,
+          name
         } = opts;
 
         let {
@@ -64,6 +77,7 @@ export default async (exchange, opts: Options) => {
 
         await sleep(500);
 
+    
         while (since < until) {
             
             if (recordLimit > recrodsToFetch) recordLimit = recrodsToFetch;
@@ -85,8 +99,42 @@ export default async (exchange, opts: Options) => {
 
         }
         console.log()
-        log(`Fetched ${allTrades.length} trades`);
+        
+        const dbUrl = "mongodb://localhost:27017"
+        const dbName = "algotia"
+        const dbOptions = {
+          useUnifiedTopology: true
+        }
+        const client = new MongoClient(dbUrl, dbOptions)
 
+        await client.connect()
+
+        const db = client.db(dbName)
+        
+        const backfillCollection = db.collection('backfill')
+        
+        let docName: string;
+        if (name) {
+          docName = name;
+        } else {
+          const format = (time: number) => new Date(time).toLocaleString().replace(",", "");
+          const startDate = format(since);
+          const endDate = format(until);
+          docName = `${startDate} --> ${endDate} ${pair} ${period}`
+        }
+      
+        await backfillCollection.insertOne({
+            name: docName,
+            period,
+            pair,
+            since,
+            until,
+            records: allTrades
+        });
+        
+      log(`Wrote ${allTrades.length} records to ${docName}`);
+      client.close();
+      process.exit(0);
     }
     catch (err) {
         log.error(err)
