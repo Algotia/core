@@ -1,4 +1,3 @@
-
 const useOnData = (exchange) => ({
 	onData: (cb: Function) => {
 		cb(exchange);
