@@ -6,11 +6,11 @@ const { dsx } = require('ccxt');
 
 function generateFiles(cb) {
 
+    // Generate JSON schema from config TS interface 
     const config = {
-        path: "./src/config/configInterface.ts",
+        path: "src/types/interfaces/config.ts",
         type: "*",
     };
-
 
     const outputPath = "./dist/config/config.schema.json";
     const schema = tjs.createGenerator(config).createSchema(config.type)
