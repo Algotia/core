@@ -20,20 +20,23 @@ export default (bootData) => {
       .option('-P, --period <period>', 'Timeframe to retrieve records for', '1m')
       .option('-u, --until <until>', 'Unix timestamp (ms) of time to retrieve records to', pDate, exchange.milliseconds())
       .option('-l, --limit <limit>', 'Number of records to retrieve at one time', pInt, 10)
+      .option('-n, --collection-name <collectionName>', 'name for database refrence', undefined)
       .action(async (options) => {
           const {
             since,
             pair,
             period,
             until,
-            limit
+            limit,
+            collectionName,
           }:
           {
             since: number,
             pair: string,
             period: string,
             until: number,
-            limit: number
+            limit: number,
+            collectionName: string
           }= options
 
           const opts = {
@@ -41,7 +44,8 @@ export default (bootData) => {
             pair,
             period,
             until,
-            recordLimit: limit
+            recordLimit: limit,
+            name: collectionName,
           }
           
           await backfill(exchange, opts)

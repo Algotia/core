@@ -1,9 +1,9 @@
 import ccxt from "ccxt";
 import fs from "fs";
 import Ajv from "ajv";
-import { createConnection, getConnectionOptions } from 'typeorm';
 import log from 'fancy-log'
 import program from 'commander'
+import { MongoClient } from "mongodb"
 
 import getConfig from "./lib/getConfig";
 import { bail } from "./utils/index";
@@ -78,10 +78,19 @@ const connectExchange = async () => {
 
 const connectStore = async () => {
   try {
+    const url = "mongodb://localhost:27017"
+    const dbname = "algotia"
+    const options = {
+      useUnifiedTopology: true
+    }
 
-    const store = {}
-    return store;
+    const client = new MongoClient(url, options)
 
+    await client.connect() 
+
+    const db = client.db(dbname)
+    console.log(`Connected to ${db.databaseName} database`)
+    await client.close()
   } catch (err) {
     log.error("Error connecting to database: ", err);
   }
