@@ -1,8 +1,11 @@
 {
-  "name": "algotia",
-  "version": "1.0.0",
+  "name": "@algotia/core",
+  "version": "0.0.1",
   "description": "",
   "main": "./dist/algotia.js",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "npx gulp build",
     "clean": "npx gulp clean",
