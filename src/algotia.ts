@@ -1,11 +1,4 @@
-import boot from "./boot";
+import boot from "./lib/boot";
+import backfill from "./lib/commands/backfill";
 
-(async () => {
-	try {
-
-    await boot();
-
-	} catch (err) {
-		console.log(err);
-	}
-})()
+export { boot, backfill };
