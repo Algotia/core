@@ -1,6 +1,6 @@
 {
   "name": "@algotia/core",
-  "version": "0.0.1",
+  "version": "0.0.2-0",
   "description": "",
   "main": "./dist/algotia.js",
   "publishConfig": {
