@@ -10,15 +10,13 @@ import { Config } from "../types/interfaces/config";
 
 export default async (userConfig: Config) => {
 	try {
-		// Register base options and return program (CLI) object
-
 		const config = validateConfig(userConfig);
 		const exchange = await connectExchange(config);
 		await connectStore();
 
 		const bootData = {
 			config,
-			exchange,
+			exchange
 		};
 		return bootData;
 	} catch (err) {
@@ -52,7 +50,7 @@ const connectExchange = async (config: Config) => {
 		const exchange = new ccxt[exchangeId]({
 			apiKey,
 			apiSecret,
-			timeout,
+			timeout
 		});
 
 		return exchange;
@@ -66,7 +64,7 @@ const connectStore = async () => {
 		const url = "mongodb://localhost:27017";
 		const dbname = "algotia";
 		const options = {
-			useUnifiedTopology: true,
+			useUnifiedTopology: true
 		};
 
 		const client = new MongoClient(url, options);
