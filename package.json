@@ -31,9 +31,7 @@
     "mongodb": "^3.5.9",
     "ncp": "^2.0.0",
     "rimraf": "^3.0.2",
-    "sqlite3": "^4.2.0",
     "time-stamp": "^2.2.0",
-    "ts-json-schema-generator": "^0.68.1",
     "ts-node": "^8.10.2",
     "typeorm": "^0.2.25",
     "typescript-json-schema": "^0.42.0",
@@ -56,6 +54,7 @@
     "gulp-typescript": "^6.0.0-alpha.1",
     "invariant": "^2.2.0",
     "prettier": "^2.0.5",
+    "ts-json-schema-generator": "^0.70.1",
     "typescript": "^3.9.3"
   }
 }
