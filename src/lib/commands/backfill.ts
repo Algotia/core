@@ -34,10 +34,10 @@ const reshape = (arr: OHLCV[]) =>
 		high: ohlcv[2],
 		low: ohlcv[3],
 		close: ohlcv[4],
-		volume: ohlcv[5]
+		volume: ohlcv[5],
 	}));
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms)); // This is a sync function that WILL block the main thread, might want to do something else instead
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms)); // This is a sync function that WILL block the main thread, might want to do something else instead
 
 export default async (exchange, opts: Options) => {
 	try {
@@ -55,7 +55,7 @@ export default async (exchange, opts: Options) => {
 		const unitsMs = {
 			minute: 60000,
 			hour: 3600000,
-			day: 86400000
+			day: 86400000,
 		};
 
 		const msDiff = until - since;
@@ -95,7 +95,7 @@ export default async (exchange, opts: Options) => {
 		const dbUrl = "mongodb://localhost:27017";
 		const dbName = "algotia";
 		const dbOptions = {
-			useUnifiedTopology: true
+			useUnifiedTopology: true,
 		};
 		const client = new MongoClient(dbUrl, dbOptions);
 
@@ -121,7 +121,7 @@ export default async (exchange, opts: Options) => {
 			pair,
 			since,
 			until,
-			records: allTrades
+			records: allTrades,
 		});
 
 		log(`Wrote ${allTrades.length} records to ${docName}`);

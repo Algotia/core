@@ -46,7 +46,7 @@ const validateConfig = (userConfig: Config) => {
 	}
 };
 
-const connectExchange = async (config) => {
+const connectExchange = async (config: Config) => {
 	try {
 		const { exchangeId, apiKey, apiSecret, timeout } = config.exchange;
 		const exchange = new ccxt[exchangeId]({
