@@ -1,13 +1,4 @@
-import boot from "./boot";
-import getConfig from "./lib/getConfig";
-import createCli from "./lib/cli";
+import boot from "./lib/boot";
+import backfill from "./lib/commands/backfill";
 
-(async () => {
-	try {
-		const config = getConfig();
-		const bootData = await boot(config);
-		createCli(bootData);
-	} catch (err) {
-		console.log(err);
-	}
-})();
+export { boot, backfill };

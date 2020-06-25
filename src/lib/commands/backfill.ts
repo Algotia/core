@@ -50,6 +50,8 @@ export default async (exchange, opts: Options) => {
 		if (!allowedTimeframes.includes(period))
 			throw new Error("Period does not exist as an exchange timeframe");
 
+		if (since > until) throw new Error("Invalid date: parameter since cannot be less than until");
+
 		const unitsMs = {
 			minute: 60000,
 			hour: 3600000,

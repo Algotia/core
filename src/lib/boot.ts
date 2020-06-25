@@ -5,8 +5,8 @@ import log from "fancy-log";
 import program from "commander";
 import { MongoClient } from "mongodb";
 
-import { bail } from "./utils/index";
-import { Config } from "./types/interfaces/config";
+import { bail } from "../utils/index";
+import { Config } from "../types/interfaces/config";
 
 export default async (userConfig: Config) => {
 	try {
@@ -28,7 +28,7 @@ export default async (userConfig: Config) => {
 
 const validateConfig = (userConfig: Config) => {
 	// schema is generated at build-time with typescript-json-schema
-	const schemaFile = fs.readFileSync(`${__dirname}/config/config.schema.json`, "utf8");
+	const schemaFile = fs.readFileSync(`${__dirname}/../config/config.schema.json`, "utf8");
 	const configSchema = JSON.parse(schemaFile);
 
 	const ajv = new Ajv();
