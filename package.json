@@ -1,6 +1,6 @@
 {
   "name": "@algotia/core",
-  "version": "0.0.2-0",
+  "version": "0.0.2-1",
   "repository": "https://github.com/Algotia/Algotia",
   "description": "A technical analysis driven cryptocurrency trading and back-testing platform.",
   "main": "./dist/algotia.js",
