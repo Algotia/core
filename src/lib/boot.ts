@@ -15,7 +15,7 @@ export default async (userConfig: Config, options) => {
 
 		const bootData = {
 			config,
-			exchange
+			exchange,
 		};
 		return bootData;
 	} catch (err) {
@@ -49,7 +49,7 @@ const connectExchange = async (config: Config) => {
 		const exchange = new ccxt[exchangeId]({
 			apiKey,
 			secret: apiSecret,
-			timeout
+			timeout,
 		});
 
 		return exchange;
@@ -65,7 +65,7 @@ const connectStore = async () => {
 		const options = {
 			useUnifiedTopology: true,
 			serverSelectionTimeoutMS: 7500,
-			heartbeatFrequencyMS: 2000
+			heartbeatFrequencyMS: 2000,
 		};
 
 		const client = new MongoClient(url, options);
