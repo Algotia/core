@@ -49,7 +49,7 @@ const connectExchange = async (config: Config) => {
 		const { exchangeId, apiKey, apiSecret, timeout } = config.exchange;
 		const exchange = new ccxt[exchangeId]({
 			apiKey,
-			apiSecret,
+			secret: apiSecret,
 			timeout
 		});
 
