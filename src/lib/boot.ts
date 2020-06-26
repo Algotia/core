@@ -2,15 +2,14 @@ import ccxt from "ccxt";
 import fs from "fs";
 import Ajv from "ajv";
 import log from "fancy-log";
-import program from "commander";
 import { MongoClient } from "mongodb";
 
 import { bail } from "../utils/index";
 import { Config } from "../types/interfaces/config";
 
-export default async (userConfig: Config) => {
+export default async (userConfig: Config, options) => {
 	try {
-		const config = validateConfig(userConfig);
+		const config = validateConfig(userConfig, options.verbose);
 		const exchange = await connectExchange(config);
 		await connectStore();
 
@@ -24,7 +23,7 @@ export default async (userConfig: Config) => {
 	}
 };
 
-const validateConfig = (userConfig: Config) => {
+const validateConfig = (userConfig: Config, verbose: boolean) => {
 	// schema is generated at build-time with typescript-json-schema
 	const schemaFile = fs.readFileSync(`${__dirname}/../config/config.schema.json`, "utf8");
 	const configSchema = JSON.parse(schemaFile);
@@ -34,13 +33,13 @@ const validateConfig = (userConfig: Config) => {
 	const valid = validate(userConfig);
 
 	if (valid) {
-		if (program.verbose) log("Configuration validated");
+		if (verbose) log("Configuration validated");
 		return userConfig;
 	} else {
 		validate.errors.forEach((errObj) => {
-			log.error(`error while validating schema: ${errObj.dataPath}: ${errObj.message}`);
+			log.error(`Error while validating schema: ${errObj.dataPath}: ${errObj.message}`);
 		});
-		bail("Could not validate configuration file.");
+		bail("Schema invlaid");
 	}
 };
 
@@ -73,8 +72,7 @@ const connectStore = async () => {
 
 		await client.connect();
 
-		const db = client.db(dbname);
-		console.log(`Connected to ${db.databaseName} database`);
+		client.db(dbname);
 		await client.close();
 	} catch (err) {
 		if (err.message === "connect ECONNREFUSED 127.0.0.1:27017") {
