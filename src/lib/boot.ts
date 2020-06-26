@@ -64,7 +64,9 @@ const connectStore = async () => {
 		const url = "mongodb://localhost:27017";
 		const dbname = "algotia";
 		const options = {
-			useUnifiedTopology: true
+			useUnifiedTopology: true,
+			serverSelectionTimeoutMS: 7500,
+			heartbeatFrequencyMS: 2000
 		};
 
 		const client = new MongoClient(url, options);
@@ -75,6 +77,9 @@ const connectStore = async () => {
 		console.log(`Connected to ${db.databaseName} database`);
 		await client.close();
 	} catch (err) {
-		log.error("Error connecting to database: ", err);
+		if (err.message === "connect ECONNREFUSED 127.0.0.1:27017") {
+			bail("Ensure that the mongodb daemon process is running and open on port 27017.");
+		}
+		bail("Error connecting to database: ", err);
 	}
 };
