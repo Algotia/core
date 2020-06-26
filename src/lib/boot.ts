@@ -16,7 +16,7 @@ export default async (userConfig: Config) => {
 
 		const bootData = {
 			config,
-			exchange,
+			exchange
 		};
 		return bootData;
 	} catch (err) {
@@ -50,7 +50,7 @@ const connectExchange = async (config: Config) => {
 		const exchange = new ccxt[exchangeId]({
 			apiKey,
 			secret: apiSecret,
-			timeout,
+			timeout
 		});
 
 		return exchange;
@@ -65,11 +65,8 @@ const connectStore = async () => {
 		const dbname = "algotia";
 		const options = {
 			useUnifiedTopology: true,
-<<<<<<< HEAD
 			serverSelectionTimeoutMS: 7500,
 			heartbeatFrequencyMS: 2000
-=======
->>>>>>> 9ea6f505f3bc88451b7f11ecf40f4e0a0fc7d283
 		};
 
 		const client = new MongoClient(url, options);
