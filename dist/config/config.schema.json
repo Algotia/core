@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Config",
+  "definitions": {
+    "Config": {
+      "type": "object",
+      "properties": {
+        "exchange": {
+          "type": "object",
+          "properties": {
+            "exchangeId": {
+              "type": "string",
+              "description": "The name of the exchange you'd like to use. For now, must match an ID from https://github.com/ccxt/ccxt"
+            },
+            "apiKey": {
+              "type": "string",
+              "description": "API key from exchange."
+            },
+            "apiSecret": {
+              "type": "string",
+              "description": "API secret from exchange."
+            },
+            "timeout": {
+              "type": "number",
+              "description": "Timeout, as documented by ccxt."
+            }
+          },
+          "required": [
+            "exchangeId",
+            "apiKey",
+            "apiSecret"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "exchange"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
