@@ -16,6 +16,8 @@ jobs:
       uses: actions/checkout@v2
     - name: Setup Node.js environment
       uses: actions/setup-node@v1.4.2
+      with:
+        registry-url: 'https://npm.pkg.github.com'
     - name: Install dependencies
       run: npm ci
     - name: Build
@@ -23,7 +25,9 @@ jobs:
     - name: Run tests
       run: npm t
     - name: Publish to NPM
-      run: npm publish
-      env: # More info about the environment variables in the README
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Leave this as is, it's automatically generated
-        NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }} # You need to set this in your repo settings
+      run: npm publish --access public
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    - run: npm publish
+     env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
