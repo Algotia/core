@@ -12,10 +12,14 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-
+    - name: Checkout repository
+      uses: actions/checkout@v2
     - name: Setup Node.js environment
       uses: actions/setup-node@v1.4.2
     - run: npm ci
     - run: npm run build
-    - run: npm publish
+    - name: Publish to NPM
+      uses: pascalgn/npm-publish-action@4f4bf159e299f65d21cd1cbd96fc5d53228036df
+      env: # More info about the environment variables in the README
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Leave this as is, it's automatically generated
+        NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }} # You need to set this in your repo settings
