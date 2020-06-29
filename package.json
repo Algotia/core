@@ -5,7 +5,8 @@
   "description": "A technical analysis driven cryptocurrency trading and back-testing platform.",
   "main": "./dist/algotia.js",
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://npm.pkg.github.com/" 
   },
   "scripts": {
     "test": "jest",
