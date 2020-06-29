@@ -18,4 +18,4 @@ jobs:
       uses: actions/setup-node@v1.4.2
     - run: npm ci
     - run: npm run build
-    - run: npm run publish
+    - run: npm publish
