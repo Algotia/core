@@ -17,7 +17,7 @@ jobs:
     - name: Setup Node.js environment
       uses: actions/setup-node@v1.4.2
       with:
-        registry-url: 'https://npm.pkg.github.com'
+        registry-url: 'https://registry.npmjs.org'
     - name: Install dependencies
       run: npm ci
     - name: Build
@@ -28,6 +28,9 @@ jobs:
       run: npm publish --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    - uses: actions/setup-node@v1
+      with:
+        registry-url: 'https://npm.pkg.github.com'
     - run: npm publish
-     env:
+      env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
