@@ -16,5 +16,6 @@ jobs:
 
     - name: Setup Node.js environment
       uses: actions.setup-node@v1.4.2
-    - npm run publish
-
+    - run: npm ci
+    - run: npm run build
+    - run: npm run publish
