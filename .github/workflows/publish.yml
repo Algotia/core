@@ -26,13 +26,6 @@ jobs:
     - name: Run tests
       run: npm t
     - name: Publish to NPM
-      run: npm publish --access public
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-    - uses: actions/setup-node@v1
+      uses: JS-DevTools/npm-publish@v1 
       with:
-        registry-url: 'https://npm.pkg.github.com'
-        scope: '@algotia'
-    - run: npm publish
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.NPM_TOKEN }}
