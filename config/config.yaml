@@ -1,5 +1,0 @@
-exchange:
-    exchangeId: bitfinex 
-    apiKey: aWghiD363qvluW3Miygk3kgqA4q3UAt1C1VdrJgwSB1 
-    apiSecret: PYVtmww9v4fAy9kzj0ij5NNZgueM0D6STVCHkdgHB2k 
-    timeout: 3000
