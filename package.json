@@ -3,7 +3,7 @@
   "version": "0.0.2-10",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Algotia/cli.git"
+    "url": "git+https://github.com/Algotia/core.git"
   },
   "description": "A technical analysis driven cryptocurrency trading and back-testing platform.",
   "main": "./dist/algotia.js",
