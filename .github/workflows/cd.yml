@@ -54,8 +54,8 @@ jobs:
         scope: '@algotia/core'
     - name: Download build artifacts
       uses: actions/download-artifact@v1
-        with:
-          name: dist
+      with:
+        name: dist
     - name: Publish to GPR
       run: npm publish
       env: 
