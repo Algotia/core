@@ -1,22 +1,31 @@
-export default (timeframe: string) => {
-	const ammount = parseInt(timeframe.replace(/[^0-9\.]+/g, ""));
+// This function takes in an exchange timeframe (e.g. 1m, 5m, 1h, 1d, etc.)
+// and converts it into an object e.g. { unit: "minute", amount: 1}
+enum Unit {
+	Minute = "minute",
+	Hour = "hour",
+	Day = "day",
+	Week = "week"
+}
 
-	let unit;
+export default (timeframe: string): { unit: Unit; amount: number } => {
+	const amount: number = parseInt(timeframe.replace(/[^0-9\.]+/g, ""), 10);
+
+	let unit: Unit;
 
 	switch (timeframe.replace(/[0-9]/g, "")) {
 		case "m":
-			unit = "minute";
+			unit = Unit.Minute;
 			break;
 		case "h":
-			unit = "hour";
+			unit = Unit.Hour;
 			break;
 		case "d":
-			unit = "day";
+			unit = Unit.Day;
 			break;
 		case "w":
-			unit = "week";
+			unit = Unit.Week;
 			break;
 	}
 
-	return { unit, ammount };
+	return { unit, amount };
 };

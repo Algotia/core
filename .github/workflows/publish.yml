@@ -1,31 +1,49 @@
-name: Build, test, and publish
+name: Build, Test, and Publish
 
 on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
+  release:
+    types: [published]
 
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v2
     - name: Setup Node.js environment
       uses: actions/setup-node@v1.4.2
-      with:
-        registry-url: 'https://registry.npmjs.org'
-        scope: '@algotia'
     - name: Install dependencies
       run: npm ci
     - name: Build
       run: npm run build
     - name: Run tests
       run: npm t
+
+  publish_npm: 
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup Node.js environment
+      uses: actions/setup-node@v1.4.2
+      with:
+        registry-url: 'https://registry.npmjs.org'
+        scope: 'algotia'
     - name: Publish to NPM
       run: npm publish
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      env: 
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+  
+  publish_gpr:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup Node.js environment
+      uses: actions/setup-node@v1.4.2
+      with:
+        registry-url: 'https://npm.pkg.github.com/'
+        scope: '@algotia/core'
+    - name: Publish to GPR
+      run: npm publish
+      env: 
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
