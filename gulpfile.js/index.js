@@ -6,7 +6,7 @@ const copyFiles = require("./copyFiles");
 const generateFiles = require("./generateFiles");
 const watch = require("./watch");
 
-const build = series(clean, transpile, copyFiles, generateFiles);
+const build = series(clean, copyFiles, generateFiles, transpile);
 
 module.exports = {
 	clean,
@@ -14,5 +14,5 @@ module.exports = {
 	copyFiles,
 	generateFiles,
 	watch,
-	build,
+	build
 };

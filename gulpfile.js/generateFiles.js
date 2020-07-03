@@ -6,8 +6,8 @@ const path = require("path");
 function generateFiles(cb) {
 	// Generate JSON schema from config TS interface
 	const config = {
-		path: "src/types/interfaces/config.ts",
-		type: "*",
+		path: "src/types/config.ts",
+		type: "*"
 	};
 
 	const outputPath = process.cwd() + "/dist/config/config.schema.json";
