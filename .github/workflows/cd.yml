@@ -51,7 +51,7 @@ jobs:
       uses: actions/setup-node@v1.4.2
       with:
         registry-url: 'https://npm.pkg.github.com/'
-        scope: '@algotia/core'
+        scope: '@algotia'
     - name: Download build artifacts
       uses: actions/download-artifact@v1
       with:
