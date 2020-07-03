@@ -1,15 +1,15 @@
 {
   "name": "@algotia/core",
-  "version": "0.0.2-10",
+  "version": "0.0.2-11",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Algotia/cli.git"
+    "url": "git+https://github.com/Algotia/core.git"
   },
   "description": "A technical analysis driven cryptocurrency trading and back-testing platform.",
   "main": "./dist/algotia.js",
   "publishConfig": {
-    "access": "public",
-    "registry": "https://npm.pkg.github.com/" 
+    "registry": "https://npm.pkg.github.com/", 
+    "access": "public"
   },
   "scripts": {
     "test": "jest",
