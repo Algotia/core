@@ -1,4 +1,4 @@
-name: Build, Test, and Publish
+name: CD
 
 on:
   release:
@@ -17,6 +17,11 @@ jobs:
       run: npm run build
     - name: Run tests
       run: npm t
+    - name: Archive production artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: dist
+        path: dist/ 
 
   publish_npm: 
     needs: build
@@ -28,10 +33,14 @@ jobs:
       with:
         registry-url: 'https://registry.npmjs.org'
         scope: 'algotia'
+    - name: Download build artifacts
+      uses: actions/download-artifact@v1
+        with:
+          name: dist
     - name: Publish to NPM
       run: npm publish
       env: 
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   
   publish_gpr:
     needs: build
@@ -43,6 +52,10 @@ jobs:
       with:
         registry-url: 'https://npm.pkg.github.com/'
         scope: '@algotia/core'
+    - name: Download build artifacts
+      uses: actions/download-artifact@v1
+        with:
+          name: dist
     - name: Publish to GPR
       run: npm publish
       env: 
