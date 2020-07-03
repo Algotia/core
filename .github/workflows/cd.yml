@@ -35,8 +35,8 @@ jobs:
         scope: 'algotia'
     - name: Download build artifacts
       uses: actions/download-artifact@v1
-        with:
-          name: dist
+      with:
+        name: dist
     - name: Publish to NPM
       run: npm publish
       env: 
