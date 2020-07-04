@@ -8,7 +8,7 @@ import { ConfigInterface, BootOptions } from "../types/index";
 
 export default async (userConfig: any, bootOptions?: BootOptions) => {
 	try {
-		if (bootOptions && !bootOptions.errFn) bootOptions.errFn = log.error;
+		if (bootOptions && bootOptions.errFn === undefined) bootOptions.errFn = log.error;
 
 		const validateConfig = () => {
 			// schema is generated at build-time with typescript-json-schema
