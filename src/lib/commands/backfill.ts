@@ -1,22 +1,11 @@
-import { program } from "commander";
-import { MongoClient } from "mongodb";
+import { log } from "../../utils/index";
 import readline from "readline";
-import log from "fancy-log";
-import gray from "ansi-gray";
 import timestamp from "time-stamp";
 
-import { convertTimeFrame, sleep } from "../../utils/index";
+import { BackfillOptions } from "../../types/backfill";
+import { convertTimeFrame, convertDateToTimestamp, sleep } from "../../utils/index";
 
 //TODO: Probably should split some of these utility functions out as they will be useful in a bunch of other modules.
-
-interface Options {
-	since: number;
-	pair: string;
-	until: number;
-	period: string;
-	recordLimit: number;
-	name: string;
-}
 
 interface OHLCV {
 	timestamp: number;
@@ -37,21 +26,24 @@ const reshape = (arr: OHLCV[]) =>
 		volume: ohlcv[5]
 	}));
 
-export default async (exchange, opts: Options) => {
+export default async (exchange, opts: BackfillOptions) => {
 	try {
-		const { pair, until, period, name, since, recordLimit } = opts;
+		// set default error function if one was not passed
+		if (!opts.errFn) opts.errFn = log.error;
+
+		const { sinceInput, untilInput, recordLimit, period, pair, verbose } = opts;
+		const since = convertDateToTimestamp(sinceInput);
+		const until = convertDateToTimestamp(untilInput);
 
 		let sinceCursor = since;
 		let recordLimitCursor = recordLimit;
 
+		if (sinceCursor > until)
+			throw new Error("Invalid date: parameter since cannot be less than until.");
+
 		const allowedTimeframes = Object.keys(exchange.timeframes);
 		if (!allowedTimeframes.includes(period))
 			throw new Error("Period does not exist as an exchange timeframe");
-
-		if (sinceCursor > until)
-			throw new Error(
-				"Invalid date: parameter since cannot be less than until"
-			);
 
 		const unitsMs = {
 			minute: 60000,
@@ -59,87 +51,48 @@ export default async (exchange, opts: Options) => {
 			day: 86400000
 		};
 
-		const msDiff = until - since;
+		const timeBetween = until - since;
 		const { unit, amount } = convertTimeFrame(period);
 		const periodMs = unitsMs[unit] * amount;
 
-		let recrodsToFetch = Math.round(msDiff / periodMs);
+		let recrodsToFetch = Math.round(timeBetween / periodMs);
 
-		log.info(`Records to fetch ${recrodsToFetch}`);
+		verbose && log.info(`Records to fetch ${recrodsToFetch}`);
 
 		let allTrades = [];
 
-		await sleep(500);
+		await sleep(1000, opts.verbose);
 
 		while (recrodsToFetch) {
 			if (recordLimit > recrodsToFetch) recordLimitCursor = recrodsToFetch;
 
-			const rawOHLCV = await exchange.fetchOHLCV(
-				pair,
-				period,
-				since,
-				recordLimitCursor
-			);
+			const rawOHLCV = await exchange.fetchOHLCV(pair, period, since, recordLimitCursor);
 			const ohlcv = reshape(rawOHLCV);
 
 			sinceCursor = ohlcv[ohlcv.length - 1].timestamp + periodMs;
 
-			if (program.verbose) log(`Fetched ${ohlcv.length} records`);
-
-			readline.cursorTo(process.stdout, 0);
-			process.stdout.write(
-				`[${gray(
-					timestamp("HH:mm:ss")
-				)}] ${recrodsToFetch} records left to fetch...`
-			);
-
 			recrodsToFetch -= ohlcv.length;
 			allTrades = [...allTrades, ...ohlcv];
+
+			if (verbose) {
+				recrodsToFetch !== 0
+					? log.info(`${recrodsToFetch} records left to fetch.`)
+					: log.success(`0 records left to fetch.`);
+			}
 			// we should know what the rate limit of each exchange is.
-			await sleep(2000); // must sleep to avoid get rate limited on SOME EXCHANGES (check exchange API docs).
-		}
-		// empty console log clears writes the next output to stdout to a new line.
-		readline.cursorTo(process.stdout, 0);
-		process.stdout.write(
-			`[${gray(timestamp("HH:mm:ss"))}] 0 records left to fetch...`
-		);
-		console.log();
-
-		const dbUrl = "mongodb://localhost:27017";
-		const dbName = "algotia";
-		const dbOptions = {
-			useUnifiedTopology: true
-		};
-		const client = new MongoClient(dbUrl, dbOptions);
-
-		await client.connect();
-
-		const db = client.db(dbName);
-
-		const backfillCollection = db.collection("backfill");
-		const docCount = await backfillCollection.countDocuments();
-
-		let docName: string;
-		if (name) {
-			docName = name;
-		} else {
-			docName = `backfill-${docCount + 1}`;
+			await sleep(2000, opts.verbose); // must sleep to avoid get rate limited on SOME EXCHANGES (check exchange API docs).
+			// end while loop
 		}
 
 		const toBeInserted = {
-			name: docName,
 			period: period,
 			pair: pair,
 			since: since,
 			until: until,
 			records: allTrades
 		};
-
-		await backfillCollection.insertOne(toBeInserted);
-		log(`Wrote ${allTrades.length} records to ${docName}`);
-		client.close();
-		process.exit(0);
+		return toBeInserted;
 	} catch (err) {
-		log.error(err);
+		Promise.reject(new Error(err));
 	}
 };

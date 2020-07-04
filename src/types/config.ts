@@ -3,7 +3,7 @@
 in the build process (gulp/grunt task?)
 */
 
-export interface Config {
+export interface ConfigInterface {
 	exchange: ExchangeConfig;
 }
 
