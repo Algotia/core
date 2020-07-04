@@ -1,3 +1,4 @@
+import chalk from "chalk";
 // This command take in a string and attempts to convert it into a date
 // first tries to convert a JavaScript Date
 // then tries a unix timestamp
@@ -13,6 +14,8 @@ const convert = (input: any) => {
 		formatted = dateString;
 	} else if (unixString.valueOf()) {
 		formatted = unixString;
+	} else {
+		throw new Error(`Could not parse date from input ${input} `);
 	}
 
 	const utcString = formatted.toUTCString();
