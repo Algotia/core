@@ -8,8 +8,6 @@ import { ConfigInterface, BootOptions } from "../types/index";
 
 export default async (userConfig: any, bootOptions?: BootOptions) => {
 	try {
-		if (bootOptions && bootOptions.errFn === undefined) bootOptions.errFn = log.error;
-
 		const validateConfig = () => {
 			// schema is generated at build-time with typescript-json-schema
 			const tjsConfig = {
@@ -70,11 +68,11 @@ export default async (userConfig: any, bootOptions?: BootOptions) => {
 				if (verbose) await client.close();
 			} catch (err) {
 				if (err.message === "connect ECONNREFUSED 127.0.0.1:27017") {
-					bootOptions.errFn(
+					throw new Error(
 						"Ensure that the mongodb daemon process is running and open on port 27017."
 					);
 				}
-				bootOptions.errFn("Error connecting to database: ", err);
+				throw new Error("Error connecting to database: " + err);
 			}
 		};
 
