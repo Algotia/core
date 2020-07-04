@@ -31,4 +31,4 @@ test("Boot function", async () => {
 	} catch (err) {
 		fail(err);
 	}
-});
+}, 10000);
