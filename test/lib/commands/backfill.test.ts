@@ -3,6 +3,8 @@ import backfill from "../../../src/lib/commands/backfill";
 import { convertDateToTimestamp } from "../../../src/utils/index";
 import { BackfillOptions } from "../../../src/types/backfill";
 
+jest.setTimeout(10000);
+
 test("Backfill method", async () => {
 	try {
 		const _24hrBackfillOptions: BackfillOptions = {
