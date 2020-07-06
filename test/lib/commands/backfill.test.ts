@@ -1,7 +1,7 @@
 import ccxt from "ccxt";
 import backfill from "../../../src/lib/commands/backfill";
 import { convertDateToTimestamp } from "../../../src/utils/index";
-import { BackfillOptions } from "../../../src/types/backfill";
+import { BackfillOptions } from "../../../src/types/index";
 
 test("Backfill method", async () => {
 	try {

@@ -1,9 +1,5 @@
-import { log } from "../../utils/index";
-import readline from "readline";
-import timestamp from "time-stamp";
-
-import { BackfillOptions } from "../../types/backfill";
-import { convertTimeFrame, convertDateToTimestamp, sleep } from "../../utils/index";
+import { BackfillOptions } from "../../types/index";
+import { log, convertTimeFrame, convertDateToTimestamp, sleep } from "../../utils/index";
 
 //TODO: Probably should split some of these utility functions out as they will be useful in a bunch of other modules.
 

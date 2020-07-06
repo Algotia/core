@@ -1,9 +1,9 @@
-import { boot } from "../../src/algotia";
-
-import { ConfigInterface } from "../../src/types/index";
 import { Exchange } from "ccxt";
 
-const mockBootConfig: ConfigInterface = {
+import { boot } from "../../src/algotia";
+import { ConfigOptions } from "../../src/types/index";
+
+const mockBootConfig: ConfigOptions = {
 	exchange: {
 		exchangeId: "bitfinex",
 		apiKey: "some string",
@@ -21,13 +21,17 @@ const obviouslyFailingBootConfig = {
 	}
 };
 
+const bootOptions = {
+	noDbCheck: true
+};
+
 test("Boot function", async () => {
 	try {
-		//const bootData = await boot(mockBootConfig);
-		//expect(bootData.config).toStrictEqual(mockBootConfig);
-		//expect(bootData.exchange).toBeInstanceOf(Exchange);
+		const bootData = await boot(mockBootConfig, bootOptions);
+		expect(bootData.config).toStrictEqual(mockBootConfig);
+		expect(bootData.exchange).toBeInstanceOf(Exchange);
 
-		await expect(boot(obviouslyFailingBootConfig)).rejects.toThrow();
+		await expect(boot(obviouslyFailingBootConfig, bootOptions)).rejects.toThrow();
 	} catch (err) {
 		fail(err);
 	}
