@@ -1,5 +1,42 @@
-import { ConfigInterface } from "./config";
-import { BootOptions } from "./boot";
-import { BackfillOptions } from "./backfill";
+export interface ExchangeConfigOptionsInterface {
+	/**
+	 * The name of the exchange you'd like to use. For now, must match an ID from https://github.com/ccxt/ccxt
+	 */
+	exchangeId: string;
+	/**
+	 * API key from exchange.
+	 */
+	apiKey: string;
+	/**
+	 * API secret from exchange.
+	 */
+	apiSecret: string;
+	/**
+	 * Timeout, as documented by ccxt.
+	 */
+	timeout?: number;
+}
 
-export { ConfigInterface, BootOptions, BackfillOptions };
+export type ExchangeConfigOptions = ExchangeConfigOptionsInterface;
+
+export interface ConfigOptionsInterface {
+	exchange: ExchangeConfigOptions;
+}
+
+export type ConfigOptions = ConfigOptionsInterface;
+
+export interface BackfillOptions {
+	sinceInput: string | number;
+	untilInput?: string | number;
+	pair: string;
+	period?: string;
+	recordLimit?: number;
+	verbose?: boolean;
+	logger?: Function;
+	errFn: Function;
+}
+
+export interface BootOptions {
+	verbose?: boolean;
+	noDbCheck?: boolean;
+}

@@ -4,16 +4,16 @@ import { MongoClient } from "mongodb";
 import * as TJS from "ts-json-schema-generator";
 
 import { log } from "../utils/index";
-import { ConfigInterface, BootOptions } from "../types/index";
+import { ConfigOptions, BootOptions } from "../types/index";
 
 export default async (userConfig: any, bootOptions?: BootOptions) => {
 	try {
 		const validateConfig = () => {
 			// schema is generated at build-time with typescript-json-schema
 			const tjsConfig = {
-				path: "./src/types/config.ts",
+				path: "./src/types/index.ts",
 				tsconfig: "./tsconfig.json",
-				type: "ConfigInterface"
+				type: "ConfigOptions"
 			};
 
 			const schema = TJS.createGenerator(tjsConfig).createSchema(tjsConfig.type);
@@ -34,7 +34,7 @@ export default async (userConfig: any, bootOptions?: BootOptions) => {
 			return userConfig;
 		};
 
-		const connectExchange = async (config: ConfigInterface) => {
+		const connectExchange = async (config: ConfigOptions) => {
 			try {
 				const { exchangeId, apiKey, apiSecret, timeout } = config.exchange;
 				const exchange = new ccxt[exchangeId]({
@@ -76,9 +76,9 @@ export default async (userConfig: any, bootOptions?: BootOptions) => {
 			}
 		};
 
-		const config: ConfigInterface = validateConfig();
+		const config: ConfigOptions = validateConfig();
 		const exchange = await connectExchange(config);
-		await connectStore();
+		!bootOptions.noDbCheck && (await connectStore());
 
 		const bootData = {
 			config,
