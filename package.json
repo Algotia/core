@@ -1,10 +1,11 @@
 {
   "name": "@algotia/core",
-  "version": "0.0.2-12",
+  "version": "0.0.2-13",
   "author": "",
   "license": "ISC",
   "description": "A technical analysis driven cryptocurrency trading and back-testing platform.",
   "main": "./dist/algotia.js",
+  "typings": "./dist/algotia.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Algotia/core.git"
