@@ -1,6 +1,6 @@
 {
   "name": "@algotia/core",
-  "version": "0.0.2-11",
+  "version": "0.0.2-12",
   "author": "",
   "license": "ISC",
   "description": "A technical analysis driven cryptocurrency trading and back-testing platform.",
@@ -57,6 +57,7 @@
     "ncp": "^2.0.0",
     "prettier": "^2.0.5",
     "rimraf": "^3.0.2",
+    "ts-json-schema-generator": "^0.70.2",
     "ts-node": "^8.10.2",
     "ts-jest": "^26.1.1",
     "typescript": "^3.9.3",
