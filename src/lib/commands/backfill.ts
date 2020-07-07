@@ -1,4 +1,6 @@
+import { MongoClient } from "mongodb";
 import { BackfillOptions } from "../../types/index";
+import { Exchange } from "ccxt";
 import { log, convertTimeFrame, convertDateToTimestamp, sleep } from "../../utils/index";
 
 //TODO: Probably should split some of these utility functions out as they will be useful in a bunch of other modules.
@@ -12,22 +14,20 @@ interface OHLCV {
 	volume: number;
 }
 
-const reshape = (arr: OHLCV[]) =>
-	arr.map((ohlcv: OHLCV) => ({
-		timestamp: ohlcv[0],
-		open: ohlcv[1],
-		high: ohlcv[2],
-		low: ohlcv[3],
-		close: ohlcv[4],
-		volume: ohlcv[5]
+const reshape = (allBackFillsArr: number[][]): OHLCV[] =>
+	allBackFillsArr.map((OHLCVarr) => ({
+		timestamp: OHLCVarr[0],
+		open: OHLCVarr[1],
+		high: OHLCVarr[2],
+		low: OHLCVarr[3],
+		close: OHLCVarr[4],
+		volume: OHLCVarr[5]
 	}));
 
-export default async (exchange, opts: BackfillOptions) => {
+export default async (exchange: Exchange, opts: BackfillOptions) => {
 	try {
 		// set default error function if one was not passed
-		if (!opts.errFn) opts.errFn = log.error;
-
-		const { sinceInput, untilInput, recordLimit, period, pair, verbose } = opts;
+		const { sinceInput, untilInput, recordLimit, period, pair, documentName, verbose } = opts;
 		const since = convertDateToTimestamp(sinceInput);
 		const until = convertDateToTimestamp(untilInput);
 
@@ -62,7 +62,7 @@ export default async (exchange, opts: BackfillOptions) => {
 		while (recrodsToFetch) {
 			if (recordLimit > recrodsToFetch) recordLimitCursor = recrodsToFetch;
 
-			const rawOHLCV = await exchange.fetchOHLCV(pair, period, since, recordLimitCursor);
+			const rawOHLCV = await exchange.fetchOHLCV(pair, period, sinceCursor, recordLimitCursor);
 			const ohlcv = reshape(rawOHLCV);
 
 			sinceCursor = ohlcv[ohlcv.length - 1].timestamp + periodMs;
@@ -79,14 +79,40 @@ export default async (exchange, opts: BackfillOptions) => {
 			await sleep(2000, opts.verbose); // must sleep to avoid get rate limited on SOME EXCHANGES (check exchange API docs).
 			// end while loop
 		}
+		const dbUrl = "mongodb://localhost:27017";
+		const dbName = "algotia";
+		const dbOptions = {
+			useUnifiedTopology: true
+		};
+		const client = new MongoClient(dbUrl, dbOptions);
+
+		await client.connect();
+
+		const db = client.db(dbName);
+
+		const backfillCollection = db.collection("backfill");
+		const docCount = await backfillCollection.countDocuments();
+
+		let docName: string;
+
+		if (documentName) {
+			docName = name;
+		} else {
+			docName = `backfill-${docCount + 1}`;
+		}
 
 		const toBeInserted = {
 			period: period,
 			pair: pair,
 			since: since,
 			until: until,
-			records: allTrades
+			records: allTrades,
+			documentName: docName
 		};
+
+		await backfillCollection.insertOne(toBeInserted);
+		await client.close();
+
 		return toBeInserted;
 	} catch (err) {
 		Promise.reject(new Error(err));

@@ -78,7 +78,7 @@ export default async (userConfig: any, bootOptions?: BootOptions) => {
 
 		const config: ConfigOptions = validateConfig();
 		const exchange = await connectExchange(config);
-		!bootOptions.noDbCheck && (await connectStore());
+		await connectStore();
 
 		const bootData = {
 			config,

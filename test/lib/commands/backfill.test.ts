@@ -10,8 +10,7 @@ test("Backfill method", async () => {
 			untilInput: "12/06/2019 12:00 PST",
 			pair: "BTC/USD",
 			period: "1h",
-			recordLimit: 30,
-			errFn: console.log
+			recordLimit: 30
 		};
 
 		const BitfinexTestExchange = new ccxt.bitfinex({
@@ -32,6 +31,6 @@ test("Backfill method", async () => {
 			convertDateToTimestamp(_24hrBackfillOptions.untilInput)
 		);
 	} catch (err) {
-		fail(err);
+		Promise.reject(new Error(err));
 	}
 }, 10000);
