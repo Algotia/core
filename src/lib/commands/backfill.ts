@@ -96,7 +96,7 @@ export default async (exchange: Exchange, opts: BackfillOptions) => {
 		let docName: string;
 
 		if (documentName) {
-			docName = name;
+			docName = documentName;
 		} else {
 			docName = `backfill-${docCount + 1}`;
 		}
