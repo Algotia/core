@@ -31,12 +31,10 @@ export interface BackfillOptions {
 	pair: string;
 	period?: string;
 	recordLimit?: number;
+	documentName?: string;
 	verbose?: boolean;
-	logger?: Function;
-	errFn: Function;
 }
 
 export interface BootOptions {
 	verbose?: boolean;
-	noDbCheck?: boolean;
 }

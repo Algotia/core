@@ -21,17 +21,15 @@ const obviouslyFailingBootConfig = {
 	}
 };
 
-const bootOptions = {
-	noDbCheck: true
-};
-
 test("Boot function", async () => {
 	try {
-		const bootData = await boot(mockBootConfig, bootOptions);
+		// TODO: Write a test that checks the first and last timestamp
+		// of the backfill to ensure that the proper records were backfilled
+		const bootData = await boot(mockBootConfig);
 		expect(bootData.config).toStrictEqual(mockBootConfig);
 		expect(bootData.exchange).toBeInstanceOf(Exchange);
 
-		await expect(boot(obviouslyFailingBootConfig, bootOptions)).rejects.toThrow();
+		await expect(boot(obviouslyFailingBootConfig)).rejects.toThrow();
 	} catch (err) {
 		fail(err);
 	}
