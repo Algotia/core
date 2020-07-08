@@ -30,6 +30,7 @@
     "commander": "^5.1.0",
     "fancy-log": "^1.3.3",
     "find": "^0.3.0",
+    "inquirer": "^7.3.0",
     "mongodb": "^3.5.9",
     "time-stamp": "^2.2.0",
     "ts-json-schema-generator": "^0.70.2",
@@ -37,8 +38,9 @@
   },
   "devDependencies": {
     "@adobe/jsonschema2md": "^4.0.0",
-    "@types/jest": "^26.0.3",
     "@types/fancy-log": "^1.3.1",
+    "@types/inquirer": "^6.5.0",
+    "@types/jest": "^26.0.3",
     "@types/mongodb": "^3.5.25",
     "@types/node": "^14.0.9",
     "@types/ws": "^7.2.5",
@@ -58,9 +60,9 @@
     "ncp": "^2.0.0",
     "prettier": "^2.0.5",
     "rimraf": "^3.0.2",
+    "ts-jest": "^26.1.1",
     "ts-json-schema-generator": "^0.70.2",
     "ts-node": "^8.10.2",
-    "ts-jest": "^26.1.1",
     "typescript": "^3.9.3",
     "typescript-json-schema": "^0.42.0"
   }

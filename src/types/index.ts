@@ -23,6 +23,18 @@ export interface ConfigOptionsInterface {
 	exchange: ExchangeConfigOptions;
 }
 
+export interface ListOptionsInterface {
+	pretty?: boolean;
+}
+
+export type ListOptions = ListOptionsInterface;
+
+export interface DeleteOptionsInterface {
+	verbose?: boolean;
+}
+
+export type DeleteOptions = DeleteOptionsInterface;
+
 export type ConfigOptions = ConfigOptionsInterface;
 
 export interface BackfillOptions {
