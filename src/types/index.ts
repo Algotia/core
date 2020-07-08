@@ -1,27 +1,25 @@
-export interface ExchangeConfigOptionsInterface {
-	/**
-	 * The name of the exchange you'd like to use. For now, must match an ID from https://github.com/ccxt/ccxt
-	 */
-	exchangeId: string;
-	/**
-	 * API key from exchange.
-	 */
-	apiKey: string;
-	/**
-	 * API secret from exchange.
-	 */
-	apiSecret: string;
-	/**
-	 * Timeout, as documented by ccxt.
-	 */
-	timeout?: number;
-}
-
-export type ExchangeConfigOptions = ExchangeConfigOptionsInterface;
-
 export interface ConfigOptionsInterface {
-	exchange: ExchangeConfigOptions;
+	exchange: {
+		/**
+		 * The name of the exchange you'd like to use. For now, must match an ID from https://github.com/ccxt/ccxt
+		 */
+		exchangeId: string;
+		/**
+		 * API key from exchange.
+		 */
+		apiKey: string;
+		/**
+		 * API secret from exchange.
+		 */
+		apiSecret: string;
+		/**
+		 * Timeout, as documented by ccxt.
+		 */
+		timeout?: number;
+	};
 }
+
+export type ConfigOptions = ConfigOptionsInterface;
 
 export interface ListOptionsInterface {
 	pretty?: boolean;
@@ -34,8 +32,6 @@ export interface DeleteOptionsInterface {
 }
 
 export type DeleteOptions = DeleteOptionsInterface;
-
-export type ConfigOptions = ConfigOptionsInterface;
 
 export interface BackfillOptions {
 	sinceInput: string | number;
@@ -50,3 +46,24 @@ export interface BackfillOptions {
 export interface BootOptions {
 	verbose?: boolean;
 }
+
+// numbers are stored as strings in mongo.
+export interface OHLCV {
+	timestamp: string;
+	open: string;
+	high: string;
+	low: string;
+	close: string;
+	volume: string;
+}
+
+export interface BackfillDocumentInterface {
+	name: string;
+	period: string;
+	pair: string;
+	since: string;
+	until: string;
+	records: OHLCV[];
+}
+
+export type BackfillDocument = BackfillDocumentInterface;
