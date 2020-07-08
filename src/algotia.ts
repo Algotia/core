@@ -1,5 +1,5 @@
 import boot from "./lib/boot";
-import { backfill } from "./lib/commands/index";
+import { backfill, backfills } from "./lib/commands/index";
 import {
 	BootOptions,
 	BackfillOptions,
@@ -9,8 +9,11 @@ import {
 } from "./types/index";
 
 export {
+	// methods
 	boot,
 	backfill,
+	backfills,
+	// types
 	BootOptions,
 	BackfillOptions,
 	ExchangeConfigOptions,
