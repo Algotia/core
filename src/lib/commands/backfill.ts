@@ -1,18 +1,9 @@
 import { MongoClient } from "mongodb";
-import { BackfillOptions } from "../../types/index";
 import { Exchange } from "ccxt";
+import { BackfillOptions, OHLCV } from "../../types/index";
 import { log, convertTimeFrame, convertDateToTimestamp, sleep } from "../../utils/index";
 
 //TODO: Probably should split some of these utility functions out as they will be useful in a bunch of other modules.
-
-interface OHLCV {
-	timestamp: number;
-	open: number;
-	high: number;
-	low: number;
-	close: number;
-	volume: number;
-}
 
 const reshape = (allBackFillsArr: number[][]): OHLCV[] =>
 	allBackFillsArr.map((OHLCVarr) => ({
@@ -102,12 +93,12 @@ export default async (exchange: Exchange, opts: BackfillOptions) => {
 		}
 
 		const toBeInserted = {
+			name: docName,
 			period: period,
 			pair: pair,
 			since: since,
 			until: until,
-			records: allTrades,
-			documentName: docName
+			records: allTrades
 		};
 
 		await backfillCollection.insertOne(toBeInserted);

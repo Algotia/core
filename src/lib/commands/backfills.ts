@@ -1,8 +1,8 @@
 import { MongoClient } from "mongodb";
 import log from "fancy-log";
 import chalk from "chalk";
-import inquirer from "inquirer";
-import { ListOptions, DeleteOptions } from "../../types/index";
+
+import { ListOptions, DeleteOptions, OHLCV, BackfillDocument } from "../../types/index";
 import { bail, log as logger } from "../../utils/index";
 
 const { success, info } = logger;
@@ -30,13 +30,14 @@ const connect = async () => {
 };
 
 // Format metadata for console.table
-function BackfillRow(data) {
+
+function BackfillRow(data: BackfillDocument) {
 	function format(str: string) {
 		const num = parseInt(str, 10);
 		return new Date(num).toLocaleString();
 	}
-	const { documentName, period, pair, since, until } = data;
-	this.document_name = documentName;
+	const { name, period, pair, since, until } = data;
+	this["name"] = name;
 	this.records = data.records.length;
 	this.period = period;
 	this.pair = pair;
@@ -44,33 +45,13 @@ function BackfillRow(data) {
 	this["until (formatted)"] = format(until);
 }
 
-const confirmDangerous = async (documentsAffected?: number) => {
-	try {
-		const question = [
-			{
-				type: "confirm",
-				name: "proceedDangerous",
-				message: `The following operation affects ${documentsAffected} ${
-					documentsAffected > 1 ? "documents" : "document"
-				} and is destructive. Continue?`,
-				default: false
-			}
-		];
-		const answer = await inquirer.prompt(question);
-
-		return answer;
-	} catch (err) {
-		return Promise.reject(new Error(err));
-	}
-};
-
-// End utility functions
-
 const listOne = async (documentName: string, options: ListOptions) => {
 	try {
 		const { client, backfillCollection } = await connect();
 		const { pretty } = options;
-		const oneBackfill = await backfillCollection.find({ documentName: documentName }).toArray();
+		const oneBackfill = await backfillCollection
+			.find({ name: name }, { projection: { _id: 0 } })
+			.toArray();
 
 		if (oneBackfill.length !== 0) {
 			if (pretty) {
@@ -95,7 +76,8 @@ const listAll = async (options: ListOptions) => {
 	try {
 		const { pretty } = options;
 		const { client, backfillCollection } = await connect();
-		const allBackfills = backfillCollection.find({});
+
+		const allBackfills = backfillCollection.find({}, { projection: { _id: 0 } });
 		const backfillsArr = await allBackfills.toArray();
 
 		if (backfillsArr.length) {
@@ -128,17 +110,18 @@ const deleteAll = async (options: DeleteOptions) => {
 		const backfillsArr = await allBackfills.toArray();
 		const { length } = backfillsArr;
 		if (length) {
-			const proceed = await confirmDangerous(length);
-			if (proceed && verbose) {
+			if (verbose) {
 				info("Deleting the following documents:");
 				backfillsArr.forEach((doc) => {
-					console.log("     " + doc.documentName);
+					console.log("     " + doc.name);
 				});
-				await backfillCollection.drop();
-				success(`Deleted ${length} ${length > 1 ? "documents" : "document"} from the database.`);
-			} else {
-				bail(`Bailed out of deleting ${length} documents`);
 			}
+			await backfillCollection.drop();
+			success(`Deleted ${length} ${length > 1 ? "documents" : "document"} from the database.`);
+			await client.close();
+		} else {
+			await client.close();
+			bail(`No documents to delete.`);
 		}
 
 		await client.close();
@@ -155,14 +138,9 @@ const deleteOne = async (documentName: string, options: DeleteOptions) => {
 		const backfillsArr = await oneBackfill.toArray();
 		const { length } = backfillsArr;
 		if (length) {
-			const proceed = await confirmDangerous(length);
-			if (proceed) {
-				if (verbose) info(`Deleting ${documentName}`);
-				await backfillCollection.deleteOne({ name: documentName });
-				success(`Deleted document ${documentName} from the database.`);
-			} else {
-				bail(`Bailed out of deleting document ${documentName}`);
-			}
+		  if (verbose) info(`Deleting ${documentName}`);
+			await backfillCollection.deleteOne({ name: documentName });
+			success(`Deleted document ${documentName} from the database.`);
 		} else {
 			bail(`No documents name ${documentName}.`);
 		}

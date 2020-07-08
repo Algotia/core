@@ -2,13 +2,17 @@ import ccxt from "ccxt";
 import Ajv from "ajv";
 import { MongoClient } from "mongodb";
 import * as TJS from "ts-json-schema-generator";
+import { Exchange } from "ccxt";
 
 import { log } from "../utils/index";
-import { ConfigOptions, BootOptions } from "../types/index";
+import { ConfigOptionsInterface, BootOptions } from "../types/index";
 
-export default async (userConfig: any, bootOptions?: BootOptions) => {
+export default async (
+	userConfig: any,
+	bootOptions?: BootOptions
+): Promise<{ config: ConfigOptionsInterface; exchange: Exchange }> => {
 	try {
-		const validateConfig = () => {
+		const validateConfig = (config: any): ConfigOptionsInterface => {
 			// schema is generated at build-time with typescript-json-schema
 			const tjsConfig = {
 				path: "./src/types/index.ts",
@@ -20,7 +24,7 @@ export default async (userConfig: any, bootOptions?: BootOptions) => {
 
 			const ajv = new Ajv({ allErrors: true });
 			const validate = ajv.compile(schema);
-			const valid = validate(userConfig);
+			const valid = validate(config);
 
 			if (valid) return userConfig;
 			if (!valid) {
@@ -34,7 +38,7 @@ export default async (userConfig: any, bootOptions?: BootOptions) => {
 			return userConfig;
 		};
 
-		const connectExchange = async (config: ConfigOptions) => {
+		const connectExchange = async (config: ConfigOptionsInterface): Promise<Exchange> => {
 			try {
 				const { exchangeId, apiKey, apiSecret, timeout } = config.exchange;
 				const exchange = new ccxt[exchangeId]({
@@ -49,7 +53,7 @@ export default async (userConfig: any, bootOptions?: BootOptions) => {
 			}
 		};
 
-		const connectStore = async (verbose?: boolean) => {
+		const connectStore = async (verbose?: boolean): Promise<void> => {
 			try {
 				const url = "mongodb://localhost:27017";
 				const dbname = "algotia";
@@ -76,8 +80,8 @@ export default async (userConfig: any, bootOptions?: BootOptions) => {
 			}
 		};
 
-		const config: ConfigOptions = validateConfig();
-		const exchange = await connectExchange(config);
+		const config: ConfigOptionsInterface = validateConfig(userConfig);
+		const exchange: Exchange = await connectExchange(config);
 		await connectStore();
 
 		const bootData = {
