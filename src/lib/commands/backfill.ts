@@ -1,6 +1,6 @@
 import { MongoClient } from "mongodb";
-import { BackfillOptions } from "../../types/index";
 import { Exchange } from "ccxt";
+import { BackfillOptions, OHLCV } from "../../types/index";
 import { log, convertTimeFrame, convertDateToTimestamp, sleep } from "../../utils/index";
 
 //TODO: Probably should split some of these utility functions out as they will be useful in a bunch of other modules.

@@ -49,12 +49,12 @@ export interface BootOptions {
 
 // numbers are stored as strings in mongo.
 export interface OHLCV {
-	timestamp: string;
-	open: string;
-	high: string;
-	low: string;
-	close: string;
-	volume: string;
+	timestamp: string | number;
+	open: string | number;
+	high: string | number;
+	low: string | number;
+	close: string | number;
+	volume: string | number;
 }
 
 export interface BackfillDocumentInterface {
