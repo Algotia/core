@@ -1,6 +1,7 @@
 import { MongoClient } from "mongodb";
 import log from "fancy-log";
 import chalk from "chalk";
+
 import { ListOptions, DeleteOptions, OHLCV, BackfillDocument } from "../../types/index";
 import { bail, log as logger } from "../../utils/index";
 
@@ -29,6 +30,7 @@ const connect = async () => {
 };
 
 // Format metadata for console.table
+
 function BackfillRow(data: BackfillDocument) {
 	function format(str: string) {
 		const num = parseInt(str, 10);
@@ -42,8 +44,6 @@ function BackfillRow(data: BackfillDocument) {
 	this["since (formatted)"] = format(since);
 	this["until (formatted)"] = format(until);
 }
-
-// End utility functions
 
 const listOne = async (documentName: string, options: ListOptions) => {
 	try {
@@ -76,6 +76,7 @@ const listAll = async (options: ListOptions) => {
 	try {
 		const { pretty } = options;
 		const { client, backfillCollection } = await connect();
+
 		const allBackfills = backfillCollection.find({}, { projection: { _id: 0 } });
 		const backfillsArr = await allBackfills.toArray();
 
@@ -137,7 +138,7 @@ const deleteOne = async (documentName: string, options: DeleteOptions) => {
 		const backfillsArr = await oneBackfill.toArray();
 		const { length } = backfillsArr;
 		if (length) {
-			if (verbose) info(`Deleting ${documentName}`);
+		  if (verbose) info(`Deleting ${documentName}`);
 			await backfillCollection.deleteOne({ name: documentName });
 			success(`Deleted document ${documentName} from the database.`);
 		} else {
