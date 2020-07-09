@@ -5,6 +5,15 @@ import { log, convertTimeFrame, convertDateToTimestamp, sleep } from "../../util
 
 //TODO: Probably should split some of these utility functions out as they will be useful in a bunch of other modules.
 
+interface BackfillResults {
+	name: string;
+	period: string;
+	pair: string;
+	since: number;
+	until: number;
+	records: OHLCV[];
+}
+
 const reshape = (allBackFillsArr: number[][]): OHLCV[] =>
 	allBackFillsArr.map((OHLCVarr) => ({
 		timestamp: OHLCVarr[0],
@@ -15,15 +24,19 @@ const reshape = (allBackFillsArr: number[][]): OHLCV[] =>
 		volume: OHLCVarr[5]
 	}));
 
-export default async (exchange: Exchange, opts: BackfillOptions) => {
+export default async (exchange: Exchange, opts: BackfillOptions): Promise<BackfillResults> => {
 	try {
-		// set default error function if one was not passed
 		const { sinceInput, untilInput, recordLimit, period, pair, documentName, verbose } = opts;
 		const since = convertDateToTimestamp(sinceInput);
 		const until = convertDateToTimestamp(untilInput);
-
 		let sinceCursor = since;
 		let recordLimitCursor = recordLimit;
+
+		// initial error checking
+
+		if (since === 0 || until === 0) {
+			throw new Error("Invalid date input");
+		}
 
 		if (sinceCursor > until)
 			throw new Error("Invalid date: parameter since cannot be less than until.");
@@ -92,7 +105,7 @@ export default async (exchange: Exchange, opts: BackfillOptions) => {
 			docName = `backfill-${docCount + 1}`;
 		}
 
-		const toBeInserted = {
+		const toBeInserted: BackfillResults = {
 			name: docName,
 			period: period,
 			pair: pair,
@@ -103,9 +116,8 @@ export default async (exchange: Exchange, opts: BackfillOptions) => {
 
 		await backfillCollection.insertOne(toBeInserted);
 		await client.close();
-
 		return toBeInserted;
 	} catch (err) {
-		Promise.reject(new Error(err));
+		return Promise.reject(err);
 	}
 };

@@ -7,11 +7,11 @@ export interface ConfigOptionsInterface {
 		/**
 		 * API key from exchange.
 		 */
-		apiKey: string;
+		apiKey?: string;
 		/**
 		 * API secret from exchange.
 		 */
-		apiSecret: string;
+		apiSecret?: string;
 		/**
 		 * Timeout, as documented by ccxt.
 		 */
@@ -34,8 +34,8 @@ export interface DeleteOptionsInterface {
 export type DeleteOptions = DeleteOptionsInterface;
 
 export interface BackfillOptions {
-	sinceInput: string | number;
-	untilInput?: string | number;
+	sinceInput: string;
+	untilInput?: string;
 	pair: string;
 	period?: string;
 	recordLimit?: number;
