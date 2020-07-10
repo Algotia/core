@@ -1,18 +1,9 @@
 import { MongoClient } from "mongodb";
 import { Exchange } from "ccxt";
-import { BackfillOptions, OHLCV } from "../../types/index";
-import { log, convertTimeFrame, convertDateToTimestamp, sleep } from "../../utils/index";
+import { BackfillOptions, OHLCV, BackfillResults } from "../../types/index";
+import { log, convertTimeFrame, convertDateToTimestamp, sleep, msUnits } from "../../utils/index";
 
 //TODO: Probably should split some of these utility functions out as they will be useful in a bunch of other modules.
-
-interface BackfillResults {
-	name: string;
-	period: string;
-	pair: string;
-	since: number;
-	until: number;
-	records: OHLCV[];
-}
 
 const reshape = (allBackFillsArr: number[][]): OHLCV[] =>
 	allBackFillsArr.map((OHLCVarr) => ({
@@ -45,15 +36,9 @@ export default async (exchange: Exchange, opts: BackfillOptions): Promise<Backfi
 		if (!allowedTimeframes.includes(period))
 			throw new Error("Period does not exist as an exchange timeframe");
 
-		const unitsMs = {
-			minute: 60000,
-			hour: 3600000,
-			day: 86400000
-		};
-
 		const timeBetween = until - since;
 		const { unit, amount } = convertTimeFrame(period);
-		const periodMs = unitsMs[unit] * amount;
+		const periodMs = msUnits[unit] * amount;
 
 		const recordsBetween = Math.round(timeBetween / periodMs);
 		let recrodsToFetch = recordsBetween;

@@ -146,6 +146,8 @@ const deleteOne = async (documentName: string, options: DeleteOptions) => {
 		}
 
 		await client.close();
+
+		return backfillsArr;
 	} catch (err) {
 		return Promise.reject(new Error(err));
 	}
