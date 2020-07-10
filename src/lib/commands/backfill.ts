@@ -1,7 +1,7 @@
 import { MongoClient } from "mongodb";
 import { Exchange } from "ccxt";
-import { BackfillOptions, OHLCV } from "../../types/index";
-import { log, convertTimeFrame, convertDateToTimestamp, sleep } from "../../utils/index";
+import { BackfillOptions, OHLCV, BackfillResults } from "../../types/index";
+import { log, convertTimeFrame, convertDateToTimestamp, sleep, msUnits } from "../../utils/index";
 
 //TODO: Probably should split some of these utility functions out as they will be useful in a bunch of other modules.
 
@@ -15,15 +15,19 @@ const reshape = (allBackFillsArr: number[][]): OHLCV[] =>
 		volume: OHLCVarr[5]
 	}));
 
-export default async (exchange: Exchange, opts: BackfillOptions) => {
+export default async (exchange: Exchange, opts: BackfillOptions): Promise<BackfillResults> => {
 	try {
-		// set default error function if one was not passed
 		const { sinceInput, untilInput, recordLimit, period, pair, documentName, verbose } = opts;
 		const since = convertDateToTimestamp(sinceInput);
 		const until = convertDateToTimestamp(untilInput);
-
 		let sinceCursor = since;
 		let recordLimitCursor = recordLimit;
+
+		// initial error checking
+
+		if (since === 0 || until === 0) {
+			throw new Error("Invalid date input");
+		}
 
 		if (sinceCursor > until)
 			throw new Error("Invalid date: parameter since cannot be less than until.");
@@ -32,17 +36,12 @@ export default async (exchange: Exchange, opts: BackfillOptions) => {
 		if (!allowedTimeframes.includes(period))
 			throw new Error("Period does not exist as an exchange timeframe");
 
-		const unitsMs = {
-			minute: 60000,
-			hour: 3600000,
-			day: 86400000
-		};
-
 		const timeBetween = until - since;
 		const { unit, amount } = convertTimeFrame(period);
-		const periodMs = unitsMs[unit] * amount;
+		const periodMs = msUnits[unit] * amount;
 
-		let recrodsToFetch = Math.round(timeBetween / periodMs);
+		const recordsBetween = Math.round(timeBetween / periodMs);
+		let recrodsToFetch = recordsBetween;
 
 		verbose && log.info(`Records to fetch ${recrodsToFetch}`);
 
@@ -64,7 +63,7 @@ export default async (exchange: Exchange, opts: BackfillOptions) => {
 			if (verbose) {
 				recrodsToFetch !== 0
 					? log.info(`${recrodsToFetch} records left to fetch.`)
-					: log.success(`0 records left to fetch.`);
+					: log.success(`Fetched ${recordsBetween} records.`);
 			}
 			// we should know what the rate limit of each exchange is.
 			await sleep(2000, opts.verbose); // must sleep to avoid get rate limited on SOME EXCHANGES (check exchange API docs).
@@ -92,7 +91,7 @@ export default async (exchange: Exchange, opts: BackfillOptions) => {
 			docName = `backfill-${docCount + 1}`;
 		}
 
-		const toBeInserted = {
+		const toBeInserted: BackfillResults = {
 			name: docName,
 			period: period,
 			pair: pair,
@@ -102,10 +101,15 @@ export default async (exchange: Exchange, opts: BackfillOptions) => {
 		};
 
 		await backfillCollection.insertOne(toBeInserted);
-		await client.close();
 
+		verbose &&
+			log.success(
+				`Wrote document with name ${docName} to collection ${backfillCollection.collectionName}`
+			);
+
+		await client.close();
 		return toBeInserted;
 	} catch (err) {
-		Promise.reject(new Error(err));
+		return Promise.reject(err);
 	}
 };

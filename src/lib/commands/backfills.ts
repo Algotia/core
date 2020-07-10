@@ -138,7 +138,7 @@ const deleteOne = async (documentName: string, options: DeleteOptions) => {
 		const backfillsArr = await oneBackfill.toArray();
 		const { length } = backfillsArr;
 		if (length) {
-		  if (verbose) info(`Deleting ${documentName}`);
+			if (verbose) info(`Deleting ${documentName}`);
 			await backfillCollection.deleteOne({ name: documentName });
 			success(`Deleted document ${documentName} from the database.`);
 		} else {
@@ -146,6 +146,8 @@ const deleteOne = async (documentName: string, options: DeleteOptions) => {
 		}
 
 		await client.close();
+
+		return backfillsArr;
 	} catch (err) {
 		return Promise.reject(new Error(err));
 	}

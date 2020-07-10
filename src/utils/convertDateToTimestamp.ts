@@ -1,28 +1,28 @@
-import chalk from "chalk";
-// This command take in a string and attempts to convert it into a date
+// This function take in a string and attempts to convert it into a date
 // first tries to convert a JavaScript Date
 // then tries a unix timestamp
 
-// should probably create an interface for this
-const convert = (input: any) => {
-	const unixString = new Date(Number(input));
-	const dateString = new Date(input);
+export default (input: string): number => {
+	const numFromInput = Number(input);
 
-	let formatted: Date;
+	let date: Date;
 
-	if (dateString.valueOf()) {
-		formatted = dateString;
-	} else if (unixString.valueOf()) {
-		formatted = unixString;
+	const checkIfNan = (num: number): boolean => Object.is(NaN, num);
+
+	if (checkIfNan(numFromInput)) {
+		// Input is a string
+		date = new Date(input);
 	} else {
-		throw new Error(`Could not parse date from input ${input} `);
+		// Input is a number
+		date = new Date(numFromInput);
 	}
 
-	const utcString = formatted.toUTCString();
-
-	const parsedInput = Date.parse(utcString);
-
-	return parsedInput;
+	if (checkIfNan(date.valueOf())) {
+		// Invalid date
+		return 0;
+	} else {
+		// Valid date
+		const timestamp = date.getTime();
+		return timestamp;
+	}
 };
-
-export default convert;

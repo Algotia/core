@@ -1,4 +1,4 @@
-import convertTimeFrame from "../../src/utils/convertTimeFrame";
+import { convertTimeFrame } from "../../src/utils/index";
 
 test("Convert time frame", () => {
 	const create = (str: string, unit: string, amount: number) => ({

@@ -1,4 +1,4 @@
-export interface ConfigOptionsInterface {
+export interface IConfigOptions {
 	exchange: {
 		/**
 		 * The name of the exchange you'd like to use. For now, must match an ID from https://github.com/ccxt/ccxt
@@ -7,11 +7,11 @@ export interface ConfigOptionsInterface {
 		/**
 		 * API key from exchange.
 		 */
-		apiKey: string;
+		apiKey?: string;
 		/**
 		 * API secret from exchange.
 		 */
-		apiSecret: string;
+		apiSecret?: string;
 		/**
 		 * Timeout, as documented by ccxt.
 		 */
@@ -19,36 +19,46 @@ export interface ConfigOptionsInterface {
 	};
 }
 
-export type ConfigOptions = ConfigOptionsInterface;
+export type ConfigOptions = IConfigOptions;
 
-export interface ListOptionsInterface {
+export interface IListOptions {
 	pretty?: boolean;
 }
 
-export type ListOptions = ListOptionsInterface;
+export type ListOptions = IListOptions;
 
-export interface DeleteOptionsInterface {
+export interface IDeleteOptions {
 	verbose?: boolean;
 }
 
-export type DeleteOptions = DeleteOptionsInterface;
+export type DeleteOptions = IDeleteOptions;
 
 export interface BackfillOptions {
-	sinceInput: string | number;
-	untilInput?: string | number;
+	sinceInput: string;
+	untilInput?: string;
 	pair: string;
 	period?: string;
 	recordLimit?: number;
 	documentName?: string;
 	verbose?: boolean;
 }
+export interface IBackfillResults {
+	name: string;
+	period: string;
+	pair: string;
+	since: number;
+	until: number;
+	records: OHLCV[];
+}
+
+export type BackfillResults = IBackfillResults;
 
 export interface BootOptions {
 	verbose?: boolean;
 }
 
 // numbers are stored as strings in mongo.
-export interface OHLCV {
+export interface IOHLCV {
 	timestamp: number;
 	open: number;
 	high: number;
@@ -57,7 +67,9 @@ export interface OHLCV {
 	volume: number;
 }
 
-export interface BackfillDocumentInterface {
+export type OHLCV = IOHLCV;
+
+export interface IBackfillDocument {
 	name: string;
 	period: string;
 	pair: string;
@@ -66,4 +78,4 @@ export interface BackfillDocumentInterface {
 	records: OHLCV[];
 }
 
-export type BackfillDocument = BackfillDocumentInterface;
+export type BackfillDocument = IBackfillDocument;
