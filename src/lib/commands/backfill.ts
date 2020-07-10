@@ -55,7 +55,8 @@ export default async (exchange: Exchange, opts: BackfillOptions): Promise<Backfi
 		const { unit, amount } = convertTimeFrame(period);
 		const periodMs = unitsMs[unit] * amount;
 
-		let recrodsToFetch = Math.round(timeBetween / periodMs);
+		const recordsBetween = Math.round(timeBetween / periodMs);
+		let recrodsToFetch = recordsBetween;
 
 		verbose && log.info(`Records to fetch ${recrodsToFetch}`);
 
@@ -77,7 +78,7 @@ export default async (exchange: Exchange, opts: BackfillOptions): Promise<Backfi
 			if (verbose) {
 				recrodsToFetch !== 0
 					? log.info(`${recrodsToFetch} records left to fetch.`)
-					: log.success(`0 records left to fetch.`);
+					: log.success(`Fetched ${recordsBetween} records.`);
 			}
 			// we should know what the rate limit of each exchange is.
 			await sleep(2000, opts.verbose); // must sleep to avoid get rate limited on SOME EXCHANGES (check exchange API docs).
@@ -115,6 +116,12 @@ export default async (exchange: Exchange, opts: BackfillOptions): Promise<Backfi
 		};
 
 		await backfillCollection.insertOne(toBeInserted);
+
+		verbose &&
+			log.success(
+				`Wrote document with name ${docName} to collection ${backfillCollection.collectionName}`
+			);
+
 		await client.close();
 		return toBeInserted;
 	} catch (err) {

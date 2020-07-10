@@ -20,7 +20,8 @@ test("Backfill method", async () => {
 		untilInput: "12/06/2019 12:00 PST",
 		pair: "BTC/USD",
 		period: "1h",
-		recordLimit: 100
+		recordLimit: 100,
+		verbose: true
 	};
 
 	const _24hrBackfillResults = await backfill(bitfinex, _24hrBackfillOptions);
