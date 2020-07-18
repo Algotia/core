@@ -1,5 +1,5 @@
 import ccxt from "ccxt";
-import backfill from "../../../src/lib/commands/backfill";
+import backfill from "../../../src/lib/methods/backfill";
 import { convertDateToTimestamp, convertTimeFrame, msUnits } from "../../../src/utils/index";
 import { BackfillOptions } from "../../../src/types/index";
 
