@@ -79,3 +79,10 @@ export interface IBackfillDocument {
 }
 
 export type BackfillDocument = IBackfillDocument;
+
+export interface IBacktestOptions {
+	dataSet: string;
+	strategy: Function;
+}
+
+export type BacktestOtions = IBacktestOptions;
