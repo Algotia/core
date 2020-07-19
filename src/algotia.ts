@@ -14,7 +14,6 @@ export {
 	boot,
 	backfill,
 	backfills,
-	backtest,
 	// types
 	BootOptions,
 	ConfigOptions,

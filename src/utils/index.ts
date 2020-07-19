@@ -1,8 +1,4 @@
-import convertTimeFrame from "./convertTimeFrame";
-import convertDateToTimestamp from "./convertDateToTimestamp";
-import log from "./logs";
-import sleep from "./sleep";
-import bail from "./bail";
-import msUnits from "./msUnits";
+import { log, sleep, bail } from "./general/";
+import { convertPeriodToMs, convertDateInputToMs, msUnits } from "./time/";
 
-export { convertTimeFrame, convertDateToTimestamp, log, sleep, bail, msUnits };
+export { convertPeriodToMs, convertDateInputToMs, log, sleep, bail, msUnits };

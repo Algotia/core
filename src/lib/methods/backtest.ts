@@ -6,7 +6,7 @@ import { engine } from "../factories/engine";
 const connectToDatabase = async () => {
 	const dbUrl = "mongodb://localhost:27017";
 	const dbOptions = {
-		useUnifiedTopology: true
+		useUnifiedTopology: true,
 	};
 	const client = new MongoClient(dbUrl, dbOptions);
 
@@ -26,7 +26,9 @@ const backtest = async (options: BacktestOtions): Promise<void> => {
 		const client = await connectToDatabase();
 		const db = client.db("algotia");
 		const backfillCollection = db.collection("backfill");
-		const backfillArr = await backfillCollection.find({ name: dataSet }).toArray();
+		const backfillArr = await backfillCollection
+			.find({ name: dataSet })
+			.toArray();
 		const backfill = backfillArr[0];
 		const backfillLength = backfill.records.length;
 

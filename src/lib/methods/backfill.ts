@@ -1,10 +1,20 @@
-import { MongoClient } from "mongodb";
+import {
+	BackfillOptions,
+	OHLCV,
+	BackfillResults,
+	BootData
+} from "../../types/index";
+import {
+	log,
+	bail,
+	convertPeriodToMs,
+	convertDateInputToMs,
+	sleep
+} from "../../utils/index";
 import { Exchange } from "ccxt";
-import { BackfillOptions, OHLCV, BackfillResults } from "../../types/index";
-import { log, convertTimeFrame, convertDateToTimestamp, sleep, msUnits } from "../../utils/index";
 
-//TODO: Probably should split some of these utility functions out as they will be useful in a bunch of other modules.
-
+// Reshapes OHLCV array into an object
+// [timestamp, open, high, low, close, volume]
 const reshape = (allBackFillsArr: number[][]): OHLCV[] =>
 	allBackFillsArr.map((OHLCVarr) => ({
 		timestamp: OHLCVarr[0],
@@ -15,70 +25,112 @@ const reshape = (allBackFillsArr: number[][]): OHLCV[] =>
 		volume: OHLCVarr[5]
 	}));
 
-export default async (exchange: Exchange, opts: BackfillOptions): Promise<BackfillResults> => {
+// Converts input into friendly format
+interface ConvertedBackfillOptions {
+	sinceMs: number;
+	untilMs: number;
+	totalRecordsToFetch: number;
+	periodMs: number;
+}
+const convertBackfillOptions = (
+	backfillOptions: BackfillOptions
+): ConvertedBackfillOptions => {
+	const { since, until, period } = backfillOptions;
+	const sinceMs = convertDateInputToMs(since);
+	const untilMs = convertDateInputToMs(until);
+
+	const periodMs = convertPeriodToMs(period);
+	const msBetween = untilMs - sinceMs;
+	const totalRecordsToFetch = Math.round(msBetween / periodMs);
+
+	return { sinceMs, untilMs, totalRecordsToFetch, periodMs };
+};
+
+// Validates sinceMs, untilMs, and period
+// TODO: validate pair and documentName
+const validateBackfillOptions = (
+	convertedInput: ConvertedBackfillOptions,
+	backfillOptions: BackfillOptions,
+	exchange: Exchange
+): void => {
+	const { period } = backfillOptions;
+	const { sinceMs, untilMs } = convertedInput;
+
+	if (sinceMs > untilMs)
+		throw new Error("Invalid date: parameter since cannot be less than until.");
+
+	const allowedTimeframes = Object.keys(exchange.timeframes);
+	if (!allowedTimeframes.includes(period))
+		throw new Error("Period does not exist as an exchange timeframe");
+};
+
+// Converts and validates input and returns converted and valid options
+const processInput = (
+	backfillOptions: BackfillOptions,
+	exchange: Exchange
+): ConvertedBackfillOptions => {
 	try {
-		const { sinceInput, untilInput, recordLimit, period, pair, documentName, verbose } = opts;
-		const since = convertDateToTimestamp(sinceInput);
-		const until = convertDateToTimestamp(untilInput);
-		let sinceCursor = since;
-		let recordLimitCursor = recordLimit;
+		const convertedOptions = convertBackfillOptions(backfillOptions);
 
-		// initial error checking
+		validateBackfillOptions(convertedOptions, backfillOptions, exchange);
 
-		if (since === 0 || until === 0) {
-			throw new Error("Invalid date input");
-		}
+		return convertedOptions;
+	} catch (err) {
+		bail(err);
+	}
+};
 
-		if (sinceCursor > until)
-			throw new Error("Invalid date: parameter since cannot be less than until.");
+const backfill = async (
+	bootData: BootData,
+	backfillOptions: BackfillOptions
+): Promise<BackfillResults> => {
+	try {
+		const { exchange, db } = bootData;
+		const {
+			recordLimit,
+			pair,
+			documentName,
+			verbose,
+			period
+		} = backfillOptions;
 
-		const allowedTimeframes = Object.keys(exchange.timeframes);
-		if (!allowedTimeframes.includes(period))
-			throw new Error("Period does not exist as an exchange timeframe");
+		const { sinceMs, untilMs, totalRecordsToFetch, periodMs } = processInput(
+			backfillOptions,
+			exchange
+		);
 
-		const timeBetween = until - since;
-		const { unit, amount } = convertTimeFrame(period);
-		const periodMs = msUnits[unit] * amount;
-
-		const recordsBetween = Math.round(timeBetween / periodMs);
-		let recrodsToFetch = recordsBetween;
-
-		verbose && log.info(`Records to fetch ${recrodsToFetch}`);
+		verbose && log.info(`Records to fetch ${totalRecordsToFetch}`);
 
 		let allTrades = [];
+		let sinceCursor = sinceMs;
+		let recordsLeftToFetch = totalRecordsToFetch;
+		let numberOfRecordsToFetch = recordLimit;
 
-		await sleep(1000, opts.verbose);
+		while (recordsLeftToFetch) {
+			if (recordLimit > recordsLeftToFetch)
+				numberOfRecordsToFetch = recordsLeftToFetch;
 
-		while (recrodsToFetch) {
-			if (recordLimit > recrodsToFetch) recordLimitCursor = recrodsToFetch;
-
-			const rawOHLCV = await exchange.fetchOHLCV(pair, period, sinceCursor, recordLimitCursor);
+			const rawOHLCV = await exchange.fetchOHLCV(
+				pair,
+				period,
+				sinceCursor,
+				numberOfRecordsToFetch
+			);
 			const ohlcv = reshape(rawOHLCV);
 
 			sinceCursor = ohlcv[ohlcv.length - 1].timestamp + periodMs;
 
-			recrodsToFetch -= ohlcv.length;
+			recordsLeftToFetch -= ohlcv.length;
 			allTrades = [...allTrades, ...ohlcv];
 
 			if (verbose) {
-				recrodsToFetch !== 0
-					? log.info(`${recrodsToFetch} records left to fetch.`)
-					: log.success(`Fetched ${recordsBetween} records.`);
+				let message = `${recordsLeftToFetch} records left to fetch.`;
+				recordsLeftToFetch !== 0 ? log.info(message) : log.success;
 			}
 			// we should know what the rate limit of each exchange is.
-			await sleep(2000, opts.verbose); // must sleep to avoid get rate limited on SOME EXCHANGES (check exchange API docs).
+			await sleep(2000, backfillOptions.verbose); // must sleep to avoid get rate limited on SOME EXCHANGES (check exchange API docs).
 			// end while loop
 		}
-		const dbUrl = "mongodb://localhost:27017";
-		const dbName = "algotia";
-		const dbOptions = {
-			useUnifiedTopology: true
-		};
-		const client = new MongoClient(dbUrl, dbOptions);
-
-		await client.connect();
-
-		const db = client.db(dbName);
 
 		const backfillCollection = db.collection("backfill");
 		const docCount = await backfillCollection.countDocuments();
@@ -95,8 +147,8 @@ export default async (exchange: Exchange, opts: BackfillOptions): Promise<Backfi
 			name: docName,
 			period: period,
 			pair: pair,
-			since: since,
-			until: until,
+			since: sinceMs,
+			until: untilMs,
 			records: allTrades
 		};
 
@@ -107,9 +159,12 @@ export default async (exchange: Exchange, opts: BackfillOptions): Promise<Backfi
 				`Wrote document with name ${docName} to collection ${backfillCollection.collectionName}`
 			);
 
-		await client.close();
 		return toBeInserted;
 	} catch (err) {
-		return Promise.reject(err);
+		log.error(err);
+	} finally {
+		await bootData.client.close();
 	}
 };
+
+export default backfill;
