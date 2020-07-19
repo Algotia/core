@@ -1,3 +1,4 @@
+import { msUnits } from "./index";
 // This function takes in an exchange timeframe (e.g. 1m, 5m, 1h, 1d, etc.)
 // and converts it into an object e.g. { unit: "minute", amount: 1}
 enum Unit {
@@ -7,7 +8,7 @@ enum Unit {
 	Week = "week"
 }
 
-export default (timeframe: string): { unit: Unit; amount: number } => {
+const converPeriodToMs = (timeframe: string): number => {
 	const amount: number = parseInt(timeframe.replace(/[^0-9\.]+/g, ""), 10);
 
 	let unit: Unit;
@@ -27,5 +28,7 @@ export default (timeframe: string): { unit: Unit; amount: number } => {
 			break;
 	}
 
-	return { unit, amount };
+	const periodMs = msUnits[unit] * amount;
+	return periodMs;
 };
+export default converPeriodToMs;

@@ -1,3 +1,6 @@
+import { Exchange } from "ccxt";
+import { Db, MongoClient } from "mongodb";
+
 export interface IConfigOptions {
 	exchange: {
 		/**
@@ -34,8 +37,8 @@ export interface IDeleteOptions {
 export type DeleteOptions = IDeleteOptions;
 
 export interface BackfillOptions {
-	sinceInput: string;
-	untilInput?: string;
+	since: string;
+	until?: string;
 	pair: string;
 	period?: string;
 	recordLimit?: number;
@@ -56,6 +59,15 @@ export type BackfillResults = IBackfillResults;
 export interface BootOptions {
 	verbose?: boolean;
 }
+
+export interface IBootData {
+	config: ConfigOptions;
+	exchange: Exchange;
+	client: MongoClient;
+	db: Db;
+}
+
+export type BootData = IBootData;
 
 // numbers are stored as strings in mongo.
 export interface IOHLCV {

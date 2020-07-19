@@ -5,13 +5,16 @@ const engine = (() => {
 		useState(initialValue: any): [any, Function] {
 			hooks[currentHook] = hooks[currentHook] || initialValue;
 			const setStateHookIndex = currentHook;
-			const setState = (newState: any): void => (hooks[setStateHookIndex] = newState);
+			const setState = (newState: any): void =>
+				(hooks[setStateHookIndex] = newState);
 			return [hooks[currentHook++], setState];
 		},
 		useEffect(callback: Function, depArray?: any[]): void {
 			const hasNoDeps = !depArray;
 			const deps = hooks[currentHook]; // type: array | undefined
-			const hasChangedDeps = deps ? !depArray.every((el, i) => el === deps[i]) : true;
+			const hasChangedDeps = deps
+				? !depArray.every((el, i) => el === deps[i])
+				: true;
 			if (hasNoDeps || hasChangedDeps) {
 				callback();
 				hooks[currentHook] = depArray;
@@ -22,7 +25,7 @@ const engine = (() => {
 			const strategyWithEffects = strategy(data);
 			strategyWithEffects();
 			currentHook = 0;
-		}
+		},
 	};
 })();
 

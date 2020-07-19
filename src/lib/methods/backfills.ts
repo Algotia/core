@@ -1,34 +1,14 @@
-import { MongoClient } from "mongodb";
-import log from "fancy-log";
 import chalk from "chalk";
+import { Collection } from "mongodb";
 
-import { ListOptions, DeleteOptions, OHLCV, BackfillDocument } from "../../types/index";
-import { bail, log as logger } from "../../utils/index";
-
-const { success, info } = logger;
-
-// Utility functions
-const connect = async () => {
-	try {
-		const dbUrl = "mongodb://localhost:27017";
-		const dbName = "algotia";
-		const dbOptions = {
-			useUnifiedTopology: true
-		};
-		const client = new MongoClient(dbUrl, dbOptions);
-
-		await client.connect();
-
-		const db = client.db(dbName);
-
-		const backfillCollection = db.collection("backfill");
-
-		return { backfillCollection, client };
-	} catch (err) {
-		return Promise.reject(new Error(err));
-	}
-};
-
+import {
+	ListOptions,
+	DeleteOptions,
+	BackfillDocument,
+	BootData
+} from "../../types/index";
+import { bail, log } from "../../utils/index";
+const { success, info } = log;
 // Format metadata for console.table
 
 function BackfillRow(data: BackfillDocument) {
@@ -45,20 +25,37 @@ function BackfillRow(data: BackfillDocument) {
 	this["until (formatted)"] = format(until);
 }
 
-const listOne = async (documentName: string, options: ListOptions) => {
+const getBackfillCollection = (bootData: BootData): Collection => {
 	try {
-		const { client, backfillCollection } = await connect();
-		const { pretty } = options;
-		const oneBackfill = await backfillCollection
-			.find({ name: name }, { projection: { _id: 0 } })
-			.toArray();
+		const { db } = bootData;
+		const backfillCollection = db.collection("backfill");
+		return backfillCollection;
+	} catch (err) {
+		log(err);
+	}
+};
+// List One
+const listOne = async (
+	bootData: BootData,
+	documentName: string,
+	options?: ListOptions
+) => {
+	try {
+		const backfillCollection = getBackfillCollection(bootData);
 
-		if (oneBackfill.length !== 0) {
+		const { pretty } = options;
+		const oneBackfill = await backfillCollection.findOne(
+			{ name: name },
+			{ projection: { _id: 0 } }
+		);
+
+		if (oneBackfill) {
 			if (pretty) {
-				console.table([new BackfillRow(oneBackfill[0])]);
+				console.table([new BackfillRow(oneBackfill)]);
 			} else {
-				log(oneBackfill[0]);
+				log(oneBackfill);
 			}
+			return oneBackfill;
 		} else {
 			log.error(
 				`No backfill named ${documentName} saved. Run ${chalk.bold.underline(
@@ -66,46 +63,55 @@ const listOne = async (documentName: string, options: ListOptions) => {
 				)} to see saved documents.`
 			);
 		}
-		await client.close();
 	} catch (err) {
 		return Promise.reject(new Error(err));
 	}
 };
 
-const listAll = async (options: ListOptions) => {
+// List all
+const listAll = async (bootData: BootData, options?: ListOptions) => {
 	try {
-		const { pretty } = options;
-		const { client, backfillCollection } = await connect();
+		const { db, client } = bootData;
+		const backfillCollection = db.collection("backfill");
 
-		const allBackfills = backfillCollection.find({}, { projection: { _id: 0 } });
+		const { pretty } = options;
+
+		const allBackfills = backfillCollection.find(
+			{},
+			{ projection: { _id: 0 } }
+		);
 		const backfillsArr = await allBackfills.toArray();
 
 		if (backfillsArr.length) {
-			let allDocs = [];
-
-			backfillsArr.forEach((doc) => {
-				allDocs.push(new BackfillRow(doc));
+			const allDocs = backfillsArr.map((doc) => {
+				return new BackfillRow(doc);
 			});
+
 			if (pretty) {
 				console.table(allDocs);
 			} else {
 				log(allDocs);
 			}
 		} else {
-			log(`No backfills saved. Run ${chalk.bold.underline("algotia backfill -h")} for help.`);
+			log(
+				`No backfills saved. Run ${chalk.bold.underline(
+					"algotia backfill -h"
+				)} for help.`
+			);
 		}
 
 		await client.close();
-		process.exit(0);
 	} catch (err) {
 		return Promise.reject(new Error(err));
 	}
 };
 
-const deleteAll = async (options: DeleteOptions) => {
+const deleteAll = async (bootData: BootData, options?: DeleteOptions) => {
 	try {
-		const { client, backfillCollection } = await connect();
 		const { verbose } = options;
+
+		const backfillCollection = getBackfillCollection(bootData);
+
 		const allBackfills = backfillCollection.find({});
 		const backfillsArr = await allBackfills.toArray();
 		const { length } = backfillsArr;
@@ -117,37 +123,39 @@ const deleteAll = async (options: DeleteOptions) => {
 				});
 			}
 			await backfillCollection.drop();
-			success(`Deleted ${length} ${length > 1 ? "documents" : "document"} from the database.`);
-			await client.close();
+			success(
+				`Deleted ${length} ${
+					length > 1 ? "documents" : "document"
+				} from the database.`
+			);
 		} else {
-			await client.close();
-			bail(`No documents to delete.`);
+			log.error(`No documents to delete.`);
 		}
-
-		await client.close();
 	} catch (err) {
 		return Promise.reject(new Error(err));
 	}
 };
 
-const deleteOne = async (documentName: string, options: DeleteOptions) => {
+const deleteOne = async (
+	bootData: BootData,
+	documentName: string,
+	options: DeleteOptions
+) => {
 	try {
-		const { client, backfillCollection } = await connect();
 		const { verbose } = options;
-		const oneBackfill = backfillCollection.find({ name: documentName });
-		const backfillsArr = await oneBackfill.toArray();
-		const { length } = backfillsArr;
-		if (length) {
+		const backfillCollection = getBackfillCollection(bootData);
+		const oneBackfill = await backfillCollection.findOne({
+			name: documentName
+		});
+
+		if (oneBackfill) {
 			if (verbose) info(`Deleting ${documentName}`);
 			await backfillCollection.deleteOne({ name: documentName });
 			success(`Deleted document ${documentName} from the database.`);
 		} else {
 			bail(`No documents name ${documentName}.`);
 		}
-
-		await client.close();
-
-		return backfillsArr;
+		return oneBackfill;
 	} catch (err) {
 		return Promise.reject(new Error(err));
 	}
@@ -156,8 +164,7 @@ const deleteOne = async (documentName: string, options: DeleteOptions) => {
 const backfills = {
 	listOne,
 	listAll,
-	deleteAll,
-	deleteOne
+	deleteOne,
+	deleteAll
 };
-
 export default backfills;

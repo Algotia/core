@@ -1,9 +1,10 @@
-import boot from "./lib/boot";
-import { backfill, backfills, backtest } from "./lib/methods/index";
+import { backfill, backfills, backtest, boot } from "./lib/methods/index";
 import {
 	BootOptions,
+	BootData,
 	ConfigOptions,
 	BackfillOptions,
+	BackfillResults,
 	DeleteOptions,
 	ListOptions,
 	BacktestOtions
@@ -13,12 +14,14 @@ export {
 	// methods
 	boot,
 	backfill,
-	backfills,
 	backtest,
+	backfills,
 	// types
 	BootOptions,
+	BootData,
 	ConfigOptions,
 	BackfillOptions,
+	BackfillResults,
 	DeleteOptions,
 	ListOptions,
 	BacktestOtions
