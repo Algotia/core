@@ -1,7 +1,7 @@
 import ccxt, { Exchange } from "ccxt";
 import { MongoClient, Db } from "mongodb";
-import { log } from "../utils/index";
-import { ConfigOptions, BootOptions, BootData } from "../types/index";
+import { log } from "../../utils/";
+import { ConfigOptions, BootOptions, BootData } from "../../types/";
 
 // validateConfig
 const validateConfig = (config: ConfigOptions): ConfigOptions => {
@@ -40,12 +40,13 @@ const connectExchange = async (
 			secret: apiSecret,
 			timeout
 		});
-		//if (options.verbose) {
-		//log.info(`Created an instance of ${exchange.name}.`);
-		//}
+		if (options) {
+			options.verbose && log.info(`Created an instance of ${exchange.name}.`);
+		}
+		exchange.checkRequiredCredentials();
 		return exchange;
 	} catch (err) {
-		throw new Error("Error creating a ccxt instance: " + err);
+		log.error(err);
 	}
 };
 

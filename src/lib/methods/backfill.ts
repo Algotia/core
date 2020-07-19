@@ -41,7 +41,7 @@ const convertBackfillOptions = (
 
 	const periodMs = convertPeriodToMs(period);
 	const msBetween = untilMs - sinceMs;
-	const totalRecordsToFetch = Math.round(msBetween / periodMs);
+	const totalRecordsToFetch = Math.floor(msBetween / periodMs);
 
 	return { sinceMs, untilMs, totalRecordsToFetch, periodMs };
 };
@@ -56,8 +56,13 @@ const validateBackfillOptions = (
 	const { period } = backfillOptions;
 	const { sinceMs, untilMs } = convertedInput;
 
-	if (sinceMs > untilMs)
-		throw new Error("Invalid date: parameter since cannot be less than until.");
+	if (sinceMs > untilMs) {
+		throw new Error(
+			`Invalid date: parameter since cannot be less than until. \n
+	since: ${backfillOptions.since}
+	until: ${backfillOptions.until} `
+		);
+	}
 
 	const allowedTimeframes = Object.keys(exchange.timeframes);
 	if (!allowedTimeframes.includes(period))
@@ -76,7 +81,7 @@ const processInput = (
 
 		return convertedOptions;
 	} catch (err) {
-		bail(err);
+		throw `Error while validating backfill options ${err}`;
 	}
 };
 

@@ -8,9 +8,7 @@ import {
 	BootData
 } from "../../types/index";
 import { bail, log } from "../../utils/index";
-
 const { success, info } = log;
-
 // Format metadata for console.table
 
 function BackfillRow(data: BackfillDocument) {
@@ -46,16 +44,18 @@ const listOne = async (
 		const backfillCollection = getBackfillCollection(bootData);
 
 		const { pretty } = options;
-		const oneBackfill = await backfillCollection
-			.find({ name: name }, { projection: { _id: 0 } })
-			.toArray();
+		const oneBackfill = await backfillCollection.findOne(
+			{ name: name },
+			{ projection: { _id: 0 } }
+		);
 
-		if (oneBackfill.length !== 0) {
+		if (oneBackfill) {
 			if (pretty) {
-				console.table([new BackfillRow(oneBackfill[0])]);
+				console.table([new BackfillRow(oneBackfill)]);
 			} else {
-				log(oneBackfill[0]);
+				log(oneBackfill);
 			}
+			return oneBackfill;
 		} else {
 			log.error(
 				`No backfill named ${documentName} saved. Run ${chalk.bold.underline(
@@ -83,11 +83,10 @@ const listAll = async (bootData: BootData, options?: ListOptions) => {
 		const backfillsArr = await allBackfills.toArray();
 
 		if (backfillsArr.length) {
-			let allDocs = [];
-
-			backfillsArr.forEach((doc) => {
-				allDocs.push(new BackfillRow(doc));
+			const allDocs = backfillsArr.map((doc) => {
+				return new BackfillRow(doc);
 			});
+
 			if (pretty) {
 				console.table(allDocs);
 			} else {
@@ -102,7 +101,6 @@ const listAll = async (bootData: BootData, options?: ListOptions) => {
 		}
 
 		await client.close();
-		process.exit(0);
 	} catch (err) {
 		return Promise.reject(new Error(err));
 	}
@@ -146,17 +144,18 @@ const deleteOne = async (
 	try {
 		const { verbose } = options;
 		const backfillCollection = getBackfillCollection(bootData);
-		const oneBackfill = backfillCollection.find({ name: documentName });
-		const backfillsArr = await oneBackfill.toArray();
-		const { length } = backfillsArr;
-		if (length) {
+		const oneBackfill = await backfillCollection.findOne({
+			name: documentName
+		});
+
+		if (oneBackfill) {
 			if (verbose) info(`Deleting ${documentName}`);
 			await backfillCollection.deleteOne({ name: documentName });
 			success(`Deleted document ${documentName} from the database.`);
 		} else {
 			bail(`No documents name ${documentName}.`);
 		}
-		return backfillsArr;
+		return oneBackfill;
 	} catch (err) {
 		return Promise.reject(new Error(err));
 	}

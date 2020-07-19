@@ -1,14 +1,14 @@
-import boot from "../../../src/lib/boot";
-import backfill from "../../../src/lib/methods/backfill";
+import { backfill, boot } from "../../../src/algotia";
 import {
 	convertDateInputToMs,
 	convertPeriodToMs,
 	msUnits
 } from "../../../src/utils/index";
-import { BackfillOptions } from "../../../src/types/index";
+import { BackfillOptions, BackfillResults } from "../../../src/types/index";
 
-const getLen = (backfillResult): number => backfillResult.records.length;
-const getMsDiff = (backfillResult): number => {
+const getLen = (backfillResult: BackfillResults): number =>
+	backfillResult.records.length;
+const getMsDiff = (backfillResult: BackfillResults): number => {
 	const periodMs = convertPeriodToMs(backfillResult.period);
 	return periodMs;
 };
@@ -19,7 +19,9 @@ describe("Backfill", () => {
 			const bootData = await boot({
 				exchange: {
 					exchangeId: "bitfinex",
-					timeout: 5000
+					apiKey: "badString",
+					apiSecret: "secree",
+					timeout: 8000
 				}
 			});
 			const _24hrBackfillOptions: BackfillOptions = {

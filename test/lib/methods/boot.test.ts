@@ -1,6 +1,6 @@
 import { Exchange } from "ccxt";
-import { boot } from "../../src/algotia";
-import { ConfigOptions } from "../../src/types/index";
+import { boot } from "../../../src/algotia";
+import { ConfigOptions } from "../../../src/types/index";
 import { MongoClient, Db } from "mongodb";
 
 const mockBootConfig: ConfigOptions = {
