@@ -73,6 +73,7 @@ const listOne = async (
 // List all
 const listAll = async (bootData: BootData, options?: ListOptions) => {
 	try {
+
 		const { db } = bootData;
 		const backfillCollection = db.collection("backfill");
 
