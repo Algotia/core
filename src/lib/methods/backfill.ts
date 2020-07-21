@@ -49,12 +49,12 @@ const convertBackfillOptions = (
 // Validates sinceMs, untilMs, and period
 // TODO: validate pair and documentName
 const validateBackfillOptions = (
-	convertedInput: ConvertedBackfillOptions,
+	convertedBackfillInput: ConvertedBackfillOptions,
 	backfillOptions: BackfillOptions,
 	exchange: Exchange
 ): void => {
 	const { period } = backfillOptions;
-	const { sinceMs, untilMs } = convertedInput;
+	const { sinceMs, untilMs } = convertedBackfillInput;
 
 	if (sinceMs > untilMs) {
 		throw new Error(

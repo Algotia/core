@@ -65,13 +65,16 @@ const listOne = async (
 		}
 	} catch (err) {
 		return Promise.reject(new Error(err));
+	} finally {
+		await bootData.client.close();
 	}
 };
 
 // List all
 const listAll = async (bootData: BootData, options?: ListOptions) => {
 	try {
-		const { db, client } = bootData;
+
+		const { db } = bootData;
 		const backfillCollection = db.collection("backfill");
 
 		const { pretty } = options;
@@ -99,10 +102,10 @@ const listAll = async (bootData: BootData, options?: ListOptions) => {
 				)} for help.`
 			);
 		}
-
-		await client.close();
 	} catch (err) {
-		return Promise.reject(new Error(err));
+		log.error(err);
+	} finally {
+		await bootData.client.close();
 	}
 };
 
@@ -132,7 +135,9 @@ const deleteAll = async (bootData: BootData, options?: DeleteOptions) => {
 			log.error(`No documents to delete.`);
 		}
 	} catch (err) {
-		return Promise.reject(new Error(err));
+		log.error(err);
+	} finally {
+		await bootData.client.close();
 	}
 };
 
@@ -157,7 +162,9 @@ const deleteOne = async (
 		}
 		return oneBackfill;
 	} catch (err) {
-		return Promise.reject(new Error(err));
+		log.error(err);
+	} finally {
+		await bootData.client.close();
 	}
 };
 
