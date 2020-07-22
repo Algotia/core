@@ -5,8 +5,10 @@ import {
 	ConfigOptions,
 	BackfillOptions,
 	BackfillResults,
-	DeleteOptions,
-	ListOptions,
+	DeleteOneOptions,
+	DeleteAllOptions,
+	ListOneOptions,
+	ListAllOptions,
 	BacktestOtions
 } from "./types/index";
 
@@ -22,7 +24,9 @@ export {
 	ConfigOptions,
 	BackfillOptions,
 	BackfillResults,
-	DeleteOptions,
-	ListOptions,
+	DeleteOneOptions,
+	DeleteAllOptions,
+	ListOneOptions,
+	ListAllOptions,
 	BacktestOtions
 };
