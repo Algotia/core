@@ -24,17 +24,27 @@ export interface IConfigOptions {
 
 export type ConfigOptions = IConfigOptions;
 
-export interface IListOptions {
+export interface IListAllOptions {
 	pretty?: boolean;
 }
 
-export type ListOptions = IListOptions;
+export interface IListOneOptions extends IListAllOptions {
+	documentName: string;
+}
 
-export interface IDeleteOptions {
+export type ListAllOptions = IListAllOptions;
+export type ListOneOptions = IListOneOptions;
+
+export interface IDeleteAllOptions {
 	verbose?: boolean;
 }
 
-export type DeleteOptions = IDeleteOptions;
+export interface IDeleteOneOptions extends IDeleteAllOptions {
+	documentName: string;
+}
+
+export type DeleteOneOptions = IDeleteOneOptions;
+export type DeleteAllOptions = IDeleteAllOptions;
 
 export interface BackfillOptions {
 	since: string;

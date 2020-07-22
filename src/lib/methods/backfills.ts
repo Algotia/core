@@ -2,8 +2,10 @@ import chalk from "chalk";
 import { Collection } from "mongodb";
 
 import {
-	ListOptions,
-	DeleteOptions,
+	ListOneOptions,
+	ListAllOptions,
+	DeleteOneOptions,
+	DeleteAllOptions,
 	BackfillDocument,
 	BootData
 } from "../../types/index";
@@ -35,17 +37,12 @@ const getBackfillCollection = (bootData: BootData): Collection => {
 	}
 };
 // List One
-const listOne = async (
-	bootData: BootData,
-	documentName: string,
-	options?: ListOptions
-) => {
+const listOne = async (bootData: BootData, options?: ListOneOptions) => {
 	try {
 		const backfillCollection = getBackfillCollection(bootData);
-
-		const { pretty } = options;
+		const { documentName, pretty } = options;
 		const oneBackfill = await backfillCollection.findOne(
-			{ name: name },
+			{ name: documentName },
 			{ projection: { _id: 0 } }
 		);
 
@@ -71,9 +68,8 @@ const listOne = async (
 };
 
 // List all
-const listAll = async (bootData: BootData, options?: ListOptions) => {
+const listAll = async (bootData: BootData, options?: ListAllOptions) => {
 	try {
-
 		const { db } = bootData;
 		const backfillCollection = db.collection("backfill");
 
@@ -109,7 +105,7 @@ const listAll = async (bootData: BootData, options?: ListOptions) => {
 	}
 };
 
-const deleteAll = async (bootData: BootData, options?: DeleteOptions) => {
+const deleteAll = async (bootData: BootData, options?: DeleteAllOptions) => {
 	try {
 		const { verbose } = options;
 
@@ -117,8 +113,7 @@ const deleteAll = async (bootData: BootData, options?: DeleteOptions) => {
 
 		const allBackfills = backfillCollection.find({});
 		const backfillsArr = await allBackfills.toArray();
-		const { length } = backfillsArr;
-		if (length) {
+		if (backfillsArr.length) {
 			if (verbose) {
 				info("Deleting the following documents:");
 				backfillsArr.forEach((doc) => {
@@ -127,7 +122,7 @@ const deleteAll = async (bootData: BootData, options?: DeleteOptions) => {
 			}
 			await backfillCollection.drop();
 			success(
-				`Deleted ${length} ${
+				`Deleted ${backfillsArr.length} ${
 					length > 1 ? "documents" : "document"
 				} from the database.`
 			);
@@ -141,13 +136,9 @@ const deleteAll = async (bootData: BootData, options?: DeleteOptions) => {
 	}
 };
 
-const deleteOne = async (
-	bootData: BootData,
-	documentName: string,
-	options: DeleteOptions
-) => {
+const deleteOne = async (bootData: BootData, options: DeleteOneOptions) => {
 	try {
-		const { verbose } = options;
+		const { verbose, documentName } = options;
 		const backfillCollection = getBackfillCollection(bootData);
 		const oneBackfill = await backfillCollection.findOne({
 			name: documentName
