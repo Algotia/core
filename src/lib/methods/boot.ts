@@ -63,8 +63,8 @@ const connectToDatabase = async (): Promise<{
 			heartbeatFrequencyMS: 2000
 		};
 		const client: MongoClient = new MongoClient(dbUrl, dbOptions);
-		await client.connect();
-		const db = client.db(dbName);
+		const connected = await client.connect();
+		const db = connected.db(dbName);
 
 		return { db, client };
 	} catch (err) {

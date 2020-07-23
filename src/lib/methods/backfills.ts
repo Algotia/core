@@ -61,7 +61,7 @@ const listOne = async (bootData: BootData, options?: ListOneOptions) => {
 			);
 		}
 	} catch (err) {
-		return Promise.reject(new Error(err));
+		log.error(err);
 	} finally {
 		await bootData.client.close();
 	}
@@ -113,7 +113,8 @@ const deleteAll = async (bootData: BootData, options?: DeleteAllOptions) => {
 
 		const allBackfills = backfillCollection.find({});
 		const backfillsArr = await allBackfills.toArray();
-		if (backfillsArr.length) {
+		const backfillsLength = backfillsArr.length;
+		if (backfillsLength) {
 			if (verbose) {
 				info("Deleting the following documents:");
 				backfillsArr.forEach((doc) => {
@@ -122,8 +123,8 @@ const deleteAll = async (bootData: BootData, options?: DeleteAllOptions) => {
 			}
 			await backfillCollection.drop();
 			success(
-				`Deleted ${backfillsArr.length} ${
-					length > 1 ? "documents" : "document"
+				`Deleted ${backfillsLength} ${
+					backfillsLength > 1 ? "documents" : "document"
 				} from the database.`
 			);
 		} else {
