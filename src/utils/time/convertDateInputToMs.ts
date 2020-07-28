@@ -2,10 +2,9 @@
 // first tries to convert a JavaScript Date
 // then tries a unix timestamp
 
-export default (input: string): number => {
-	const numFromInput = Number(input);
-
+const convertDateInputToMs = (input: string): number => {
 	let date: Date;
+	const numFromInput = Number(input);
 
 	const checkIfNan = (num: number): boolean => Object.is(NaN, num);
 
@@ -19,10 +18,12 @@ export default (input: string): number => {
 
 	if (checkIfNan(date.valueOf())) {
 		// Invalid date
-		return 0;
+		throw new Error(`Invalid date: ${input} is not a valid date`);
 	} else {
 		// Valid date
 		const timestamp = date.getTime();
 		return timestamp;
 	}
 };
+
+export default convertDateInputToMs;
