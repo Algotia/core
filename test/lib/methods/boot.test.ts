@@ -1,7 +1,7 @@
 import { Exchange } from "ccxt";
 import { boot } from "../../../src/algotia";
 import { ConfigOptions } from "../../../src/types/index";
-import { MongoClient, Db } from "mongodb";
+import { MongoClient } from "mongodb";
 
 const mockBootConfig: ConfigOptions = {
 	exchange: {
@@ -18,7 +18,6 @@ test("Boot function", async () => {
 		expect(bootData.config).toStrictEqual(mockBootConfig);
 		expect(bootData.exchange).toBeInstanceOf(Exchange);
 		expect(bootData.client).toBeInstanceOf(MongoClient);
-		expect(bootData.db).toBeInstanceOf(Db);
 
 		await bootData.client.close();
 	} catch (err) {

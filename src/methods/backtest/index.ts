@@ -1,12 +1,13 @@
-import { BacktestOtions, BootData } from "../../types/index";
-import { log } from "../../utils";
+import { BacktestOptions, BootData } from "../../types/index";
+import { log, connectToDb } from "../../utils";
 
 const backtest = async (
 	bootData: BootData,
-	options: BacktestOtions
+	options: BacktestOptions
 ): Promise<void> => {
 	try {
-		const { db, client } = bootData;
+		const { client } = bootData;
+		const db = await connectToDb(client);
 		const { dataSet, strategy } = options;
 
 		const backfillCollection = db.collection("backfill");
@@ -23,6 +24,7 @@ const backtest = async (
 		await client.close();
 		return;
 	} catch (err) {
+		await bootData.client.close();
 		log.error(err);
 	}
 };

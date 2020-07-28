@@ -1,4 +1,4 @@
-import { convertPeriodToMs, msUnits } from "../../src/utils/";
+import { convertPeriodToMs, msUnits } from "../../../src/utils/";
 
 test("Convert time frame", () => {
 	const create = (str: string, num: number) => ({

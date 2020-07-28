@@ -1,4 +1,4 @@
-import { msUnits } from "./index";
+import { msUnits } from ".";
 // This function takes in an exchange timeframe (e.g. 1m, 5m, 1h, 1d, etc.)
 // and converts it into an object e.g. { unit: "minute", amount: 1}
 enum Unit {

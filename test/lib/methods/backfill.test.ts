@@ -1,15 +1,12 @@
 import { backfill, boot } from "../../../src/algotia";
 import {
 	convertDateInputToMs,
-	convertPeriodToMs,
-	msUnits
+	convertPeriodToMs
 } from "../../../src/utils/index";
-import { BackfillOptions, BackfillResults } from "../../../src/types/index";
+import { BackfillOptions, BackfillDocument } from "../../../src/types/index";
 
-const getLen = (backfillResult: BackfillResults): number =>
-	backfillResult.records.length;
-const getMsDiff = (backfillResult: BackfillResults): number => {
-	const periodMs = convertPeriodToMs(backfillResult.period);
+const getMsDiff = (document: BackfillDocument): number => {
+	const periodMs = convertPeriodToMs(document.period);
 	return periodMs;
 };
 
@@ -24,7 +21,7 @@ describe("Backfill", () => {
 					timeout: 8000
 				}
 			});
-			const _24hrBackfillOptions: BackfillOptions = {
+			const OneDayBackfillOptions: BackfillOptions = {
 				since: "12/05/2019 12:00 PST",
 				until: "12/06/2019 12:00 PST",
 				pair: "BTC/USD",
@@ -32,42 +29,88 @@ describe("Backfill", () => {
 				recordLimit: 100
 			};
 
-			const _24hrBackfillResults = await backfill(
+			const OneDayBackfillResults = await backfill(
 				bootData,
-				_24hrBackfillOptions
+				OneDayBackfillOptions
 			);
 
-			const len = getLen(_24hrBackfillResults);
+			const OneMonthBackfillOptions: BackfillOptions = {
+				since: "1/01/2020",
+				until: "2/01/2020",
+				pair: "ETH/USD",
+				period: "1h",
+				recordLimit: 200
+			};
 
-			// Number of records is 24
-			expect(_24hrBackfillResults.records.length).toStrictEqual(24);
-			// First timestamp is equal to sinceInput
-			expect(_24hrBackfillResults.records[0].timestamp).toStrictEqual(
-				convertDateInputToMs(_24hrBackfillOptions.since)
+			const OneMonthBackfillResults = await backfill(
+				bootData,
+				OneMonthBackfillOptions
+			);
+
+			expect(OneMonthBackfillResults.records.length).toStrictEqual(744);
+
+			expect(OneMonthBackfillResults.records[0].timestamp).toStrictEqual(
+				convertDateInputToMs(OneMonthBackfillOptions.since)
 			);
 			// Last timestamp is one unit before untilInput
-			expect(_24hrBackfillResults.records[len - 1].timestamp).toStrictEqual(
-				convertDateInputToMs(_24hrBackfillOptions.until) -
-					getMsDiff(_24hrBackfillResults)
+			expect(
+				OneMonthBackfillResults.records[
+					OneMonthBackfillResults.records.length - 1
+				].timestamp
+			).toStrictEqual(
+				convertDateInputToMs(OneMonthBackfillOptions.until) -
+					getMsDiff(OneMonthBackfillResults)
 			);
 			// Period is the same as options
-			expect(_24hrBackfillResults.period).toStrictEqual(
-				_24hrBackfillOptions.period
+			expect(OneMonthBackfillResults.period).toStrictEqual(
+				OneMonthBackfillOptions.period
 			);
 			// Pair is the same as options
-			expect(_24hrBackfillResults.pair).toStrictEqual(
-				_24hrBackfillOptions.pair
+			expect(OneMonthBackfillResults.pair).toStrictEqual(
+				OneMonthBackfillOptions.pair
 			);
 			// Since input is saved as unix timestamp
-			expect(_24hrBackfillResults.since).toStrictEqual(
-				convertDateInputToMs(_24hrBackfillOptions.since)
+			expect(OneMonthBackfillResults.since).toStrictEqual(
+				convertDateInputToMs(OneMonthBackfillOptions.since)
 			);
 			// Until input is saved as unix timestamp
-			expect(_24hrBackfillResults.until).toStrictEqual(
-				convertDateInputToMs(_24hrBackfillOptions.until)
+			expect(OneMonthBackfillResults.until).toStrictEqual(
+				convertDateInputToMs(OneMonthBackfillOptions.until)
 			);
+
+			// Number of records is 24
+			expect(OneDayBackfillResults.records.length).toStrictEqual(24);
+			// First timestamp is equal to sinceInput
+			expect(OneDayBackfillResults.records[0].timestamp).toStrictEqual(
+				convertDateInputToMs(OneDayBackfillOptions.since)
+			);
+			// Last timestamp is one unit before untilInput
+			expect(
+				OneDayBackfillResults.records[OneDayBackfillResults.records.length - 1]
+					.timestamp
+			).toStrictEqual(
+				convertDateInputToMs(OneDayBackfillOptions.until) -
+					getMsDiff(OneDayBackfillResults)
+			);
+			// Period is the same as options
+			expect(OneDayBackfillResults.period).toStrictEqual(
+				OneDayBackfillOptions.period
+			);
+			// Pair is the same as options
+			expect(OneDayBackfillResults.pair).toStrictEqual(
+				OneDayBackfillOptions.pair
+			);
+			// Since input is saved as unix timestamp
+			expect(OneDayBackfillResults.since).toStrictEqual(
+				convertDateInputToMs(OneDayBackfillOptions.since)
+			);
+			// Until input is saved as unix timestamp
+			expect(OneDayBackfillResults.until).toStrictEqual(
+				convertDateInputToMs(OneDayBackfillOptions.until)
+			);
+			await bootData.client.close();
 		} catch (err) {
 			fail(err);
 		}
-	}, 10000);
+	}, 15000);
 });
