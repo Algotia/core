@@ -18,20 +18,13 @@ export interface ConfigOptions {
 	db?: DbConfigOptions;
 }
 
-export interface ListAllOptions {
+export interface ListBackfillOptions {
+	documentName?: string;
 	pretty?: boolean;
 }
 
-export interface ListOneOptions extends ListAllOptions {
-	documentName: string;
-}
-
-export interface DeleteAllOptions {
-	verbose?: boolean;
-}
-
-export interface DeleteOneOptions extends DeleteAllOptions {
-	documentName: string;
+export interface DeleteBackfillOptions {
+	documentName?: string;
 }
 
 export interface BackfillOptions {
