@@ -1,20 +1,18 @@
 import { BootData, ListBackfillOptions, BackfillDocument } from "../../types";
 import { getBackfillCollection, log } from "../../utils";
-import BackfillRow from "./backfillRow";
-import chalk from "chalk";
 import { Collection } from "mongodb";
 
 const getOneBackfill = async (
 	backfillCollection: Collection,
 	documentName: string
-): Promise<BackfillDocument> => {
+): Promise<BackfillDocument[]> => {
 	try {
 		const oneBackfill = await backfillCollection.findOne(
 			{ name: documentName },
 			{ projection: { _id: 0 } }
 		);
 
-		return oneBackfill;
+		return [oneBackfill];
 	} catch (err) {
 		log.error(err);
 	}
@@ -37,39 +35,26 @@ const getAllBackfills = async (
 const listBackfills = async (
 	bootData: BootData,
 	options?: ListBackfillOptions
-) => {
+): Promise<BackfillDocument[]> => {
 	try {
 		const backfillCollection = await getBackfillCollection(bootData);
 
-		if (options.documentName) {
-			// List one logic
+		if (options && options.documentName) {
+			// List one
 			const oneBackfill = await getOneBackfill(
 				backfillCollection,
 				options.documentName
 			);
-
-			if (options.pretty) {
-				console.table([BackfillRow(oneBackfill)]);
+			if (oneBackfill) {
+				return oneBackfill;
 			} else {
-				console.log(oneBackfill);
+				throw new Error(`No backfill named ${options.documentName} saved.`);
 			}
-
-			return oneBackfill;
 		} else {
-			// List all logic
+			// List all
 			const allBackfills = await getAllBackfills(backfillCollection);
 
 			if (allBackfills.length) {
-				if (options.pretty) {
-					const prettyBackfills = allBackfills.map((backfill) => {
-						return new BackfillRow(backfill);
-					});
-
-					console.table(prettyBackfills);
-				} else {
-					console.log(allBackfills);
-				}
-
 				return allBackfills;
 			} else {
 				throw new Error("No backfills saved.");

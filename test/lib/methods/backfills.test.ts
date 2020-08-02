@@ -15,13 +15,12 @@ describe("Backfills", () => {
 
 			const backfillCollection = await getBackfillCollection(bootData);
 
-			const allBackfills = await backfills.listAll(bootData);
+			const allBackfills = await backfills.listBackfills(bootData);
 
 			const realLength = await backfillCollection.countDocuments();
 			expect(allBackfills.length).toStrictEqual(realLength);
 
-			console.log(allBackfills);
-			awaitbootData.client.close();
+			await bootData.client.close();
 		} catch (err) {
 			log.error(err);
 		}
