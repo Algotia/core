@@ -1,12 +1,8 @@
-import listOne from "./listOne";
-import listAll from "./listAll";
-import deleteOne from "./deleteOne";
-import deleteAll from "./deleteAll";
+import listBackfills from "./listBackfills";
+import deleteBackfills from "./deleteBackfills";
 
 const backfills = {
-	listOne,
-	listAll,
-	deleteOne,
-	deleteAll
+	listBackfills,
+	deleteBackfills
 };
 export default backfills;

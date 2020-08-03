@@ -1,20 +1,41 @@
 import ccxt from "ccxt";
 
-const allowedExchanges = ["binance", "bitfinex"];
+const removeNonAllowedExchanges = (ccxt) => {
+	const allowedExchanges = ["binance", "bitfinex"];
 
-for (let key in ccxt) {
-	if (ccxt.hasOwnProperty(key)) {
-		if (ccxt.exchanges.includes(key)) {
-			if (!allowedExchanges.includes(key)) {
-				delete ccxt[key];
-			}
+	ccxt.exchanges.forEach((exchange: string) => {
+		if (!allowedExchanges.includes(exchange)) {
+			delete ccxt[exchange];
 		}
-	}
-}
+	});
 
-const ccxtWrapper = {
-	...ccxt,
-	exchanges: allowedExchanges
+	ccxt.exchange = allowedExchanges;
+
+	return ccxt;
 };
 
-export default ccxtWrapper;
+const applyRecordLimits = (ccxt) => {
+	const recordLimits = {
+		bitfinex: 10000,
+		binance: 1000
+	};
+
+	const recordLimitKeys = Object.keys(recordLimits);
+
+	recordLimitKeys.forEach((exchange) => {
+		ccxt[exchange].historicalRecordLimit = recordLimits[exchange];
+	});
+
+	return ccxt;
+};
+
+const createCcxtWrapper = (ccxt) => {
+	const withAllowedExhanges = removeNonAllowedExchanges(ccxt);
+	const withRecordLimits = applyRecordLimits(withAllowedExhanges);
+
+	const ccxtWrapped = withRecordLimits;
+
+	return ccxtWrapped;
+};
+
+export default createCcxtWrapper(ccxt);
