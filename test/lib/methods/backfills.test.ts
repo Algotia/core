@@ -19,7 +19,6 @@ describe("Backfills", () => {
 
 			const realLength = await backfillCollection.countDocuments();
 			expect(allBackfills.length).toStrictEqual(realLength);
-
 			await bootData.client.close();
 		} catch (err) {
 			log.error(err);

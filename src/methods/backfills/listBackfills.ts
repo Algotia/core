@@ -61,7 +61,6 @@ const listBackfills = async (
 			}
 		}
 	} catch (err) {
-		await bootData.client.close();
 		log.error(err);
 	}
 };

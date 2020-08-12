@@ -15,6 +15,8 @@ const createClient = async (
 		};
 		const client: MongoClient = new MongoClient(dbUrl, dbOptions);
 
+		await client.connect();
+
 		return client;
 	} catch (err) {
 		log.error(err);

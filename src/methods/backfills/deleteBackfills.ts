@@ -16,7 +16,6 @@ const deleteBackfills = async (
 			await backfillCollection.deleteMany({});
 		}
 	} catch (err) {
-		await bootData.client.close();
 		log.error(err);
 	}
 };
