@@ -11,16 +11,67 @@ const getMsDiff = (document: BackfillDocument): number => {
 };
 
 describe("Backfill", () => {
+	let bootData;
+
+	beforeAll(async () => {
+		bootData = await boot({
+			exchange: {
+				exchangeId: "bitfinex",
+				apiKey: "badString",
+				apiSecret: "secree",
+				timeout: 8000
+			}
+		});
+	});
+
+	test("1 month backfill is correct", async () => {
+		const OneMonthBackfillOptions: BackfillOptions = {
+			since: "1/01/2020",
+			until: "2/01/2020",
+			pair: "ETH/USD",
+			period: "1h",
+			recordLimit: 200
+		};
+
+		const OneMonthBackfillResults = await backfill(
+			bootData,
+			OneMonthBackfillOptions
+		);
+
+		expect(OneMonthBackfillResults.records.length).toStrictEqual(744);
+
+		expect(OneMonthBackfillResults.records[0].timestamp).toStrictEqual(
+			convertDateInputToMs(OneMonthBackfillOptions.since)
+		);
+		// Last timestamp is one unit before untilInput
+		expect(
+			OneMonthBackfillResults.records[
+				OneMonthBackfillResults.records.length - 1
+			].timestamp
+		).toStrictEqual(
+			convertDateInputToMs(OneMonthBackfillOptions.until) -
+				getMsDiff(OneMonthBackfillResults)
+		);
+		// Period is the same as options
+		expect(OneMonthBackfillResults.period).toStrictEqual(
+			OneMonthBackfillOptions.period
+		);
+		// Pair is the same as options
+		expect(OneMonthBackfillResults.pair).toStrictEqual(
+			OneMonthBackfillOptions.pair
+		);
+		// Since input is saved as unix timestamp
+		expect(OneMonthBackfillResults.since).toStrictEqual(
+			convertDateInputToMs(OneMonthBackfillOptions.since)
+		);
+		// Until input is saved as unix timestamp
+		expect(OneMonthBackfillResults.until).toStrictEqual(
+			convertDateInputToMs(OneMonthBackfillOptions.until)
+		);
+	}, 10000);
+
 	test("24 hour backfill is correct", async () => {
 		try {
-			const bootData = await boot({
-				exchange: {
-					exchangeId: "bitfinex",
-					apiKey: "badString",
-					apiSecret: "secree",
-					timeout: 8000
-				}
-			});
 			const OneDayBackfillOptions: BackfillOptions = {
 				since: "12/05/2019 12:00 PST",
 				until: "12/06/2019 12:00 PST",
@@ -32,50 +83,6 @@ describe("Backfill", () => {
 			const OneDayBackfillResults = await backfill(
 				bootData,
 				OneDayBackfillOptions
-			);
-
-			const OneMonthBackfillOptions: BackfillOptions = {
-				since: "1/01/2020",
-				until: "2/01/2020",
-				pair: "ETH/USD",
-				period: "1h",
-				recordLimit: 200
-			};
-
-			const OneMonthBackfillResults = await backfill(
-				bootData,
-				OneMonthBackfillOptions
-			);
-
-			expect(OneMonthBackfillResults.records.length).toStrictEqual(744);
-
-			expect(OneMonthBackfillResults.records[0].timestamp).toStrictEqual(
-				convertDateInputToMs(OneMonthBackfillOptions.since)
-			);
-			// Last timestamp is one unit before untilInput
-			expect(
-				OneMonthBackfillResults.records[
-					OneMonthBackfillResults.records.length - 1
-				].timestamp
-			).toStrictEqual(
-				convertDateInputToMs(OneMonthBackfillOptions.until) -
-					getMsDiff(OneMonthBackfillResults)
-			);
-			// Period is the same as options
-			expect(OneMonthBackfillResults.period).toStrictEqual(
-				OneMonthBackfillOptions.period
-			);
-			// Pair is the same as options
-			expect(OneMonthBackfillResults.pair).toStrictEqual(
-				OneMonthBackfillOptions.pair
-			);
-			// Since input is saved as unix timestamp
-			expect(OneMonthBackfillResults.since).toStrictEqual(
-				convertDateInputToMs(OneMonthBackfillOptions.since)
-			);
-			// Until input is saved as unix timestamp
-			expect(OneMonthBackfillResults.until).toStrictEqual(
-				convertDateInputToMs(OneMonthBackfillOptions.until)
 			);
 
 			// Number of records is 24
@@ -108,9 +115,12 @@ describe("Backfill", () => {
 			expect(OneDayBackfillResults.until).toStrictEqual(
 				convertDateInputToMs(OneDayBackfillOptions.until)
 			);
-			await bootData.client.close();
 		} catch (err) {
 			fail(err);
 		}
-	}, 15000);
+	}, 10000);
+
+	afterAll(async () => {
+		await bootData.client.close();
+	});
 });

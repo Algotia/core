@@ -1,4 +1,4 @@
-import { log, connectToDb } from "../../utils";
+import { log } from "../../utils";
 import { BackfillDocument, OHLCV } from "../../types";
 import { MongoClient } from "mongodb";
 
@@ -25,8 +25,7 @@ const insertDocument = async (
 			allRecords
 		} = insertOptions;
 
-		const db = await connectToDb(client);
-
+		const db = client.db();
 		const backfillCollection = db.collection("backfill");
 		const docCount = await backfillCollection.countDocuments();
 

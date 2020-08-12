@@ -18,7 +18,6 @@ test("Boot function", async () => {
 		expect(bootData.config).toStrictEqual(mockBootConfig);
 		expect(bootData.exchange).toBeInstanceOf(Exchange);
 		expect(bootData.client).toBeInstanceOf(MongoClient);
-
 		await bootData.client.close();
 	} catch (err) {
 		fail(err);
