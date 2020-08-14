@@ -15,7 +15,9 @@ const createClient = async (
 		};
 		const client: MongoClient = new MongoClient(dbUrl, dbOptions);
 
-		await client.connect();
+		!client.isConnected() && (await client.connect());
+
+		client.db("algotia");
 
 		return client;
 	} catch (err) {
