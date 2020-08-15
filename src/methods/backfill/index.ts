@@ -6,6 +6,9 @@ import insertDocument from "./insertDocument";
 import validateOptions from "./validateOptions";
 
 // Converts and validates input and returns converted and valid options
+
+class ValidationError extends Error {}
+
 const processInput = (backfillOptions: BackfillOptions) => {
 	try {
 		//TODO: Option validation
@@ -13,7 +16,9 @@ const processInput = (backfillOptions: BackfillOptions) => {
 
 		return convertedOptions;
 	} catch (err) {
-		throw `Error while validating backfill options \n ${err}`;
+		throw new ValidationError(
+			`Error while validating backfill options \n ${err}`
+		);
 	}
 };
 
