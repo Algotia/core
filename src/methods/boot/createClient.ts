@@ -1,6 +1,5 @@
 import { ConfigOptions } from "../../types";
 import { MongoClient } from "mongodb";
-import { log } from "../../utils";
 
 const createClient = async (
 	configInput: ConfigOptions
@@ -21,7 +20,7 @@ const createClient = async (
 
 		return client;
 	} catch (err) {
-		log.error(err);
+		throw err;
 	}
 };
 

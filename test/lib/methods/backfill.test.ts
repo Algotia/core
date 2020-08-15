@@ -1,7 +1,8 @@
 import { backfill, boot } from "../../../src/algotia";
 import {
 	convertDateInputToMs,
-	convertPeriodToMs
+	convertPeriodToMs,
+	log
 } from "../../../src/utils/index";
 import { BackfillOptions, BackfillDocument } from "../../../src/types/index";
 
@@ -22,6 +23,23 @@ describe("Backfill", () => {
 				timeout: 8000
 			}
 		});
+	});
+
+	test("Bad input throws error", async () => {
+		try {
+			const BadInput: BackfillOptions = {
+				since: "1/01/2020",
+				until: "1/01/2020",
+				pair: "ETH/USD",
+				period: "1h",
+				recordLimit: 200,
+				verbose: true
+			};
+
+			await expect(backfill(bootData, BadInput)).rejects.toThrowError();
+		} catch (err) {
+			log.error(err);
+		}
 	});
 
 	test("1 month backfill is correct", async () => {

@@ -16,7 +16,7 @@ const deleteBackfills = async (
 			await backfillCollection.deleteMany({});
 		}
 	} catch (err) {
-		log.error(err);
+		throw err;
 	}
 };
 

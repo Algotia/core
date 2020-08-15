@@ -1,5 +1,4 @@
 import { MongoClient, Db } from "mongodb";
-import { log } from "..";
 
 const connectToDb = async (client: MongoClient): Promise<Db> => {
 	try {
@@ -9,7 +8,7 @@ const connectToDb = async (client: MongoClient): Promise<Db> => {
 		const db = client.db("algotia");
 		return db;
 	} catch (err) {
-		log.error(err);
+		throw err;
 	}
 };
 export default connectToDb;

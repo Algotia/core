@@ -3,6 +3,7 @@ import { log } from "../../utils/index";
 import convertOptions from "./convertOptions";
 import fetchRecords from "./fetchRecords";
 import insertDocument from "./insertDocument";
+import validateOptions from "./validateOptions";
 
 // Converts and validates input and returns converted and valid options
 const processInput = (backfillOptions: BackfillOptions) => {
@@ -23,6 +24,10 @@ const backfill = async (
 	try {
 		const { exchange, client } = bootData;
 
+		const userInput = processInput(backfillOptions);
+
+		await validateOptions(exchange, userInput);
+
 		const {
 			sinceMs,
 			untilMs,
@@ -33,11 +38,11 @@ const backfill = async (
 			periodMs,
 			documentName,
 			verbose
-		} = processInput(backfillOptions);
+		} = userInput;
 
 		verbose && log.info(`Records to fetch ${recordsToFetch}`);
 
-		const fetchOptions = {
+		const fetchRecordsOptions = {
 			sinceMs,
 			period,
 			periodMs,
@@ -47,9 +52,9 @@ const backfill = async (
 			verbose
 		};
 
-		const allRecords = await fetchRecords(exchange, fetchOptions);
+		const allRecords = await fetchRecords(exchange, fetchRecordsOptions);
 
-		const insertOptions = {
+		const insertDocumentOptions = {
 			sinceMs,
 			untilMs,
 			period,
@@ -58,16 +63,14 @@ const backfill = async (
 			documentName
 		};
 
-		const backfillDocument = await insertDocument(insertOptions, client);
+		const document = await insertDocument(insertDocumentOptions, client);
 
 		verbose &&
-			log.success(
-				`Wrote document ${backfillDocument.name} to the backfill collection`
-			);
+			log.success(`Wrote document ${document.name} to the backfill collection`);
 
-		return backfillDocument;
+		return document;
 	} catch (err) {
-		log.error(err);
+		throw err;
 	}
 };
 
