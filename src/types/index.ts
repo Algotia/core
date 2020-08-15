@@ -37,6 +37,13 @@ export interface BackfillOptions {
 	verbose?: boolean;
 }
 
+export interface ConvertedBackfillOptions extends BackfillOptions {
+	sinceMs: number;
+	untilMs: number;
+	recordsToFetch: number;
+	periodMs: number;
+}
+
 export interface BootOptions {
 	verbose?: boolean;
 }
