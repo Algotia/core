@@ -25,10 +25,6 @@ describe("Backfill", () => {
 		});
 	});
 
-	afterAll(async () => {
-		await bootData.client.close();
-	});
-
 	test("Bad input throws error", async () => {
 		try {
 			const BadInput: BackfillOptions = {
@@ -141,4 +137,8 @@ describe("Backfill", () => {
 			fail(err);
 		}
 	}, 10000);
+
+	afterAll(async () => {
+		await bootData.client.close();
+	});
 });

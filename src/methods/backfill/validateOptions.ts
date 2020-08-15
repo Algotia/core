@@ -44,7 +44,7 @@ const checkPair = async (exchange: Exchange, pair: string) => {
 		throw new InputError(`Pair ${chalk.bold.underline(
 			pair
 		)} does not exist on exchange 
-			${chalk.bold.underline(exchange.name)} \n
+			${chalk.bold.underline(exchange.name)} \n 
 			Allowed pairs: ${allowedPairs}`);
 	}
 };
