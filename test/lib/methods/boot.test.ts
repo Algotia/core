@@ -20,6 +20,6 @@ test("Boot function", async () => {
 		expect(bootData.client).toBeInstanceOf(MongoClient);
 		await bootData.client.close();
 	} catch (err) {
-		throw err;
+		fail(err);
 	}
 }, 10000);

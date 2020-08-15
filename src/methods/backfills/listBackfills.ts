@@ -14,7 +14,7 @@ const getOneBackfill = async (
 
 		return [oneBackfill];
 	} catch (err) {
-		throw err;
+		log.error(err);
 	}
 };
 
@@ -28,7 +28,7 @@ const getAllBackfills = async (
 
 		return allBackfills;
 	} catch (err) {
-		throw err;
+		log.error(err);
 	}
 };
 
@@ -61,7 +61,7 @@ const listBackfills = async (
 			}
 		}
 	} catch (err) {
-		throw err;
+		log.error(err);
 	}
 };
 

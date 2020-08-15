@@ -1,17 +1,17 @@
 import { BootData } from "../../types";
 import { Collection } from "mongodb";
-import connectToDb from "./connectToDb";
+import { log } from "..";
 
 const getBackfillCollection = async (
 	bootData: BootData
 ): Promise<Collection> => {
 	try {
 		const { client } = bootData;
-		const db = await connectToDb(client);
+		const db = client.db();
 
 		return db.collection("backfill");
 	} catch (err) {
-		throw err;
+		log.error(err);
 	}
 };
 

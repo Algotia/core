@@ -27,7 +27,7 @@ describe("Backfills", () => {
 
 			await bootData.client.close();
 		} catch (err) {
-			throw err;
+			log.error(err);
 		}
 	});
 });

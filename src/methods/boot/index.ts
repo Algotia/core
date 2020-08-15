@@ -26,7 +26,7 @@ const boot = async (
 
 		return bootData;
 	} catch (err) {
-		throw err;
+		log.error(err);
 	}
 };
 

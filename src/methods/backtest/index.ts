@@ -23,7 +23,7 @@ const backtest = async (
 
 		return;
 	} catch (err) {
-		throw err;
+		log.error(err);
 	}
 };
 

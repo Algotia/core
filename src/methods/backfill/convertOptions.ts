@@ -1,7 +1,13 @@
 import { convertPeriodToMs, convertDateInputToMs } from "../../utils/index";
-import { ConvertedBackfillOptions, BackfillOptions } from "../../types";
+import { BackfillOptions } from "../../types";
 
 // Converts input into friendly format
+interface ConvertedBackfillOptions extends BackfillOptions {
+	sinceMs: number;
+	untilMs: number;
+	recordsToFetch: number;
+	periodMs: number;
+}
 
 const convertOptions = (
 	backfillOptions: BackfillOptions
