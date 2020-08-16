@@ -1,6 +1,5 @@
 import { ConfigOptions } from "../../types";
 import { MongoClient } from "mongodb";
-import { log } from "../../utils";
 
 const createClient = async (
 	configInput: ConfigOptions
@@ -15,9 +14,13 @@ const createClient = async (
 		};
 		const client: MongoClient = new MongoClient(dbUrl, dbOptions);
 
+		!client.isConnected() && (await client.connect());
+
+		client.db("algotia");
+
 		return client;
 	} catch (err) {
-		log.error(err);
+		throw err;
 	}
 };
 

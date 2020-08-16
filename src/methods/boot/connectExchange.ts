@@ -19,7 +19,7 @@ const connectExchange = async (
 		}
 		return exchange;
 	} catch (err) {
-		log.error(err);
+		throw err;
 	}
 };
 

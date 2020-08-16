@@ -1,6 +1,6 @@
 import { BootData } from "../../types";
 import { Collection } from "mongodb";
-import { connectToDb, log } from "..";
+import connectToDb from "./connectToDb";
 
 const getBackfillCollection = async (
 	bootData: BootData
@@ -11,7 +11,7 @@ const getBackfillCollection = async (
 
 		return db.collection("backfill");
 	} catch (err) {
-		log.error(err);
+		throw err;
 	}
 };
 
