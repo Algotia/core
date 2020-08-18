@@ -14,7 +14,7 @@ const getOneBackfill = async (
 
 		return [oneBackfill];
 	} catch (err) {
-		log.error(err);
+		throw err;
 	}
 };
 
@@ -28,7 +28,7 @@ const getAllBackfills = async (
 
 		return allBackfills;
 	} catch (err) {
-		log.error(err);
+		throw err;
 	}
 };
 
@@ -37,7 +37,9 @@ const listBackfills = async (
 	options?: ListBackfillOptions
 ): Promise<BackfillDocument[]> => {
 	try {
-		const backfillCollection = await getBackfillCollection(bootData);
+		const { client } = bootData;
+
+		const backfillCollection = await getBackfillCollection(client);
 
 		if (options && options.documentName) {
 			// List one
@@ -61,7 +63,7 @@ const listBackfills = async (
 			}
 		}
 	} catch (err) {
-		log.error(err);
+		throw err;
 	}
 };
 

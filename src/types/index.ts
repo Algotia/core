@@ -71,3 +71,14 @@ export interface BacktestOptions {
 	dataSet: string;
 	strategy: Function;
 }
+
+export interface ConvertedBackfillOptions extends BackfillOptions {
+	sinceMs: number;
+	untilMs: number;
+	period: string;
+	periodMs: number;
+	pair: string;
+	recordsToFetch: number;
+	recordLimit: number;
+	verbose?: boolean;
+}

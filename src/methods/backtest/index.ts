@@ -1,5 +1,5 @@
 import { BacktestOptions, BootData } from "../../types/index";
-import { log, connectToDb } from "../../utils";
+import { log, getBackfillCollection } from "../../utils";
 
 const backtest = async (
 	bootData: BootData,
@@ -7,11 +7,12 @@ const backtest = async (
 ): Promise<void> => {
 	try {
 		const { client } = bootData;
-		const db = await connectToDb(client);
 		const { dataSet, strategy } = options;
 
-		const backfillCollection = db.collection("backfill");
+		const backfillCollection = await getBackfillCollection(client);
+
 		const backfill = await backfillCollection.findOne({ name: dataSet });
+
 		if (!backfill)
 			throw `Error while attempting to backtest: No backfill named ${dataSet}`;
 

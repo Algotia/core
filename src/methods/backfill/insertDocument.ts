@@ -1,14 +1,10 @@
-import { log } from "../../utils";
-import { BackfillDocument, OHLCV } from "../../types";
+import { log, getBackfillCollection } from "../../utils";
+import { ConvertedBackfillOptions, BackfillDocument, OHLCV } from "../../types";
 import { MongoClient } from "mongodb";
 
 interface InsertOptions {
-	sinceMs: number;
-	untilMs: number;
-	period: string;
-	pair: string;
-	documentName?: string;
-	allRecords: OHLCV[];
+	convertedOptions: ConvertedBackfillOptions;
+	records: OHLCV[];
 }
 
 const insertDocument = async (
@@ -16,17 +12,11 @@ const insertDocument = async (
 	client: MongoClient
 ): Promise<BackfillDocument> => {
 	try {
-		const {
-			sinceMs,
-			untilMs,
-			period,
-			pair,
-			documentName,
-			allRecords
-		} = insertOptions;
+		const { convertedOptions, records } = insertOptions;
+		const { sinceMs, untilMs, period, pair, documentName } = convertedOptions;
 
-		const db = client.db();
-		const backfillCollection = db.collection("backfill");
+		const backfillCollection = await getBackfillCollection(client);
+
 		const docCount = await backfillCollection.countDocuments();
 
 		const docName: string = documentName || `backfill-${docCount + 1}`;
@@ -35,7 +25,7 @@ const insertDocument = async (
 			name: docName,
 			since: sinceMs,
 			until: untilMs,
-			records: allRecords,
+			records,
 			period,
 			pair
 		};

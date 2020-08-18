@@ -5,16 +5,6 @@ import fetchRecords from "./fetchRecords";
 import insertDocument from "./insertDocument";
 
 // Converts and validates input and returns converted and valid options
-const processInput = (backfillOptions: BackfillOptions) => {
-	try {
-		//TODO: Option validation
-		const convertedOptions = convertOptions(backfillOptions);
-
-		return convertedOptions;
-	} catch (err) {
-		throw `Error while validating backfill options \n ${err}`;
-	}
-};
 
 const backfill = async (
 	bootData: BootData,
@@ -22,40 +12,17 @@ const backfill = async (
 ): Promise<BackfillDocument> => {
 	try {
 		const { exchange, client } = bootData;
+		const { verbose } = backfillOptions;
 
-		const {
-			sinceMs,
-			untilMs,
-			recordsToFetch,
-			recordLimit,
-			pair,
-			period,
-			periodMs,
-			documentName,
-			verbose
-		} = processInput(backfillOptions);
+		const convertedOptions = convertOptions(backfillOptions);
 
-		verbose && log.info(`Records to fetch ${recordsToFetch}`);
+		verbose && log.info(`Records to fetch ${convertedOptions.recordsToFetch}`);
 
-		const fetchOptions = {
-			sinceMs,
-			period,
-			periodMs,
-			pair,
-			recordLimit,
-			recordsToFetch,
-			verbose
-		};
-
-		const allRecords = await fetchRecords(exchange, fetchOptions);
+		const records = await fetchRecords(exchange, convertedOptions);
 
 		const insertOptions = {
-			sinceMs,
-			untilMs,
-			period,
-			pair,
-			allRecords,
-			documentName
+			convertedOptions,
+			records
 		};
 
 		const backfillDocument = await insertDocument(insertOptions, client);
