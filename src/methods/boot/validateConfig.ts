@@ -1,6 +1,5 @@
 import { ConfigOptions } from "../../types";
-import ccxt from "../../wrappers/ccxt";
-import { log } from "../../utils";
+import { log, ccxt } from "../../utils";
 
 const validateConfig = (config: ConfigOptions): ConfigOptions => {
 	const { exchange } = config;

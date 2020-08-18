@@ -1,7 +1,6 @@
 import { ConfigOptions, BootOptions } from "../../types";
 import { Exchange } from "ccxt";
-import ccxt from "../../wrappers/ccxt";
-import { log } from "../../utils";
+import { log, ccxt } from "../../utils";
 
 const connectExchange = async (
 	config: ConfigOptions,

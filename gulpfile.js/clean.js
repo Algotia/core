@@ -7,6 +7,9 @@ function clean(cb) {
 	const inputPath = "./src";
 
 	const deleteDist = () => {
+		rimraf("./node_modules", (err) => {
+			if (err) error("Error deleting node modules folder", err);
+		});
 		rimraf(outputPath, (err) => {
 			if (err) error("Error deleting ./dist folder :", err);
 		});
