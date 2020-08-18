@@ -1,6 +1,8 @@
 import { BacktestOptions, BootData } from "../../types/index";
 import { log, getBackfillCollection } from "../../utils";
 
+class InputError extends Error {}
+
 const backtest = async (
 	bootData: BootData,
 	options: BacktestOptions
@@ -14,7 +16,9 @@ const backtest = async (
 		const backfill = await backfillCollection.findOne({ name: dataSet });
 
 		if (!backfill)
-			throw `Error while attempting to backtest: No backfill named ${dataSet}`;
+			throw new InputError(
+				`Error while attempting to backtest: No backfill named ${dataSet}`
+			);
 
 		const backfillLength = backfill.records.length;
 
