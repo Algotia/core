@@ -4,15 +4,19 @@ import convertOptions from "./convertOptions";
 import fetchRecords from "./fetchRecords";
 import insertDocument from "./insertDocument";
 import validateOptions from "./validateOptions";
+import { Exchange } from "ccxt";
 
 // Converts and validates input and returns converted and valid options
-
 class ValidationError extends Error {}
 
-const processInput = (backfillOptions: BackfillOptions) => {
+const processInput = async (
+	exchange: Exchange,
+	backfillOptions: BackfillOptions
+) => {
 	try {
 		//TODO: Option validation
 		const convertedOptions = convertOptions(backfillOptions);
+		await validateOptions(exchange, convertedOptions);
 
 		return convertedOptions;
 	} catch (err) {
@@ -28,47 +32,20 @@ const backfill = async (
 ): Promise<BackfillDocument> => {
 	try {
 		const { exchange, client } = bootData;
+		const { verbose } = backfillOptions;
 
-		const userInput = processInput(backfillOptions);
+		const convertedOptions = await processInput(exchange, backfillOptions);
 
-		await validateOptions(exchange, userInput);
+		verbose && log.info(`Records to fetch ${convertedOptions.recordsToFetch}`);
 
-		const {
-			sinceMs,
-			untilMs,
-			recordsToFetch,
-			recordLimit,
-			pair,
-			period,
-			periodMs,
-			documentName,
-			verbose
-		} = userInput;
+		const records = await fetchRecords(exchange, convertedOptions);
 
-		verbose && log.info(`Records to fetch ${recordsToFetch}`);
-
-		const fetchRecordsOptions = {
-			sinceMs,
-			period,
-			periodMs,
-			pair,
-			recordLimit,
-			recordsToFetch,
-			verbose
+		const insertOptions = {
+			convertedOptions,
+			records
 		};
 
-		const allRecords = await fetchRecords(exchange, fetchRecordsOptions);
-
-		const insertDocumentOptions = {
-			sinceMs,
-			untilMs,
-			period,
-			pair,
-			allRecords,
-			documentName
-		};
-
-		const document = await insertDocument(insertDocumentOptions, client);
+		const document = await insertDocument(insertOptions, client);
 
 		verbose &&
 			log.success(`Wrote document ${document.name} to the backfill collection`);

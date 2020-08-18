@@ -6,7 +6,7 @@ import { ConvertedBackfillOptions, BackfillOptions } from "../../types";
 const convertOptions = (
 	backfillOptions: BackfillOptions
 ): ConvertedBackfillOptions => {
-	const { since, until, period } = backfillOptions;
+	const { since, until, period, pair, recordLimit, verbose } = backfillOptions;
 	const sinceMs = convertDateInputToMs(since);
 	const untilMs = convertDateInputToMs(until);
 
@@ -14,14 +14,19 @@ const convertOptions = (
 	const msBetween = untilMs - sinceMs;
 	const recordsToFetch = Math.floor(msBetween / periodMs);
 
-	const newProps = {
-		sinceMs,
+	const convertedOptions = {
+		since,
+		until,
 		untilMs,
+		sinceMs,
+		period,
 		periodMs,
-		msBetween,
-		recordsToFetch
+		pair,
+		recordLimit,
+		recordsToFetch,
+		verbose
 	};
-	return Object.assign(backfillOptions, newProps);
+	return convertedOptions;
 };
 
 export default convertOptions;

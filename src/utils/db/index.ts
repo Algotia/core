@@ -1,4 +1,2 @@
-import connectToDb from "./connectToDb";
-import getBackfillCollection from "./getBackfillCollection";
-
-export { connectToDb, getBackfillCollection };
+export { default as connectToDb } from "./connectToDb";
+export { default as getBackfillCollection } from "./getBackfillCollection";

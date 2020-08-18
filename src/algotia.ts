@@ -1,5 +1,4 @@
 import { backfill, backfills, backtest, boot } from "./methods/index";
-import ccxt from "./wrappers/ccxt";
 import {
 	BootOptions,
 	BootData,

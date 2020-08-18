@@ -6,7 +6,8 @@ const deleteBackfills = async (
 	options?: DeleteBackfillOptions
 ) => {
 	try {
-		const backfillCollection = await getBackfillCollection(bootData);
+		const { client } = bootData;
+		const backfillCollection = await getBackfillCollection(client);
 
 		if (options.documentName) {
 			// Delete one
