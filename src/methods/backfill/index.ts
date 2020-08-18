@@ -3,8 +3,28 @@ import { log } from "../../utils/index";
 import convertOptions from "./convertOptions";
 import fetchRecords from "./fetchRecords";
 import insertDocument from "./insertDocument";
+import validateOptions from "./validateOptions";
+import { Exchange } from "ccxt";
 
 // Converts and validates input and returns converted and valid options
+class ValidationError extends Error {}
+
+const processInput = async (
+	exchange: Exchange,
+	backfillOptions: BackfillOptions
+) => {
+	try {
+		//TODO: Option validation
+		const convertedOptions = convertOptions(backfillOptions);
+		await validateOptions(exchange, convertedOptions);
+
+		return convertedOptions;
+	} catch (err) {
+		throw new ValidationError(
+			`Error while validating backfill options \n ${err}`
+		);
+	}
+};
 
 const backfill = async (
 	bootData: BootData,
@@ -14,7 +34,7 @@ const backfill = async (
 		const { exchange, client } = bootData;
 		const { verbose } = backfillOptions;
 
-		const convertedOptions = convertOptions(backfillOptions);
+		const convertedOptions = await processInput(exchange, backfillOptions);
 
 		verbose && log.info(`Records to fetch ${convertedOptions.recordsToFetch}`);
 
@@ -25,16 +45,14 @@ const backfill = async (
 			records
 		};
 
-		const backfillDocument = await insertDocument(insertOptions, client);
+		const document = await insertDocument(insertOptions, client);
 
 		verbose &&
-			log.success(
-				`Wrote document ${backfillDocument.name} to the backfill collection`
-			);
+			log.success(`Wrote document ${document.name} to the backfill collection`);
 
-		return backfillDocument;
+		return document;
 	} catch (err) {
-		log.error(err);
+		throw err;
 	}
 };
 

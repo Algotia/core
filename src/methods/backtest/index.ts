@@ -24,7 +24,7 @@ const backtest = async (
 
 		return;
 	} catch (err) {
-		log.error(err);
+		throw err;
 	}
 };
 

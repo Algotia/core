@@ -1,5 +1,4 @@
 import { Collection, MongoClient } from "mongodb";
-import { log } from "..";
 import connectToDb from "./connectToDb";
 
 const getBackfillCollection = async (
@@ -7,10 +6,9 @@ const getBackfillCollection = async (
 ): Promise<Collection> => {
 	try {
 		const db = await connectToDb(client);
-
 		return db.collection("backfill");
 	} catch (err) {
-		log.error(err);
+		throw err;
 	}
 };
 

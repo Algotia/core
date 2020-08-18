@@ -1,5 +1,5 @@
 import { convertPeriodToMs, convertDateInputToMs } from "../../utils/index";
-import { BackfillOptions, ConvertedBackfillOptions } from "../../types";
+import { ConvertedBackfillOptions, BackfillOptions } from "../../types";
 
 // Converts input into friendly format
 

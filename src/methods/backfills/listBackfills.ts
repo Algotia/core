@@ -7,10 +7,9 @@ const getOneBackfill = async (
 	documentName: string
 ): Promise<BackfillDocument[]> => {
 	try {
-		const oneBackfill = await backfillCollection.findOne(
-			{ name: documentName },
-			{ projection: { _id: 0 } }
-		);
+		const oneBackfill = await backfillCollection.findOne({
+			name: documentName
+		});
 
 		return [oneBackfill];
 	} catch (err) {
@@ -22,8 +21,8 @@ const getAllBackfills = async (
 	backfillCollection: Collection
 ): Promise<BackfillDocument[]> => {
 	try {
-		const allBackfills = await backfillCollection
-			.find({}, { projection: { _id: 0 } })
+		const allBackfills: BackfillDocument[] = await backfillCollection
+			.find({})
 			.toArray();
 
 		return allBackfills;
