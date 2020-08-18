@@ -28,7 +28,7 @@ jobs:
         name: dist
         path: dist/ 
 
-  release: 
+  publish_npm: 
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -42,8 +42,26 @@ jobs:
       uses: actions/download-artifact@v1
       with:
         name: dist
-    - name: Publish
+    - name: Publish to NPM
+      run: npm publish
       env: 
-        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: npx semantic-release
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  
+  publish_gpr:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup Node.js environment
+      uses: actions/setup-node@v1.4.2
+      with:
+        registry-url: 'https://npm.pkg.github.com/'
+        scope: '@algotia'
+    - name: Download build artifacts
+      uses: actions/download-artifact@v1
+      with:
+        name: dist
+    - name: Publish to GPR
+      run: npm publish
+      env: 
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
