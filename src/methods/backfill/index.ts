@@ -1,4 +1,4 @@
-import { BackfillOptions, BootData, BackfillDocument } from "../../types/index";
+import { BackfillInput, BootData, BackfillDocument } from "../../types/index";
 import { log } from "../../utils/index";
 import convertOptions from "./convertOptions";
 import fetchRecords from "./fetchRecords";
@@ -11,7 +11,7 @@ class ValidationError extends Error {}
 
 const processInput = async (
 	exchange: Exchange,
-	backfillOptions: BackfillOptions
+	backfillOptions: BackfillInput
 ) => {
 	try {
 		//TODO: Option validation
@@ -28,7 +28,7 @@ const processInput = async (
 
 const backfill = async (
 	bootData: BootData,
-	backfillOptions: BackfillOptions
+	backfillOptions: BackfillInput
 ): Promise<BackfillDocument> => {
 	try {
 		const { exchange, client } = bootData;

@@ -1,4 +1,4 @@
-import { BootData, ListBackfillOptions, BackfillDocument } from "../../types";
+import { BootData, ListBackfillInput, BackfillDocument } from "../../types";
 import { getBackfillCollection, log } from "../../utils";
 import { Collection } from "mongodb";
 
@@ -33,7 +33,7 @@ const getAllBackfills = async (
 
 const listBackfills = async (
 	bootData: BootData,
-	options?: ListBackfillOptions
+	options?: ListBackfillInput
 ): Promise<BackfillDocument[]> => {
 	try {
 		const { client } = bootData;

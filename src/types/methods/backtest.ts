@@ -1,4 +1,4 @@
-export interface BacktestOptions {
+export interface BacktestInput {
 	dataSet: string;
 	strategy: Function;
 }

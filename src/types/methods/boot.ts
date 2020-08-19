@@ -17,9 +17,6 @@ export interface ConfigOptions {
 	exchange: ExchangeConfigOptions;
 	db?: DbConfigOptions;
 }
-export interface BootOptions {
-	verbose?: boolean;
-}
 
 export interface BootData {
 	config: ConfigOptions;

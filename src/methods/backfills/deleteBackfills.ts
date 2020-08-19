@@ -1,9 +1,9 @@
-import { BootData, DeleteBackfillOptions } from "../../types";
-import { getBackfillCollection, log } from "../../utils";
+import { BootData, DeleteBackfillInput } from "../../types";
+import { getBackfillCollection } from "../../utils";
 
 const deleteBackfills = async (
 	bootData: BootData,
-	options?: DeleteBackfillOptions
+	options?: DeleteBackfillInput
 ) => {
 	try {
 		const { client } = bootData;

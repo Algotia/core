@@ -1,10 +1,10 @@
 import { convertPeriodToMs, convertDateInputToMs } from "../../utils/index";
-import { ConvertedBackfillOptions, BackfillOptions } from "../../types";
+import { ConvertedBackfillOptions, BackfillInput } from "../../types";
 
 // Converts input into friendly format
 
 const convertOptions = (
-	backfillOptions: BackfillOptions
+	backfillOptions: BackfillInput
 ): ConvertedBackfillOptions => {
 	const { since, until, period, pair, recordLimit, verbose } = backfillOptions;
 	const sinceMs = convertDateInputToMs(since);

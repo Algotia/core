@@ -1,11 +1,11 @@
-import { BacktestOptions, BootData } from "../../types/index";
+import { BacktestInput, BootData } from "../../types/index";
 import { log, getBackfillCollection } from "../../utils";
 
 class InputError extends Error {}
 
 const backtest = async (
 	bootData: BootData,
-	options: BacktestOptions
+	options: BacktestInput
 ): Promise<void> => {
 	try {
 		const { client } = bootData;
