@@ -1,6 +1,5 @@
-import { ConvertedBackfillOptions } from "../../types";
+import { ConvertedBackfillOptions, Exchange } from "../../types";
 import chalk from "chalk";
-import { Exchange } from "ccxt";
 
 class InputError extends Error {
 	constructor(message: string) {
@@ -49,14 +48,24 @@ const checkPair = async (exchange: Exchange, pair: string) => {
 	}
 };
 
+const checkRecordLimit = (exchange: Exchange, recordLimit: number) => {
+	if (recordLimit > exchange.historicalRecordLimit) {
+		throw new InputError(`Record limit ${chalk.bold.underline(
+			recordLimit
+		)} must be less than the
+			internal limit for ${exchange.name}: ${exchange.historicalRecordLimit}`);
+	}
+};
+
 const validateOptions = async (
 	exchange: Exchange,
 	backfillOptions: ConvertedBackfillOptions
 ) => {
-	const { sinceMs, untilMs, period, pair } = backfillOptions;
+	const { sinceMs, untilMs, period, pair, recordLimit } = backfillOptions;
 
 	compareSinceAndUntil(sinceMs, untilMs);
 	checkPeriod(exchange, period);
+	checkRecordLimit(exchange, recordLimit);
 	await checkPair(exchange, pair);
 };
 

@@ -1,10 +1,15 @@
-import { BackfillInput, BootData, BackfillDocument } from "../../types/index";
+import {
+	BackfillInput,
+	BootData,
+	BackfillDocument,
+	Exchange,
+	ConvertedBackfillOptions
+} from "../../types/index";
 import { log } from "../../utils/index";
 import convertOptions from "./convertOptions";
 import fetchRecords from "./fetchRecords";
 import insertDocument from "./insertDocument";
 import validateOptions from "./validateOptions";
-import { Exchange } from "ccxt";
 
 // Converts and validates input and returns converted and valid options
 class ValidationError extends Error {}
@@ -12,7 +17,7 @@ class ValidationError extends Error {}
 const processInput = async (
 	exchange: Exchange,
 	backfillOptions: BackfillInput
-) => {
+): Promise<ConvertedBackfillOptions> => {
 	try {
 		//TODO: Option validation
 		const convertedOptions = convertOptions(backfillOptions);

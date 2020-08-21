@@ -4,7 +4,7 @@ import {
 	convertPeriodToMs,
 	log
 } from "../../../src/utils/index";
-import { BackfillOptions, BackfillDocument } from "../../../src/types/index";
+import { BackfillInput, BackfillDocument } from "../../../src/types/index";
 
 const getMsDiff = (document: BackfillDocument): number => {
 	const periodMs = convertPeriodToMs(document.period);
@@ -31,7 +31,7 @@ describe("Backfill", () => {
 
 	test("Bad input throws error", async () => {
 		try {
-			const BadInput: BackfillOptions = {
+			const BadInput: BackfillInput = {
 				since: "1/01/2020",
 				until: "1/01/2020",
 				pair: "ETH/USD",
@@ -47,7 +47,7 @@ describe("Backfill", () => {
 	});
 
 	test("1 month backfill is correct", async () => {
-		const OneMonthBackfillOptions: BackfillOptions = {
+		const OneMonthBackfillOptions: BackfillInput = {
 			since: "1/01/2020",
 			until: "2/01/2020",
 			pair: "ETH/USD",
@@ -94,7 +94,7 @@ describe("Backfill", () => {
 
 	test("24 hour backfill is correct", async () => {
 		try {
-			const OneDayBackfillOptions: BackfillOptions = {
+			const OneDayBackfillOptions: BackfillInput = {
 				since: "12/05/2019 12:00 PST",
 				until: "12/06/2019 12:00 PST",
 				pair: "BTC/USD",

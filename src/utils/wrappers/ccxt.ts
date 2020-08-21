@@ -1,41 +1,77 @@
-import ccxt from "ccxt";
+import { default as ccxtOriginal, Exchange } from "ccxt";
+import { AllowedExchangeIds } from "../../types/";
 
-const removeNonAllowedExchanges = (ccxt) => {
-	const allowedExchanges = ["binance", "bitfinex"];
+type AllowedExchanges = {
+	[key in AllowedExchangeIds]: typeof ccxtOriginal[key];
+};
 
-	ccxt.exchanges.forEach((exchange: string) => {
-		if (!allowedExchanges.includes(exchange)) {
-			delete ccxt[exchange];
+type CcxtOriginal = typeof ccxtOriginal;
+
+type ExchangesArr = AllowedExchangeIds[];
+
+interface Ccxt extends AllowedExchanges {
+	exchanges: ExchangesArr;
+}
+
+type ModificationKey = {
+	[key in AllowedExchangeIds]: any;
+};
+
+interface Modification extends ModificationKey {
+	name: string;
+}
+
+const extendExchanges = (
+	allowedExchanges: AllowedExchanges
+): AllowedExchanges => {
+	const modifications: Modification[] = [
+		{
+			name: "historicalRecordLimit",
+			binance: 1500,
+			bitfinex: 10000
 		}
-	});
+	];
 
-	ccxt.exchange = allowedExchanges;
+	for (let exchangeId in allowedExchanges) {
+		let exchange: Exchange = allowedExchanges[exchangeId];
+		modifications.forEach((modification) => {
+			const { name } = modification;
+			exchange.prototype[name] = modification[exchangeId];
+		});
+	}
 
-	return ccxt;
+	return allowedExchanges;
 };
 
-const applyRecordLimits = (ccxt) => {
-	const recordLimits = {
-		bitfinex: 10000,
-		binance: 1000
+const extractAllowedExchanges = (
+	exchanges: ExchangesArr,
+	ccxtOriginal: CcxtOriginal
+): AllowedExchanges => {
+	const exchangeArr = exchanges.map((exchange) => {
+		return { [exchange]: ccxtOriginal[exchange] };
+	});
+
+	return Object.assign({}, ...exchangeArr);
+};
+
+const createExchangesArr = (): ExchangesArr => {
+	return Object.values(AllowedExchangeIds);
+};
+
+const wrapCcxt = (ccxtOriginal: CcxtOriginal): Ccxt => {
+	const allowedExchanges = createExchangesArr();
+	const extractedExchanges = extractAllowedExchanges(
+		allowedExchanges,
+		ccxtOriginal
+	);
+	const extendedExchanges = extendExchanges(extractedExchanges);
+
+	return {
+		exchanges: createExchangesArr(),
+		...extendedExchanges
 	};
-
-	const recordLimitKeys = Object.keys(recordLimits);
-
-	recordLimitKeys.forEach((exchange) => {
-		ccxt[exchange].historicalRecordLimit = recordLimits[exchange];
-	});
-
-	return ccxt;
 };
 
-const createCcxtWrapper = (ccxt) => {
-	const withAllowedExhanges = removeNonAllowedExchanges(ccxt);
-	const withRecordLimits = applyRecordLimits(withAllowedExhanges);
+const ccxt = wrapCcxt(ccxtOriginal);
 
-	const ccxtWrapped = withRecordLimits;
-
-	return ccxtWrapped;
-};
-
-export default createCcxtWrapper(ccxt);
+export default ccxt;

@@ -1,11 +1,17 @@
-import { ConfigOptions } from "../../types";
+import { ConfigOptions, AllowedExchangeIds } from "../../types";
 import { log, ccxt } from "../../utils";
 
 const validateConfig = (config: ConfigOptions): ConfigOptions => {
 	const { exchange } = config;
 	const { exchangeId, timeout } = exchange;
 
-	const isExchangeIdValid = ccxt.exchanges.includes(exchangeId);
+	const isExchangeIdValid = () => {
+		if (Object.keys(AllowedExchangeIds).includes(exchangeId)) {
+			return true;
+		} else {
+			return false;
+		}
+	};
 
 	// create error for these
 	if (!isExchangeIdValid) {

@@ -1,15 +1,16 @@
-import { ConfigOptions } from "../../types";
-import { Exchange } from "ccxt";
+import { ConfigOptions, Exchange } from "../../types";
 import { ccxt } from "../../utils";
 
-const connectExchange = async (config: ConfigOptions): Promise<Exchange> => {
+const connectExchange = async (config: ConfigOptions): Promise<any> => {
 	try {
 		const { exchangeId, apiKey, apiSecret, timeout } = config.exchange;
-		return new ccxt[exchangeId]({
+		const exchange = ccxt[exchangeId];
+		const connected = new exchange({
 			apiKey,
 			secret: apiSecret,
 			timeout
 		});
+		return connected;
 	} catch (err) {
 		throw err;
 	}
