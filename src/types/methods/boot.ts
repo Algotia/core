@@ -2,12 +2,20 @@ import { MongoClient, MongoClientOptions } from "mongodb";
 import { Exchange as CcxtExchange } from "ccxt";
 import { EventEmitter } from "events";
 
-export enum AllowedExchangeIds {
-	Bitfinex = "bitfinex",
-	Binance = "binance"
-}
+//export type Bitfinex = "bitfinex";
+//export type Kraken = "kraken";
+//export type Ftx = "ftx";
+export type Binance = "binance";
+export type Bitstamp = "bitstamp";
 
-export type AllowedExchangeIdString = "bitfinex" | "binance";
+export type AllowedExchangeIdString = Binance | Bitstamp;
+
+export enum AllowedExchangeIds {
+	//Bitfinex = "bitfinex",
+	//Kraken = "kraken"
+	Binance = "binance",
+	Bitstamp = "bitstamp"
+}
 
 export interface ExchangeConfigOptions {
 	exchangeId: AllowedExchangeIdString;

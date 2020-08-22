@@ -6,7 +6,7 @@ function BackfillRow(data: BackfillDocument) {
 	}
 	const { name, period, pair, since, until } = data;
 	this["name"] = name;
-	this.records = data.records.length;
+	this.records = data.userCandles.length;
 	this.period = period;
 	this.pair = pair;
 	this["since (formatted)"] = format(since);

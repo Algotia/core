@@ -1,4 +1,11 @@
+import { OHLCV } from "../shared";
+
+type SyncStrategy = (data: OHLCV) => void;
+type AsyncStrategy = (data: OHLCV) => Promise<void>;
+
+type Strategy = SyncStrategy | AsyncStrategy;
+
 export interface BacktestInput {
-	dataSet: string;
-	strategy: Function;
+	documentName: string;
+	strategy: Strategy;
 }

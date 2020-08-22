@@ -21,20 +21,21 @@ interface Modification extends ModificationKey {
 	name: string;
 }
 
+const exchangeModifications: Modification[] = [
+	{
+		name: "historicalRecordLimit",
+		binance: 1500,
+		//bitfinex: 10000
+		bitstamp: 1000
+	}
+];
+
 const extendExchanges = (
 	allowedExchanges: AllowedExchanges
 ): AllowedExchanges => {
-	const modifications: Modification[] = [
-		{
-			name: "historicalRecordLimit",
-			binance: 1500,
-			bitfinex: 10000
-		}
-	];
-
 	for (let exchangeId in allowedExchanges) {
 		let exchange: Exchange = allowedExchanges[exchangeId];
-		modifications.forEach((modification) => {
+		exchangeModifications.forEach((modification) => {
 			const { name } = modification;
 			exchange.prototype[name] = modification[exchangeId];
 		});

@@ -6,7 +6,7 @@ describe("Backfills", () => {
 		try {
 			const bootData = await boot({
 				exchange: {
-					exchangeId: "bitfinex",
+					exchangeId: "binance",
 					apiKey: "badString",
 					apiSecret: "secree",
 					timeout: 8000

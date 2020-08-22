@@ -17,13 +17,19 @@ class ValidationError extends Error {}
 const processInput = async (
 	exchange: Exchange,
 	backfillOptions: BackfillInput
-): Promise<ConvertedBackfillOptions> => {
+): Promise<{
+	userOptions: ConvertedBackfillOptions;
+	internalOptions: ConvertedBackfillOptions;
+}> => {
 	try {
-		//TODO: Option validation
-		const convertedOptions = convertOptions(backfillOptions);
-		await validateOptions(exchange, convertedOptions);
+		const internalOptions = convertOptions({
+			...backfillOptions,
+			period: "1m"
+		});
+		const userOptions = convertOptions(backfillOptions);
+		await validateOptions(exchange, userOptions);
 
-		return convertedOptions;
+		return { internalOptions, userOptions };
 	} catch (err) {
 		throw new ValidationError(
 			`Error while validating backfill options \n ${err}`
@@ -39,23 +45,34 @@ const backfill = async (
 		const { exchange, client } = bootData;
 		const { verbose } = backfillOptions;
 
-		const convertedOptions = await processInput(exchange, backfillOptions);
+		const { userOptions, internalOptions } = await processInput(
+			exchange,
+			backfillOptions
+		);
 
-		verbose && log.info(`Records to fetch ${convertedOptions.recordsToFetch}`);
+		verbose && log.info(`Records to fetch ${userOptions.recordsToFetch}`);
 
-		const records = await fetchRecords(exchange, convertedOptions);
+		const { userCandles, internalCandles } = await fetchRecords(
+			exchange,
+			userOptions,
+			internalOptions
+		);
 
 		const insertOptions = {
-			convertedOptions,
-			records
+			userOptions,
+			userCandles,
+			internalCandles
 		};
 
-		const document = await insertDocument(insertOptions, client);
+		if (userCandles && internalCandles) {
+			const document = await insertDocument(insertOptions, client);
+			verbose &&
+				log.success(
+					`Wrote document ${document.name} to the backfill collection`
+				);
 
-		verbose &&
-			log.success(`Wrote document ${document.name} to the backfill collection`);
-
-		return document;
+			return document;
+		}
 	} catch (err) {
 		throw err;
 	}

@@ -5,7 +5,7 @@ import { MongoClient } from "mongodb";
 
 const mockBootConfig: ConfigOptions = {
 	exchange: {
-		exchangeId: "bitfinex",
+		exchangeId: "binance",
 		apiKey: "some string",
 		apiSecret: "some string",
 		timeout: 5000

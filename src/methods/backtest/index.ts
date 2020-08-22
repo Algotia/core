@@ -1,5 +1,6 @@
 import { BacktestInput, BootData } from "../../types/index";
-import { log, getBackfillCollection } from "../../utils";
+import { log, getBackfillCollection, getBacktestCollection } from "../../utils";
+import createBacktestingExchange from "./createBacktestingExchange";
 
 class InputError extends Error {}
 
@@ -8,16 +9,20 @@ const backtest = async (
 	options: BacktestInput
 ): Promise<void> => {
 	try {
-		const { client } = bootData;
-		const { dataSet, strategy } = options;
+		const { client, exchange } = bootData;
+
+		const { documentName, strategy } = options;
+
+		const backtestingExchange = createBacktestingExchange(exchange, client);
 
 		const backfillCollection = await getBackfillCollection(client);
+		const backtestCollection = await getBacktestCollection(client);
 
-		const backfill = await backfillCollection.findOne({ name: dataSet });
+		const backfill = await backfillCollection.findOne({ name: documentName });
 
 		if (!backfill)
 			throw new InputError(
-				`Error while attempting to backtest: No backfill named ${dataSet}`
+				`Error while attempting to backtest: No backfill named ${documentName}`
 			);
 
 		const backfillLength = backfill.records.length;
