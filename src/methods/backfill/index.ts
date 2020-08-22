@@ -22,11 +22,14 @@ const processInput = async (
 	internalOptions: ConvertedBackfillOptions;
 }> => {
 	try {
-		const internalOptions = convertOptions({
-			...backfillOptions,
-			period: "1m"
-		});
-		const userOptions = convertOptions(backfillOptions);
+		const internalOptions = convertOptions(
+			{
+				...backfillOptions,
+				period: "1m"
+			},
+			exchange
+		);
+		const userOptions = convertOptions(backfillOptions, exchange);
 		await validateOptions(exchange, userOptions);
 
 		return { internalOptions, userOptions };

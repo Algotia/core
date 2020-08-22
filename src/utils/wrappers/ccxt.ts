@@ -14,7 +14,7 @@ interface Ccxt extends AllowedExchanges {
 }
 
 type ModificationKey = {
-	[key in AllowedExchangeIds]: any;
+	[key in AllowedExchangeIds]?: any;
 };
 
 interface Modification extends ModificationKey {
@@ -33,13 +33,13 @@ const exchangeModifications: Modification[] = [
 const extendExchanges = (
 	allowedExchanges: AllowedExchanges
 ): AllowedExchanges => {
-	for (let exchangeId in allowedExchanges) {
-		let exchange: Exchange = allowedExchanges[exchangeId];
-		exchangeModifications.forEach((modification) => {
-			const { name } = modification;
+	exchangeModifications.forEach((modification) => {
+		const { name, ...rest } = modification;
+		for (const exchangeId in rest) {
+			const exchange = allowedExchanges[exchangeId];
 			exchange.prototype[name] = modification[exchangeId];
-		});
-	}
+		}
+	});
 
 	return allowedExchanges;
 };
