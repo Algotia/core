@@ -1,11 +1,8 @@
 import { BacktestInput, BootData } from "../../types/index";
 import { getBackfillCollection, getBacktestCollection } from "../../utils";
+import initializeBacktest from "./initializeBacktest";
 
 class InputError extends Error {}
-
-const initializeBalance = async (intialBalance) => {};
-
-const initializeBacktest = async (client, options: BacktestInput) => {};
 
 const backtest = async (
 	bootData: BootData,
@@ -13,22 +10,39 @@ const backtest = async (
 ): Promise<void> => {
 	try {
 		const { client } = bootData;
-		const { documentName, strategy } = options;
+		const { backfillName, strategy } = options;
 
 		const backfillCollection = await getBackfillCollection(client);
 		const backtestCollection = await getBacktestCollection(client);
 
-		const backfill = await backfillCollection.findOne({ name: documentName });
+		const backfill = await backfillCollection.findOne({ name: backfillName });
 
 		if (!backfill)
 			throw new InputError(
-				`Error while attempting to backtest: No backfill named ${documentName}`
+				`Error while attempting to backtest: No backfill named ${backfillName}`
 			);
 
-		const backfillLength = backfill.records.length;
+		const initData = await initializeBacktest(bootData, options);
+		const { exchange } = initData;
 
-		for (let i = 0; i < backfillLength; i++) {
-			strategy(backfill.records[i]);
+		const backfillLength = backfill.userCandles.length;
+		try {
+			for (let i = 0; i < backfillLength; i++) {
+				try {
+					await strategy(exchange, backfill.userCandles[i]);
+					await backtestCollection.updateOne(
+						{ active: true },
+						{ $set: { userCandleIdx: i, internalCandleIdx: i } }
+					);
+				} catch (err) {
+					throw err;
+				}
+			}
+		} finally {
+			await backtestCollection.updateOne(
+				{ active: true },
+				{ $set: { active: false } }
+			);
 		}
 
 		return;

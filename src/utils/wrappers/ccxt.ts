@@ -34,8 +34,8 @@ const extendExchanges = (
 	allowedExchanges: AllowedExchanges
 ): AllowedExchanges => {
 	exchangeModifications.forEach((modification) => {
-		const { name, ...rest } = modification;
-		for (const exchangeId in rest) {
+		const { name, ...exchanges } = modification;
+		for (const exchangeId in exchanges) {
 			const exchange = allowedExchanges[exchangeId];
 			exchange.prototype[name] = modification[exchangeId];
 		}
@@ -68,7 +68,7 @@ const wrapCcxt = (ccxtOriginal: CcxtOriginal): Ccxt => {
 	const extendedExchanges = extendExchanges(extractedExchanges);
 
 	return {
-		exchanges: createExchangesArr(),
+		exchanges: allowedExchanges,
 		...extendedExchanges
 	};
 };

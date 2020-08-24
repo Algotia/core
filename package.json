@@ -46,6 +46,7 @@
     "standard-version": "^9.0.0",
     "time-stamp": "^2.2.0",
     "ts-json-schema-generator": "^0.70.2",
+    "uuid": "^8.3.0",
     "yaml": "^1.10.0"
   },
   "devDependencies": {
