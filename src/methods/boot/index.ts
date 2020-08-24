@@ -18,7 +18,7 @@ const boot = async (configInput: ConfigOptions): Promise<BootData> => {
 			eventBus
 		};
 
-		return Object.assign({}, bootData);
+		return bootData;
 	} catch (err) {
 		throw err;
 	}

@@ -1,5 +1,5 @@
-import { default as ccxtOriginal, Exchange } from "ccxt";
-import { AllowedExchangeIds } from "../../types/";
+import { default as ccxtOriginal } from "ccxt";
+import { AllowedExchangeIds, AllowedExchangeIdsEnum } from "../../types/";
 
 type AllowedExchanges = {
 	[key in AllowedExchangeIds]: typeof ccxtOriginal[key];
@@ -56,7 +56,7 @@ const extractAllowedExchanges = (
 };
 
 const createExchangesArr = (): ExchangesArr => {
-	return Object.values(AllowedExchangeIds);
+	return Object.values(AllowedExchangeIdsEnum);
 };
 
 const wrapCcxt = (ccxtOriginal: CcxtOriginal): Ccxt => {

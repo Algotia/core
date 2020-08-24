@@ -1,16 +1,17 @@
 import { MongoClient, MongoClientOptions } from "mongodb";
-import { Exchange as CcxtExchange } from "ccxt";
+import { default as ccxtOriginal, Exchange as CcxtExchange } from "ccxt";
 import { EventEmitter } from "events";
 
-//export type Bitfinex = "bitfinex";
-//export type Kraken = "kraken";
-//export type Ftx = "ftx";
-export type Binance = "binance";
-export type Bitstamp = "bitstamp";
+export type BinanceId = "binance";
+export type BitstampId = "bitstamp";
 
-export type AllowedExchangeIdString = Binance | Bitstamp;
+export type Binance = typeof ccxtOriginal.binance.prototype;
+export type Bitstamp = typeof ccxtOriginal.binance.prototype;
 
-export enum AllowedExchangeIds {
+export type AnyExchange = Binance | Bitstamp;
+export type AllowedExchangeIds = BinanceId | BitstampId;
+
+export enum AllowedExchangeIdsEnum {
 	//Bitfinex = "bitfinex",
 	//Kraken = "kraken"
 	Binance = "binance",
@@ -18,7 +19,7 @@ export enum AllowedExchangeIds {
 }
 
 export interface ExchangeConfigOptions {
-	exchangeId: AllowedExchangeIdString;
+	exchangeId: AllowedExchangeIds;
 	apiKey?: string;
 	apiSecret?: string;
 	timeout?: number;
@@ -39,7 +40,7 @@ export interface Exchange extends CcxtExchange {
 
 export interface BootData {
 	config: ConfigOptions;
-	exchange: Exchange;
+	exchange: AnyExchange;
 	client: MongoClient;
 	eventBus: EventEmitter;
 }

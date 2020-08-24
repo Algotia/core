@@ -1,12 +1,11 @@
-import { ConfigOptions, AllowedExchangeIds } from "../../types";
-import { log, ccxt } from "../../utils";
+import { ConfigOptions, AllowedExchangeIdsEnum } from "../../types";
 
 const validateConfig = (config: ConfigOptions): ConfigOptions => {
 	const { exchange } = config;
 	const { exchangeId, timeout } = exchange;
 
 	const isExchangeIdValid = () => {
-		if (Object.keys(AllowedExchangeIds).includes(exchangeId)) {
+		if (Object.keys(AllowedExchangeIdsEnum).includes(exchangeId)) {
 			return true;
 		} else {
 			return false;

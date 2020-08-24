@@ -21,7 +21,7 @@ describe("Backfill", () => {
 	beforeAll(async () => {
 		bootData = await boot({
 			exchange: {
-				exchangeId: "bitstamp",
+				exchangeId: "binance",
 				timeout: 8000
 			}
 		});
@@ -67,8 +67,7 @@ describe("Backfill", () => {
 		);
 
 		expect(OneMonthBackfillResults.userCandles[0].timestamp).toStrictEqual(
-			convertDateInputToMs(OneMonthBackfillOptions.since) ||
-				convertDateInputToMs(OneMonthBackfillOptions.since) - 1
+			convertDateInputToMs(OneMonthBackfillOptions.since)
 		);
 		// Last timestamp is one unit before untilInput
 		expect(
@@ -88,24 +87,66 @@ describe("Backfill", () => {
 			OneMonthBackfillOptions.pair
 		);
 		// Since input is saved as unix timestamp
-		if (bootData.config.exchange.exchangeId === "bitstamp") {
-			expect(OneMonthBackfillResults.since).toStrictEqual(
-				convertDateInputToMs(OneMonthBackfillOptions.since) - 1
-			);
-		} else {
-			expect(OneMonthBackfillResults.since).toStrictEqual(
-				convertDateInputToMs(OneMonthBackfillOptions.since)
-			);
-		}
+		expect(OneMonthBackfillResults.since).toStrictEqual(
+			convertDateInputToMs(OneMonthBackfillOptions.since)
+		);
 		// Until input is saved as unix timestamp
-		if (bootData.config.exchange.exchangeId === "bitstamp") {
-			expect(OneMonthBackfillResults.until).toStrictEqual(
-				convertDateInputToMs(OneMonthBackfillOptions.until) - 1
-			);
-		} else {
-			expect(OneMonthBackfillResults.until).toStrictEqual(
-				convertDateInputToMs(OneMonthBackfillOptions.until)
-			);
-		}
+		expect(OneMonthBackfillResults.until).toStrictEqual(
+			convertDateInputToMs(OneMonthBackfillOptions.until)
+		);
 	}, 90000);
+
+	//test("24 hour backfill is correct", async () => {
+	//try {
+	////const OneDayBackfillOptions: BackfillInput = {
+	////since: "12/05/2019 12:00 PST",
+	////until: "12/06/2019 12:00 PST",
+	////pair: "BTC/USD",
+	////period: "1h",
+	////recordLimit: 100
+	////};
+
+	////const OneDayBackfillResults = await backfill(
+	////bootData,
+	////OneDayBackfillOptions
+	////);
+
+	////// Number of records is 24
+	////expect(OneDayBackfillResults.userCandles.length).toStrictEqual(24);
+	////expect(OneDayBackfillResults.internalCandles.length).toStrictEqual(
+	////24 * 60
+	////);
+	////// First timestamp is equal to sinceInput
+	////expect(OneDayBackfillResults.userCandles[0].timestamp).toStrictEqual(
+	////convertDateInputToMs(OneDayBackfillOptions.since)
+	////);
+	////// Last timestamp is one unit before untilInput
+	////expect(
+	////OneDayBackfillResults.userCandles[
+	////OneDayBackfillResults.userCandles.length - 1
+	////].timestamp
+	////).toStrictEqual(
+	////convertDateInputToMs(OneDayBackfillOptions.until) -
+	////getMsDiff(OneDayBackfillResults)
+	////);
+	////// Period is the same as options
+	////expect(OneDayBackfillResults.period).toStrictEqual(
+	////OneDayBackfillOptions.period
+	////);
+	////// Pair is the same as options
+	////expect(OneDayBackfillResults.pair).toStrictEqual(
+	////OneDayBackfillOptions.pair
+	////);
+	////// Since input is saved as unix timestamp
+	////expect(OneDayBackfillResults.since).toStrictEqual(
+	////convertDateInputToMs(OneDayBackfillOptions.since)
+	////);
+	////// Until input is saved as unix timestamp
+	////expect(OneDayBackfillResults.until).toStrictEqual(
+	////convertDateInputToMs(OneDayBackfillOptions.until)
+	////);
+	////} catch (err) {
+	////fail(err);
+	////}
+	////}, 60000);
 });

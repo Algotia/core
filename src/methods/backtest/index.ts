@@ -1,19 +1,19 @@
 import { BacktestInput, BootData } from "../../types/index";
-import { log, getBackfillCollection, getBacktestCollection } from "../../utils";
-import createBacktestingExchange from "./createBacktestingExchange";
+import { getBackfillCollection, getBacktestCollection } from "../../utils";
 
 class InputError extends Error {}
+
+const initializeBalance = async (intialBalance) => {};
+
+const initializeBacktest = async (client, options: BacktestInput) => {};
 
 const backtest = async (
 	bootData: BootData,
 	options: BacktestInput
 ): Promise<void> => {
 	try {
-		const { client, exchange } = bootData;
-
+		const { client } = bootData;
 		const { documentName, strategy } = options;
-
-		const backtestingExchange = createBacktestingExchange(exchange, client);
 
 		const backfillCollection = await getBackfillCollection(client);
 		const backtestCollection = await getBacktestCollection(client);

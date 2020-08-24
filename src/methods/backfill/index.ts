@@ -2,8 +2,8 @@ import {
 	BackfillInput,
 	BootData,
 	BackfillDocument,
-	Exchange,
-	ConvertedBackfillOptions
+	ConvertedBackfillOptions,
+	AnyExchange
 } from "../../types/index";
 import { log } from "../../utils/index";
 import convertOptions from "./convertOptions";
@@ -15,7 +15,7 @@ import validateOptions from "./validateOptions";
 class ValidationError extends Error {}
 
 const processInput = async (
-	exchange: Exchange,
+	exchange: AnyExchange,
 	backfillOptions: BackfillInput
 ): Promise<{
 	userOptions: ConvertedBackfillOptions;

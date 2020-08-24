@@ -1,5 +1,5 @@
 import { log, reshapeOHLCV, sleep } from "../../utils";
-import { OHLCV, Exchange } from "../../types";
+import { OHLCV, AnyExchange } from "../../types";
 
 interface FetchOptions {
 	sinceMs: number;
@@ -12,7 +12,7 @@ interface FetchOptions {
 }
 
 interface RetrieverOptions {
-	exchange: Exchange;
+	exchange: AnyExchange;
 	options: FetchOptions;
 	onStartMessage?: (recordsLeftToFetch: number) => string;
 	onUpdateMessage?: (recordsLeftToFetch: number) => string;
@@ -34,6 +34,7 @@ const retrieveCandles = async (
 		onUpdateMessage,
 		onDoneMessage
 	} = retrieveOptions;
+
 	const {
 		sinceMs,
 		period,
@@ -80,7 +81,7 @@ const retrieveCandles = async (
 };
 
 const fetchRecords = async (
-	exchange: Exchange,
+	exchange: AnyExchange,
 	userOptions: FetchOptions,
 	internalOptions: FetchOptions
 ): Promise<Records> => {
