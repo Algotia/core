@@ -1,6 +1,6 @@
 import { MongoClient, Collection, ObjectId, WithId } from "mongodb";
 import { getBacktestCollection, getBackfillCollection } from "../../../utils";
-import { Order, Exchange, Params } from "ccxt";
+import { Order, Exchange, Params, Balances, Balance } from "ccxt";
 import { v4 as uuid } from "uuid";
 import { BackfillDocument, ActiveBacktestDocument } from "../../../types";
 
@@ -33,6 +33,14 @@ const createPrivateApis = async (
 			}
 		};
 
+		type Base = string;
+		type Quote = string;
+
+		const parsePair = (pair: string): [Base, Quote] => {
+			const [Base, Quote] = pair.split("/");
+			return [Base, Quote];
+		};
+
 		const getDataSet = async (): Promise<BackfillDocument> => {
 			try {
 				const thisBacktest: ActiveBacktestDocument = await getActiveBacktest(
@@ -46,11 +54,6 @@ const createPrivateApis = async (
 			}
 		};
 
-		const currentCandleReducer = (currentCandle, thisCandle) => {
-			if (!thisCandle.reconciled && !currentCandle) {
-				currentCandle = thisCandle;
-			}
-		};
 		// end helper functions
 
 		// fetchBalance
@@ -79,8 +82,52 @@ const createPrivateApis = async (
 				const thisBacktest: ActiveBacktestDocument = await getActiveBacktest(
 					backtestCollection
 				);
+
 				const { userCandleIdx } = thisBacktest;
 				const thisCandle = dataSet.userCandles[userCandleIdx];
+
+				const [baseCurrency, quoteCurrency] = parsePair(dataSet.pair);
+
+				const balance = await fetchBalance();
+				const quoteCurrencyBalance: Balance = balance[quoteCurrency];
+				const freeQuoteCurrency = quoteCurrencyBalance.free;
+				const usedQuoteCurrency = quoteCurrencyBalance.used;
+				const totalQuoteCurency = quoteCurrencyBalance.total;
+
+				let orderCost: number;
+
+				if (price) {
+					const cost = amount * price;
+					orderCost = cost;
+					if (cost > freeQuoteCurrency) {
+						throw new Error(
+							`Cannot place order for ${symbol} -- Avaialble balance is ${freeQuoteCurrency}, cost of order is ${cost}`
+						);
+					}
+				} else {
+					const cost = amount * thisCandle.close;
+					orderCost = cost;
+					if (cost > freeQuoteCurrency) {
+						throw new Error(
+							`Cannot place order for ${symbol} -- Avaialble balance is ${freeQuoteCurrency}, cost of order is ${cost}`
+						);
+					}
+				}
+
+				if (!price) price = thisCandle.close;
+				const balanceAfterCost: Balances = {
+					...balance,
+					info: {
+						free: freeQuoteCurrency - orderCost,
+						used: usedQuoteCurrency + orderCost,
+						total: totalQuoteCurency
+					},
+					[quoteCurrency]: {
+						free: freeQuoteCurrency - orderCost,
+						used: usedQuoteCurrency + orderCost,
+						total: totalQuoteCurency
+					}
+				};
 
 				const markets = await exchange.loadMarkets();
 
@@ -102,7 +149,7 @@ const createPrivateApis = async (
 					// and if so fill the order completely
 					filled: 0,
 					remaining: amount,
-					cost: 0,
+					cost: amount * price,
 					trades: [],
 					fee: {
 						currency: dataSet.pair.split("/")[1],
@@ -121,6 +168,7 @@ const createPrivateApis = async (
 					{ _id },
 					{
 						$set: {
+							balance: balanceAfterCost,
 							orders: updatedOrders
 						}
 					}

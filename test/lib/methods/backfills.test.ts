@@ -1,5 +1,5 @@
 import { backfills, boot } from "../../../src/algotia";
-import { log, getBackfillCollection } from "../../../src/utils";
+import { getBackfillCollection } from "../../../src/utils";
 
 describe("Backfills", () => {
 	test("List All", async () => {

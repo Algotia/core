@@ -26,6 +26,8 @@ const backtest = async (
 		const { exchange } = initData;
 
 		const backfillLength = backfill.userCandles.length;
+
+		let errors = [];
 		try {
 			for (let i = 0; i < backfillLength; i++) {
 				try {
@@ -35,7 +37,7 @@ const backtest = async (
 						{ $set: { userCandleIdx: i, internalCandleIdx: i } }
 					);
 				} catch (err) {
-					throw err;
+					errors.push(err);
 				}
 			}
 		} finally {
@@ -43,6 +45,10 @@ const backtest = async (
 				{ active: true },
 				{ $set: { active: false } }
 			);
+			if (errors.length) {
+				console.log("Your strategy produced the following errors:");
+				console.table(errors, ["message"]);
+			}
 		}
 
 		return;
