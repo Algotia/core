@@ -1,12 +1,5 @@
-import { ConvertedBackfillOptions, AnyExchange } from "../../types";
+import { ConvertedBackfillOptions, AnyExchange, InputError } from "../../types";
 import chalk from "chalk";
-
-class InputError extends Error {
-	constructor(message: string) {
-		super(message);
-		this.name = "Input Error";
-	}
-}
 
 const compareSinceAndUntil = (sinceMs: number, untilMs: number) => {
 	if (sinceMs >= untilMs) {
@@ -16,9 +9,7 @@ const compareSinceAndUntil = (sinceMs: number, untilMs: number) => {
 		throw new InputError(
 			`Parameter ${chalk.bold.underline(
 				"since"
-			)} cannot be ${greaterOrEqual} parameter ${chalk.bold.underline(
-				"until"
-			)} `
+			)} cannot be ${greaterOrEqual} parameter ${chalk.bold.underline("until")}`
 		);
 	}
 };

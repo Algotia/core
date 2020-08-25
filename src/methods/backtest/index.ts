@@ -1,6 +1,6 @@
 import { BacktestInput, BootData } from "../../types/index";
 import { getBackfillCollection, getBacktestCollection } from "../../utils";
-import initializeBacktest from "./initializeBacktest";
+import init from "./init/";
 
 class InputError extends Error {}
 
@@ -22,7 +22,7 @@ const backtest = async (
 				`Error while attempting to backtest: No backfill named ${backfillName}`
 			);
 
-		const initData = await initializeBacktest(bootData, options);
+		const initData = await init(bootData, options);
 		const { exchange } = initData;
 
 		const backfillLength = backfill.userCandles.length;
@@ -43,12 +43,10 @@ const backtest = async (
 		} finally {
 			await backtestCollection.updateOne(
 				{ active: true },
-				{ $set: { active: false } }
+				{
+					$unset: { active: null, userCandleIdx: null, internalCandleIdx: null }
+				}
 			);
-			if (errors.length) {
-				console.log("Your strategy produced the following errors:");
-				console.table(errors, ["message"]);
-			}
 		}
 
 		return;

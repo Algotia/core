@@ -12,31 +12,25 @@ import insertDocument from "./insertDocument";
 import validateOptions from "./validateOptions";
 
 // Converts and validates input and returns converted and valid options
-class ValidationError extends Error {}
-
 const processInput = async (
 	exchange: AnyExchange,
-	backfillOptions: BackfillInput
+	backfillInput: BackfillInput
 ): Promise<{
 	userOptions: ConvertedBackfillOptions;
 	internalOptions: ConvertedBackfillOptions;
 }> => {
 	try {
-		const internalOptions = convertOptions(
-			{
-				...backfillOptions,
-				period: "1m"
-			},
-			exchange
-		);
-		const userOptions = convertOptions(backfillOptions, exchange);
+		const internalInput = {
+			...backfillInput,
+			period: "1m"
+		};
+		const internalOptions = convertOptions(internalInput, exchange);
+		const userOptions = convertOptions(backfillInput, exchange);
 		await validateOptions(exchange, userOptions);
 
 		return { internalOptions, userOptions };
 	} catch (err) {
-		throw new ValidationError(
-			`Error while validating backfill options \n ${err}`
-		);
+		throw err;
 	}
 };
 

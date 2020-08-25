@@ -1,6 +1,6 @@
 import { MongoClient } from "mongodb";
-import createPublicApis from "./publicApi";
-import createPrivateApis from "./privateApi";
+import createPublicApis from "./publicApi/";
+import createPrivateApis from "./privateApi/";
 import { Exchange } from "ccxt";
 
 const createBacktestingExchange = async (

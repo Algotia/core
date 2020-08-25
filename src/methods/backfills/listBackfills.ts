@@ -1,4 +1,9 @@
-import { BootData, ListBackfillInput, BackfillDocument } from "../../types";
+import {
+	BootData,
+	ListBackfillInput,
+	BackfillDocument,
+	InputError
+} from "../../types";
 import { getBackfillCollection, log } from "../../utils";
 import { Collection } from "mongodb";
 
@@ -49,7 +54,9 @@ const listBackfills = async (
 			if (oneBackfill) {
 				return oneBackfill;
 			} else {
-				throw new Error(`No backfill named ${options.documentName} saved.`);
+				throw new InputError(
+					`No backfill named ${options.documentName} saved.`
+				);
 			}
 		} else {
 			// List all
@@ -58,7 +65,7 @@ const listBackfills = async (
 			if (allBackfills.length) {
 				return allBackfills;
 			} else {
-				throw new Error("No backfills saved.");
+				return [];
 			}
 		}
 	} catch (err) {
