@@ -35,8 +35,7 @@ describe("Backfill", () => {
 				since: "1/01/2020",
 				until: "1/01/2020",
 				pair: "ETH/BTC",
-				period: "1h",
-				verbose: true
+				period: "1h"
 			};
 
 			await expect(backfill(bootData, BadInput)).rejects.toThrowError();
@@ -50,8 +49,7 @@ describe("Backfill", () => {
 			since: "1/01/2020",
 			until: "1/02/2020",
 			pair: "ETH/BTC",
-			period: "1h",
-			verbose: true
+			period: "1h"
 		};
 
 		const OneMonthBackfillResults = await backfill(

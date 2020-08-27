@@ -1,19 +1,22 @@
 import { MongoClient } from "mongodb";
-import { Exchange } from "ccxt";
+import { Exchange, Order } from "ccxt";
 import {
 	getBackfillCollection,
 	getBacktestCollection
 } from "../../../../utils";
-import {
-	PrivateApi,
-	PrivateApiIds,
-	MethodFactoryArgs
-} from "../../../../types";
+import { MethodFactoryArgs } from "../../../../types";
+import { RedisClient } from "redis";
 import privateApiFactories from "./methods/";
+import { Tedis } from "tedis";
+
+interface PrivateApi {
+	[key: string]: (...args: any) => Promise<any>;
+}
 
 const createPrivateApis = async (
 	exchange: Exchange,
-	client: MongoClient
+	client: MongoClient,
+	redisClient: Tedis
 ): Promise<PrivateApi> => {
 	try {
 		const backfill = await getBackfillCollection(client);
@@ -22,26 +25,20 @@ const createPrivateApis = async (
 		const collections = { backtest, backfill };
 
 		const methodFactoryArgs: MethodFactoryArgs = {
+			redisClient,
 			collections,
 			exchange
 		};
 
-		//let privateApis = {};
+		//TODO: Do this more dynamically
 
-		//for (const factoryName in privateApiFactories) {
-		//const factory = privateApiFactories[factoryName];
-		//const method = factory(methodFactoryArgs);
-
-		//privateApis[factoryName] = method;
-		//console.log(privateApis);
-		//}
-		const cancelOrder = privateApiFactories.cancelOrder(methodFactoryArgs);
+		//const cancelOrder = privateApiFactories.cancelOrder(methodFactoryArgs);
 		const createOrder = privateApiFactories.createOrder(methodFactoryArgs);
 		const fetchOrders = privateApiFactories.fetchOrders(methodFactoryArgs);
 		const fetchBalance = privateApiFactories.fetchBalance(methodFactoryArgs);
 
 		const privateApis: PrivateApi = {
-			cancelOrder,
+			//cancelOrder,
 			createOrder,
 			fetchOrders,
 			fetchBalance

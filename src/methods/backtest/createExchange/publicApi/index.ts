@@ -9,7 +9,8 @@ const createPublicApis = (exchange: Exchange) => {
 		fetchTicker,
 		fetchOrderBook,
 		fetchTrades,
-		fetchOHLCV
+		fetchOHLCV,
+		loadMarkets
 	} = exchange;
 
 	const requiredApis = {
@@ -18,7 +19,8 @@ const createPublicApis = (exchange: Exchange) => {
 		fetchTicker,
 		fetchOrderBook,
 		fetchTrades,
-		fetchOHLCV
+		fetchOHLCV,
+		loadMarkets
 	};
 
 	let addedApis = {};

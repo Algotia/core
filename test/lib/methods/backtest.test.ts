@@ -23,12 +23,18 @@ describe("Backtest", () => {
 				},
 				strategy: async (exchange, data) => {
 					try {
-						if (data.close > 0.01951351) {
-							await exchange.createOrder("ETH/BTC", "market", "buy", 1000);
-						}
+						const balance = await exchange.fetchBalance();
+						console.log("BALANCE -- ", balance);
+						const order = await exchange.createOrder(
+							"ETH/BTC",
+							"market",
+							"buy",
+							1000
+						);
+						console.log("ORDER -- ");
 						const allOrders = await exchange.fetchOrders();
-						const allCosts: number[] = allOrders.map((order) => order.cost);
-						const totalCosts = allCosts.reduce((x, y) => (x += y), 0);
+						console.log(allOrders);
+						console.log(balance);
 					} catch (err) {
 						throw err;
 					}

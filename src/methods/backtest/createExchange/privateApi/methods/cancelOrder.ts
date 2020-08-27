@@ -1,55 +1,60 @@
-import { cancelOrder, MethodFactoryArgs } from "../../../../../types";
-import { Order } from "ccxt";
-import { getActiveBacktest } from "../helpers";
+//import { MethodFactoryArgs } from "../../../../../types";
+//import { Order } from "ccxt";
 
-const factory = (args: MethodFactoryArgs): cancelOrder => {
-	const { collections } = args;
-	const cancelOrder: cancelOrder = async (
-		id: string,
-		symbol?: string,
-		params?: any
-	): Promise<Order> => {
-		try {
-			const activeBacktest = await getActiveBacktest(collections);
+//type CancelOrder = (
+//id: string,
+//symbol?: string,
+//params?: any
+//) => Promise<Order>;
 
-			const orderToBeCancled: Order = activeBacktest.orders.find((order) => {
-				return order.id === id;
-			});
+//const factory = (args: MethodFactoryArgs): CancelOrder => {
+//const { collections } = args;
+//const cancelOrder: CancelOrder = async (
+//id: string,
+//symbol?: string,
+//params?: any
+//): Promise<Order> => {
+//try {
+//const activeBacktest = await getActiveBacktest(collections);
 
-			if (!orderToBeCancled) {
-				throw new Error(`Could not cancel order with the ID of ${id}`);
-			}
+//const orderToBeCancled: Order = activeBacktest.orders.find((order) => {
+//return order.id === id;
+//});
 
-			if (orderToBeCancled.symbol === symbol) {
-				throw new Error(
-					`Order with the id of ${id} does not have the symbol ${symbol}.`
-				);
-			}
+//if (!orderToBeCancled) {
+//throw new Error(`Could not cancel order with the ID of ${id}`);
+//}
 
-			const orderToBeCancledIdx = activeBacktest.orders.indexOf(
-				orderToBeCancled
-			);
+//if (orderToBeCancled.symbol === symbol) {
+//throw new Error(
+//`Order with the id of ${id} does not have the symbol ${symbol}.`
+//);
+//}
 
-			const canceledOrder: Order = {
-				...orderToBeCancled,
-				status: "canceled"
-			};
+//const orderToBeCancledIdx = activeBacktest.orders.indexOf(
+//orderToBeCancled
+//);
 
-			let ordersCopy = [...activeBacktest.orders];
+//const canceledOrder: Order = {
+//...orderToBeCancled,
+//status: "canceled"
+//};
 
-			ordersCopy[orderToBeCancledIdx] = canceledOrder;
+//let ordersCopy = [...activeBacktest.orders];
 
-			await collections.backtest.updateOne(activeBacktest._id, {
-				$set: { orders: ordersCopy }
-			});
+//ordersCopy[orderToBeCancledIdx] = canceledOrder;
 
-			return canceledOrder;
-		} catch (err) {
-			throw err;
-		}
-	};
+//await collections.backtest.updateOne(activeBacktest._id, {
+//$set: { orders: ordersCopy }
+//});
 
-	return cancelOrder;
-};
+//return canceledOrder;
+//} catch (err) {
+//throw err;
+//}
+//};
 
-export default factory;
+//return cancelOrder;
+//};
+
+//export default factory;

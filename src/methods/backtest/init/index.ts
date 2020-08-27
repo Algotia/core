@@ -6,11 +6,10 @@ import {
 } from "../../../types";
 import { getBacktestCollection, getBackfillCollection } from "../../../utils";
 import createBacktestingExchange from "../createExchange";
-import processOptions from "./processOptions";
 import initializeDocument from "./initializeDocument";
+import { Tedis } from "tedis";
 
 interface InitData {
-	backtestId: ObjectId;
 	//TODO: Create interface for exchange
 	exchange: any;
 }
@@ -19,32 +18,31 @@ type BackfillDocument = WithId<IBackfillDocument>;
 
 const initializeBacktest = async (
 	bootData: BootData,
+	redisClient: Tedis,
 	options: BacktestInput
 ): Promise<InitData> => {
 	const { client, exchange } = bootData;
 
 	const backfillCollection = await getBackfillCollection(client);
-	const backtestCollection = await getBacktestCollection(client);
 
 	const dataSet: BackfillDocument = await backfillCollection.findOne({
 		name: options.backfillName
 	});
 
-	const processedOptions = await processOptions(
-		options,
+	const processedOptions = {
 		dataSet,
-		backtestCollection
-	);
+		options
+	};
 
-	const backtestId = await initializeDocument(
-		processedOptions,
-		backtestCollection
-	);
+	initializeDocument(processedOptions, redisClient);
 
-	const backtestExchange = await createBacktestingExchange(exchange, client);
+	const backtestExchange = await createBacktestingExchange(
+		exchange,
+		client,
+		redisClient
+	);
 
 	return {
-		backtestId,
 		exchange: backtestExchange
 	};
 };

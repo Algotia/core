@@ -1,19 +1,18 @@
-import { MethodFactoryArgs, fetchOrders } from "../../../../../types";
-import { getActiveBacktest } from "../helpers";
+import { MethodFactoryArgs } from "../../../../../types";
 import { Order, Params } from "ccxt";
 
 const factory = (args: MethodFactoryArgs) => {
-	const { collections } = args;
-	const fetchOrders: fetchOrders = async (
+	const { collections, redisClient } = args;
+	const fetchOrders = async (
 		symbol?: string,
 		since?: number,
 		limit?: number,
 		params?: Params
-	): Promise<Order[]> => {
+	): Promise<string[]> => {
 		try {
-			const activeBacktest = await getActiveBacktest(collections);
+			const orders = await redisClient.lrange("openOrders", 0, -1);
 
-			return activeBacktest.orders;
+			return orders;
 		} catch (err) {
 			throw err;
 		}

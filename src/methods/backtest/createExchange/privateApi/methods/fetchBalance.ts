@@ -1,15 +1,10 @@
-import { getActiveBacktest } from "../helpers/";
-import {
-	Collections,
-	fetchBalance,
-	MethodFactoryArgs
-} from "../../../../../types";
+import { MethodFactoryArgs } from "../../../../../types";
 
-const factory = (args: MethodFactoryArgs): fetchBalance => {
-	const { collections } = args;
-	const fetchBalance: fetchBalance = async () => {
-		const activeBackfill = await getActiveBacktest(collections);
-		return activeBackfill.balance;
+const factory = (args: MethodFactoryArgs) => {
+	const { redisClient } = args;
+	const fetchBalance = async () => {
+		const balance = await redisClient.hgetall("balance");
+		return balance;
 	};
 
 	return fetchBalance;

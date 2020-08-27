@@ -1,10 +1,15 @@
+import { RedisClient } from "redis";
 import { Collection, ObjectId } from "mongodb";
 import {
 	ActiveBacktestDocument,
 	ProcessedBacktestOptions,
-	BaseAndQuoteCurrencies
+	BaseAndQuoteCurrencies,
+	BackfillDocument,
+	BacktestInput
 } from "../../../types";
 import { Balances } from "ccxt";
+import { Tedis } from "tedis";
+import flatten from "flat";
 
 const createBalance = (
 	currencies: BaseAndQuoteCurrencies,
@@ -16,12 +21,12 @@ const createBalance = (
 			used: 0,
 			total: balances.quote
 		},
-		[currencies.base]: {
+		base: {
 			free: balances.base,
 			used: 0,
 			total: balances.base
 		},
-		[currencies.quote]: {
+		quote: {
 			free: balances.quote,
 			used: 0,
 			total: balances.quote
@@ -31,26 +36,26 @@ const createBalance = (
 };
 
 const initializeDocument = async (
-	options: ProcessedBacktestOptions,
-	backtestCollection: Collection
-): Promise<ObjectId> => {
-	const { name, backfillId, baseAndQuote, initialBalance } = options;
-	const active = true;
-	const balance = createBalance(baseAndQuote, initialBalance);
-
-	const document: ActiveBacktestDocument = {
-		name,
-		backfillId,
-		active,
-		balance,
-		orders: [],
-		internalCandleIdx: 0,
-		userCandleIdx: 0
+	options: { dataSet: BackfillDocument; options: BacktestInput },
+	redisClient: Tedis
+): Promise<void> => {
+	const { pair } = options.dataSet;
+	const { initialBalance } = options.options;
+	const [base, quote] = pair.split("/");
+	const baseAndQuote = {
+		base,
+		quote
 	};
 
-	const { insertedId } = await backtestCollection.insertOne(document);
+	const balance = createBalance(baseAndQuote, initialBalance);
 
-	return insertedId;
+	await redisClient.hmset("balance", {
+		...flatten(balance)
+	});
+
+	await redisClient.set("internalCandleIdx", "0");
+	await redisClient.set("userCandleIdx", "0");
+	await redisClient.set("backfillId", options.options.backfillName);
 };
 
 export default initializeDocument;

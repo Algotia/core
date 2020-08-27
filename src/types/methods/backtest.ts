@@ -1,7 +1,8 @@
-import { ObjectId, Collection } from "mongodb";
+import { ObjectId, Collection, WithId } from "mongodb";
 import { OHLCV } from "../shared";
-import { AllowedExchangeIds } from "./boot";
-import ccxt, { Balances, Order, Exchange } from "ccxt";
+import ccxt, { Balances, Order, Exchange, Trade } from "ccxt";
+import { RedisClient } from "redis";
+import { Tedis } from "tedis";
 
 type SyncStrategy = (exchange: Exchange, data: OHLCV) => void;
 type AsyncStrategy = (exchange: Exchange, data: OHLCV) => Promise<void>;
@@ -36,12 +37,16 @@ export interface BacktestDocument {
 	backfillId: ObjectId;
 	balance: Balances;
 	orders: Order[];
+	trades: Trade[];
 }
+
 export interface ActiveBacktestDocument extends BacktestDocument {
 	active: true;
 	userCandleIdx: number;
 	internalCandleIdx: number;
 }
+
+export type ActiveBacktestDocumentWithId = WithId<ActiveBacktestDocument>;
 
 export interface Collections {
 	backtest: Collection;
@@ -49,6 +54,7 @@ export interface Collections {
 }
 
 export interface MethodFactoryArgs {
+	redisClient: Tedis;
 	exchange: Exchange;
 	collections: Collections;
 }
@@ -58,16 +64,4 @@ export enum PrivateApiIds {
 	CreateOrder = "createOrder",
 	CancelOrder = "cancelOrder",
 	FetchOrders = "fetchOrders"
-}
-
-export type createOrder = typeof Exchange.prototype.createOrder;
-export type cancelOrder = typeof Exchange.prototype.cancelOrder;
-export type fetchOrders = typeof Exchange.prototype.fetchOrders;
-export type fetchBalance = typeof Exchange.prototype.fetchBalance;
-
-export interface PrivateApi {
-	fetchBalance: fetchBalance;
-	createOrder: createOrder;
-	cancelOrder: cancelOrder;
-	fetchOrders: fetchOrders;
 }

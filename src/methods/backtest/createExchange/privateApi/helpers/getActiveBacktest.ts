@@ -1,11 +1,18 @@
 import { WithId } from "mongodb";
-import { ActiveBacktestDocument, Collections } from "../../../../../types";
+import {
+	ActiveBacktestDocument,
+	Collections,
+	MethodFactoryArgs
+} from "../../../../../types";
 
 const getActiveBacktest = async (
-	collections: Collections
+	args: MethodFactoryArgs
 ): Promise<WithId<ActiveBacktestDocument>> => {
 	try {
-		return await collections.backtest.findOne({ active: true });
+		const activeBacktest = await args.collections.backtest.findOne({
+			active: true
+		});
+		return activeBacktest;
 	} catch (err) {
 		throw err;
 	}

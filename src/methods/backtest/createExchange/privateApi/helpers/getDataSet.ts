@@ -1,20 +1,20 @@
 import {
 	BackfillDocument,
 	ActiveBacktestDocument,
-	Collections
+	Collections,
+	MethodFactoryArgs
 } from "../../../../../types";
-import getActiveBacktest from "./getActiveBacktest";
 
 const getDataSet = async (
-	collections: Collections
+	args: MethodFactoryArgs
 ): Promise<BackfillDocument> => {
 	try {
-		const thisBacktest: ActiveBacktestDocument = await getActiveBacktest(
-			collections
-		);
-		const backfillId = thisBacktest.backfillId;
+		const backfillId = await args.redisClient.get("backfillId");
 
-		return await collections.backfill.findOne(backfillId);
+		const backfilldoc = await args.collections.backfill.findOne({
+			name: backfillId
+		});
+		return backfilldoc;
 	} catch (err) {
 		throw err;
 	}
