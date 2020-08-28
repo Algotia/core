@@ -12,12 +12,12 @@ describe("Backfills", () => {
 		});
 	});
 	afterAll(async () => {
-		bootData.client.close();
+		bootData.quit();
 	});
 	test("List All", async () => {
 		try {
-			const { client } = bootData;
-			const backfillCollection = await getBackfillCollection(client);
+			const { mongoClient } = bootData;
+			const backfillCollection = await getBackfillCollection(mongoClient);
 
 			const realLength = await backfillCollection.countDocuments();
 

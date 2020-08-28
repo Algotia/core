@@ -26,7 +26,7 @@ describe("Backfill", () => {
 	}, 1800000);
 
 	afterAll(async () => {
-		await bootData.client.close();
+		await bootData.quit();
 	});
 
 	test("Bad input throws error", async () => {

@@ -1,9 +1,17 @@
-import { MethodFactoryArgs } from "../../../../../types";
+import {
+	MethodFactoryArgs,
+	FetchBalance,
+	InternalBalance
+} from "../../../../../types";
+import { unflatten } from "flat";
+import { Balances } from "ccxt";
+import { decodeObject } from "../../../../../utils";
 
-const factory = (args: MethodFactoryArgs) => {
+const factory = (args: MethodFactoryArgs): FetchBalance => {
 	const { redisClient } = args;
-	const fetchBalance = async () => {
-		const balance = await redisClient.hgetall("balance");
+	const fetchBalance: FetchBalance = async (): Promise<Balances> => {
+		const rawBalance = await redisClient.hgetall("balance");
+		const balance: Balances = decodeObject(rawBalance);
 		return balance;
 	};
 

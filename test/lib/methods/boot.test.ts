@@ -17,8 +17,9 @@ test("Boot function", async () => {
 		const bootData = await boot(mockBootConfig);
 		expect(bootData.config).toStrictEqual(mockBootConfig);
 		expect(bootData.exchange).toBeInstanceOf(Exchange);
-		expect(bootData.client).toBeInstanceOf(MongoClient);
-		await bootData.client.close();
+		expect(bootData.mongoClient).toBeInstanceOf(MongoClient);
+
+		await bootData.mongoClient.close();
 	} catch (err) {
 		throw err;
 	}

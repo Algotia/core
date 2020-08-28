@@ -1,42 +1,54 @@
-import { MethodFactoryArgs } from "../../../../../types";
+import {
+	MethodFactoryArgs,
+	PartialOrder,
+	CreateOrder
+} from "../../../../../types";
 import { getThisCandle, getBackfillPair } from "../helpers/";
 import fetchBalanceFactory from "./fetchBalance";
-import { Balance, Order, Balances as CcxtBalances } from "ccxt";
+import { Order } from "ccxt";
 import { v4 as uuid } from "uuid";
-import flatten from "flat";
+import chalk from "chalk";
+import { encodeObject } from "../../../../../utils";
 
-type CreateOrder = (
-	symbol: string,
-	side: "buy" | "sell",
-	type: string,
-	amount: number,
-	price?: number,
-	params?: {
-		clientOrderId: string;
+const red = chalk.underline.red;
+const green = chalk.underline.green;
+const yellow = chalk.bold.yellow;
+class InsufficientBalanceError extends Error {
+	constructor(balanceAmount: number, orderAmount: number, currency: string) {
+		super(
+			`Strategy attempted to place order for: \n ${red(orderAmount)} ${yellow(
+				currency
+			)} \n Available balance is:  \n ${green(balanceAmount)} ${yellow(
+				currency
+			)}`
+		);
+		this.stack = null;
+		this.name = "InsufficientBalanceError";
 	}
-) => Promise<Partial<Order>>;
+}
 
 const factory = (args: MethodFactoryArgs): CreateOrder => {
-	const { collections, redisClient } = args;
+	const { redisClient } = args;
 	const createOrder: CreateOrder = async (
 		symbol: string,
-		type: string,
+		type: "limit" | "market",
 		side: "buy" | "sell",
 		amount: number,
 		price?: number,
 		params?: {
 			clientOrderId: string;
 		}
-	): Promise<Partial<Order>> => {
+	): Promise<PartialOrder> => {
 		try {
 			const thisCandle = await getThisCandle(args);
 
-			const [baseCurrency, quoteCurrency] = await getBackfillPair(args);
+			const splitPair = await getBackfillPair(args);
+			const quoteCurrency = splitPair[1];
 
 			const fetchBalance = fetchBalanceFactory(args);
 			const balance = await fetchBalance();
 
-			const freeQuoteCurrency = parseInt(balance["quote.free"]);
+			const freeQuoteCurrency = balance.quote.free;
 
 			let orderCost: number;
 
@@ -44,25 +56,26 @@ const factory = (args: MethodFactoryArgs): CreateOrder => {
 				const cost = amount * price;
 				orderCost = cost;
 				if (cost > freeQuoteCurrency) {
-					throw new Error(
-						`Cannot place order for ${symbol} -- Avaialble balance is ${freeQuoteCurrency}, cost of order is ${cost}`
+					throw new InsufficientBalanceError(
+						balance.quote.free,
+						orderCost,
+						quoteCurrency
 					);
 				}
 			} else {
 				const cost = amount * thisCandle.close;
 				orderCost = cost;
 				if (cost > freeQuoteCurrency) {
-					throw new Error(
-						`Cannot place order for ${symbol} -- Avaialble balance is ${freeQuoteCurrency}, cost of order is ${cost}`
+					throw new InsufficientBalanceError(
+						balance.quote.free,
+						orderCost,
+						quoteCurrency
 					);
 				}
 			}
 
 			if (!price) price = thisCandle.close;
 
-			//const markets = await args.exchange.loadMarkets();
-
-			//const { maker, taker } = markets[symbol];
 			const maker = 0.0005;
 			const taker = 0.001;
 
@@ -75,9 +88,9 @@ const factory = (args: MethodFactoryArgs): CreateOrder => {
 				symbol,
 				type,
 				side,
-				price,
+				price: price,
 				average: 0,
-				amount,
+				amount: amount,
 				// TODO: check if current candle price is greater than limit price
 				// and if so fill the order completely
 				filled: 0,
@@ -96,9 +109,10 @@ const factory = (args: MethodFactoryArgs): CreateOrder => {
 
 			const orderKey = `order:${order.id}`;
 
-			console.log(flatten(order));
+			const encodedOrder = encodeObject(order);
+
 			await redisClient.hmset(orderKey, {
-				...flatten(order)
+				...encodedOrder
 			});
 
 			await redisClient.rpush("openOrders", orderKey);

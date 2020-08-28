@@ -4,7 +4,7 @@ import {
 	BackfillDocument,
 	InputError
 } from "../../types";
-import { getBackfillCollection, log } from "../../utils";
+import { getBackfillCollection } from "../../utils";
 import { Collection } from "mongodb";
 
 const getOneBackfill = async (
@@ -41,9 +41,9 @@ const listBackfills = async (
 	options?: ListBackfillInput
 ): Promise<BackfillDocument[]> => {
 	try {
-		const { client } = bootData;
+		const { mongoClient } = bootData;
 
-		const backfillCollection = await getBackfillCollection(client);
+		const backfillCollection = await getBackfillCollection(mongoClient);
 
 		if (options && options.documentName) {
 			// List one

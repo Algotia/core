@@ -6,8 +6,8 @@ const deleteBackfills = async (
 	options?: DeleteBackfillInput
 ) => {
 	try {
-		const { client } = bootData;
-		const backfillCollection = await getBackfillCollection(client);
+		const { mongoClient } = bootData;
+		const backfillCollection = await getBackfillCollection(mongoClient);
 
 		if (options.documentName) {
 			// Delete one

@@ -1,6 +1,7 @@
 import { MongoClient, MongoClientOptions } from "mongodb";
 import { default as ccxtOriginal, Exchange as CcxtExchange } from "ccxt";
 import { EventEmitter } from "events";
+import { Tedis } from "tedis";
 
 export type BinanceId = "binance";
 export type BitstampId = "bitstamp";
@@ -41,6 +42,8 @@ export interface Exchange extends CcxtExchange {
 export interface BootData {
 	config: ConfigOptions;
 	exchange: AnyExchange;
-	client: MongoClient;
+	mongoClient: MongoClient;
 	eventBus: EventEmitter;
+	redisClient: Tedis;
+	quit: () => void;
 }

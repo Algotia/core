@@ -1,11 +1,16 @@
 import { ObjectId, Collection, WithId } from "mongodb";
 import { OHLCV } from "../shared";
-import ccxt, { Balances, Order, Exchange, Trade } from "ccxt";
-import { RedisClient } from "redis";
+import { Balances, Order, Exchange, Trade } from "ccxt";
 import { Tedis } from "tedis";
 
-type SyncStrategy = (exchange: Exchange, data: OHLCV) => void;
-type AsyncStrategy = (exchange: Exchange, data: OHLCV) => Promise<void>;
+type SyncStrategy = (
+	exchange: Exchange | BacktestingExchange,
+	data: OHLCV
+) => void;
+type AsyncStrategy = (
+	exchange: Exchange | BacktestingExchange,
+	data: OHLCV
+) => Promise<void>;
 
 type Strategy = SyncStrategy | AsyncStrategy;
 
@@ -53,6 +58,39 @@ export interface Collections {
 	backfill: Collection;
 }
 
+export interface PrivateApi {
+	createOrder: CreateOrder;
+	fetchBalance: FetchBalance;
+	fetchOrders: FetchOrders;
+}
+
+export interface PublicApi {
+	fetchMarkets: typeof Exchange.prototype.fetchMarkets;
+	fetchCurrencies: typeof Exchange.prototype.fetchCurrencies;
+	fetchTradingLimits?: typeof Exchange.prototype.fetchTradingLimits;
+	fetchTradingFees?: typeof Exchange.prototype.fetchTradingFees;
+	fetchTicker: typeof Exchange.prototype.fetchTicker;
+	fetchOrderBook: typeof Exchange.prototype.fetchOrderBook;
+	fetchOHLCV: typeof Exchange.prototype.fetchOHLCV;
+	loadMarkets: typeof Exchange.prototype.loadMarkets;
+}
+
+export interface BacktestingExchange {
+	// Private API
+	createOrder: CreateOrder;
+	fetchBalance: FetchBalance;
+	fetchOrders: FetchOrders;
+	// Public API
+	fetchMarkets: typeof Exchange.prototype.fetchMarkets;
+	fetchCurrencies: typeof Exchange.prototype.fetchCurrencies;
+	fetchTradingLimits?: typeof Exchange.prototype.fetchTradingLimits;
+	fetchTradingFees?: typeof Exchange.prototype.fetchTradingFees;
+	fetchTicker: typeof Exchange.prototype.fetchTicker;
+	fetchOrderBook: typeof Exchange.prototype.fetchOrderBook;
+	fetchOHLCV: typeof Exchange.prototype.fetchOHLCV;
+	loadMarkets: typeof Exchange.prototype.loadMarkets;
+}
+
 export interface MethodFactoryArgs {
 	redisClient: Tedis;
 	exchange: Exchange;
@@ -65,3 +103,28 @@ export enum PrivateApiIds {
 	CancelOrder = "cancelOrder",
 	FetchOrders = "fetchOrders"
 }
+
+export interface InternalBalance {
+	[key: string]: string;
+}
+
+export type PartialOrder = Partial<Order>;
+
+export type FetchOrders = (
+	symbol?: string,
+	since?: number,
+	limit?: number,
+	params?: {}
+) => Promise<PartialOrder[]>;
+export type FetchBalance = () => Promise<Balances>;
+
+export type CreateOrder = (
+	symbol: string,
+	type: string,
+	side: "buy" | "sell",
+	amount: number,
+	price?: number,
+	params?: {
+		clientOrderId: string;
+	}
+) => Promise<PartialOrder>;

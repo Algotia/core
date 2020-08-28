@@ -1,16 +1,10 @@
 import getDataSet from "./getDataSet";
-import getActiveBacktest from "./getActiveBacktest";
-import {
-	ActiveBacktestDocument,
-	Collections,
-	MethodFactoryArgs
-} from "../../../../../types";
+import { MethodFactoryArgs, OHLCV } from "../../../../../types";
 
-const getThisCandle = async (args: MethodFactoryArgs) => {
+const getThisCandle = async (args: MethodFactoryArgs): Promise<OHLCV> => {
 	const dataSet = await getDataSet(args);
 	const userCandleIdx = await args.redisClient.get("userCandleIdx");
-	const thisCandle = dataSet.userCandles[userCandleIdx];
-	return thisCandle;
+	return dataSet.userCandles[userCandleIdx];
 };
 
 export default getThisCandle;

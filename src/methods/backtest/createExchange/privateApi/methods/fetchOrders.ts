@@ -1,18 +1,30 @@
-import { MethodFactoryArgs } from "../../../../../types";
-import { Order, Params } from "ccxt";
+import {
+	MethodFactoryArgs,
+	FetchOrders,
+	PartialOrder
+} from "../../../../../types";
+import { unflatten } from "flat";
 
-const factory = (args: MethodFactoryArgs) => {
-	const { collections, redisClient } = args;
-	const fetchOrders = async (
+const factory = (args: MethodFactoryArgs): FetchOrders => {
+	const { redisClient } = args;
+	const fetchOrders: FetchOrders = async (
 		symbol?: string,
 		since?: number,
 		limit?: number,
-		params?: Params
-	): Promise<string[]> => {
+		params?: {}
+	): Promise<PartialOrder[]> => {
 		try {
-			const orders = await redisClient.lrange("openOrders", 0, -1);
+			const orderIds = await redisClient.lrange("openOrders", 0, -1);
 
-			return orders;
+			const orderPromises: Promise<PartialOrder>[] = orderIds.map(
+				async (orderId) => {
+					const rawOrderHash = await redisClient.hgetall(orderId);
+					const structuredOrder: PartialOrder = unflatten(rawOrderHash);
+					return structuredOrder;
+				}
+			);
+
+			return Promise.all(orderPromises);
 		} catch (err) {
 			throw err;
 		}

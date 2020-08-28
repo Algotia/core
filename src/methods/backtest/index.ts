@@ -1,61 +1,46 @@
-import { BacktestInput, BootData } from "../../types/index";
-import { getBackfillCollection, getBacktestCollection } from "../../utils";
-import init from "./init/";
-import reconcile from "./reconciler/";
-import redis from "redis";
-import { Tedis } from "tedis";
+import { BootData, BacktestInput } from "../../types";
+import { decodeObject } from "../../utils";
+import initializeBacktest from "./initializeBacktest";
+import reconcile from "./reconcile";
+import converPeriodToMs from "../../utils/time/convertPeriodToMs";
 
-class InputError extends Error {}
-
-const backtest = async (
-	bootData: BootData,
-	options: BacktestInput
-): Promise<void> => {
+const backtest = async (bootData: BootData, backtestInput: BacktestInput) => {
 	try {
-		const { client } = bootData;
-		const { backfillName, strategy } = options;
+		const { redisClient } = bootData;
+		const { strategy } = backtestInput;
+		const { backtestingExchange, backfill } = await initializeBacktest(
+			bootData,
+			backtestInput
+		);
 
-		const backfillCollection = await getBackfillCollection(client);
-		const backtestCollection = await getBacktestCollection(client);
-		const collections = {
-			backfill: backfillCollection,
-			backtest: backtestCollection
-		};
+		const { period, userCandles, internalCandles } = backfill;
 
-		//const redisClient = redis.createClient();
-		const redisClient = new Tedis();
+		const timesToReconcile = converPeriodToMs(period) / 60000;
 
-		redisClient.on("error", (err) => {
-			console.log("REDIS err - ", err);
-		});
-		const initData = await init(bootData, redisClient, options);
-		const { exchange } = initData;
-
-		const backfill = await backfillCollection.findOne({ name: backfillName });
-
-		if (!backfill)
-			throw new InputError(
-				`Error while attempting to backtest: No backfill named ${backfillName}`
-			);
-		const userCandlesLength = backfill.userCandles.length;
-
-		let errors = [];
-		try {
-			for (let i = 0; i < userCandlesLength; i++) {
+		let strategyIndex = 0;
+		let strategyErrors = [];
+		let j = 0;
+		console.log(timesToReconcile);
+		for (let i = 0; i < internalCandles.length; i++) {
+			const thisInternalCandle = internalCandles[i];
+			if (i % timesToReconcile === 0) {
 				try {
-					await strategy(exchange, backfill.userCandles[i]);
-					await reconcile(collections);
+					await strategy(backtestingExchange, userCandles[strategyIndex]);
 				} catch (err) {
-					errors.push(err);
+					strategyErrors.push(err.message);
 				}
+				strategyIndex++;
+				await redisClient.incr("userCandleIdx");
 			}
-		} catch (err) {
-			if (errors.length) {
-				console.log(errors);
-			}
-		} finally {
-			redisClient.close();
+			await reconcile(thisInternalCandle, redisClient);
 		}
+		strategyErrors.forEach((errMessage) => {
+			console.log(errMessage);
+		});
+		const endingBalanceRaw = await redisClient.hgetall("balance");
+		const endingBalance = decodeObject(endingBalanceRaw);
+
+		console.log("ENDING BALANCE - ", endingBalance);
 	} catch (err) {
 		throw err;
 	}

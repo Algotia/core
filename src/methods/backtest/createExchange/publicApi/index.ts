@@ -1,6 +1,7 @@
 import { Exchange } from "ccxt";
+import { PublicApi } from "../../../../types";
 
-const createPublicApis = (exchange: Exchange) => {
+const createPublicApis = (exchange: Exchange): PublicApi => {
 	const {
 		fetchMarkets,
 		fetchCurrencies,
@@ -8,7 +9,6 @@ const createPublicApis = (exchange: Exchange) => {
 		fetchTradingFees,
 		fetchTicker,
 		fetchOrderBook,
-		fetchTrades,
 		fetchOHLCV,
 		loadMarkets
 	} = exchange;
@@ -18,7 +18,6 @@ const createPublicApis = (exchange: Exchange) => {
 		fetchCurrencies,
 		fetchTicker,
 		fetchOrderBook,
-		fetchTrades,
 		fetchOHLCV,
 		loadMarkets
 	};

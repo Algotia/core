@@ -1,7 +1,6 @@
 import { WithId } from "mongodb";
 import {
 	ActiveBacktestDocument,
-	Collections,
 	MethodFactoryArgs
 } from "../../../../../types";
 

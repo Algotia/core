@@ -11,7 +11,7 @@ describe("Backtest", () => {
 		});
 	});
 	afterAll(async () => {
-		await bootData.client.close();
+		bootData.quit();
 	});
 	test("Backtest working", async () => {
 		try {
@@ -24,17 +24,9 @@ describe("Backtest", () => {
 				strategy: async (exchange, data) => {
 					try {
 						const balance = await exchange.fetchBalance();
-						console.log("BALANCE -- ", balance);
-						const order = await exchange.createOrder(
-							"ETH/BTC",
-							"market",
-							"buy",
-							1000
-						);
-						console.log("ORDER -- ");
+						await exchange.createOrder("ETH/BTC", "market", "buy", 1000);
 						const allOrders = await exchange.fetchOrders();
 						console.log(allOrders);
-						console.log(balance);
 					} catch (err) {
 						throw err;
 					}
@@ -43,5 +35,5 @@ describe("Backtest", () => {
 		} catch (err) {
 			throw err;
 		}
-	});
+	}, 10000);
 });

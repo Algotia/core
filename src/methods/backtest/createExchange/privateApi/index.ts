@@ -1,17 +1,12 @@
 import { MongoClient } from "mongodb";
-import { Exchange, Order } from "ccxt";
+import { Exchange } from "ccxt";
 import {
 	getBackfillCollection,
 	getBacktestCollection
 } from "../../../../utils";
-import { MethodFactoryArgs } from "../../../../types";
-import { RedisClient } from "redis";
+import { MethodFactoryArgs, PrivateApi } from "../../../../types";
 import privateApiFactories from "./methods/";
 import { Tedis } from "tedis";
-
-interface PrivateApi {
-	[key: string]: (...args: any) => Promise<any>;
-}
 
 const createPrivateApis = async (
 	exchange: Exchange,
@@ -37,7 +32,7 @@ const createPrivateApis = async (
 		const fetchOrders = privateApiFactories.fetchOrders(methodFactoryArgs);
 		const fetchBalance = privateApiFactories.fetchBalance(methodFactoryArgs);
 
-		const privateApis: PrivateApi = {
+		const privateApis = {
 			//cancelOrder,
 			createOrder,
 			fetchOrders,

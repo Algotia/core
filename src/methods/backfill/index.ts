@@ -39,7 +39,7 @@ const backfill = async (
 	backfillOptions: BackfillInput
 ): Promise<BackfillDocument> => {
 	try {
-		const { exchange, client } = bootData;
+		const { exchange, mongoClient } = bootData;
 		const { verbose } = backfillOptions;
 
 		const { userOptions, internalOptions } = await processInput(
@@ -62,7 +62,7 @@ const backfill = async (
 		};
 
 		if (userCandles && internalCandles) {
-			const document = await insertDocument(insertOptions, client);
+			const document = await insertDocument(insertOptions, mongoClient);
 			verbose &&
 				log.success(
 					`Wrote document ${document.name} to the backfill collection`
