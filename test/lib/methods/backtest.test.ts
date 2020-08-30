@@ -32,7 +32,6 @@ describe("Backtest", () => {
 							0.019252
 						);
 						const allOrders = await exchange.fetchOrders();
-						console.log(allOrders);
 					} catch (err) {
 						throw err;
 					}

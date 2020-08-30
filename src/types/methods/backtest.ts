@@ -37,22 +37,6 @@ export interface ProcessedBacktestOptions extends BacktestInput {
 	name: string;
 }
 
-export interface BacktestDocument {
-	name: string;
-	backfillId: ObjectId;
-	balance: Balances;
-	orders: Order[];
-	trades: Trade[];
-}
-
-export interface ActiveBacktestDocument extends BacktestDocument {
-	active: true;
-	userCandleIdx: number;
-	internalCandleIdx: number;
-}
-
-export type ActiveBacktestDocumentWithId = WithId<ActiveBacktestDocument>;
-
 export interface Collections {
 	backtest: Collection;
 	backfill: Collection;
@@ -104,10 +88,6 @@ export enum PrivateApiIds {
 	FetchOrders = "fetchOrders"
 }
 
-export interface InternalBalance {
-	[key: string]: string;
-}
-
 export type PartialOrder = Partial<Order>;
 
 export type FetchOrders = (
@@ -128,3 +108,10 @@ export type CreateOrder = (
 		clientOrderId: string;
 	}
 ) => Promise<PartialOrder>;
+
+export interface BacktestDocument {
+	name: string;
+	backfillId: ObjectId;
+	orders: Order[];
+	balance: Balances;
+}

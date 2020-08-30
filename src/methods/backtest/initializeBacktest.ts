@@ -1,6 +1,7 @@
 import { BacktestInput, BootData, BackfillDocument } from "../../types";
 import { getBackfillCollection, encodeObject } from "../../utils";
 import createBacktestingExchange from "./createExchange";
+import { WithId } from "mongodb";
 
 const initializeBacktest = async (
 	bootData: BootData,
@@ -9,7 +10,7 @@ const initializeBacktest = async (
 	const { mongoClient, redisClient, exchange } = bootData;
 	const { backfillName, initialBalance } = backtestInput;
 	const backfillCollection = await getBackfillCollection(mongoClient);
-	const backfill: BackfillDocument = await backfillCollection.findOne({
+	const backfill: WithId<BackfillDocument> = await backfillCollection.findOne({
 		name: backfillName
 	});
 

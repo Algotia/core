@@ -1,9 +1,4 @@
-import {
-	MethodFactoryArgs,
-	FetchBalance,
-	InternalBalance
-} from "../../../../../types";
-import { unflatten } from "flat";
+import { MethodFactoryArgs, FetchBalance } from "../../../../../types";
 import { Balances } from "ccxt";
 import { decodeObject } from "../../../../../utils";
 
