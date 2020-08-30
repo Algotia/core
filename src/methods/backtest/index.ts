@@ -19,18 +19,17 @@ const backtest = async (bootData: BootData, backtestInput: BacktestInput) => {
 
 		let strategyIndex = 0;
 		let strategyErrors = [];
-		let j = 0;
-		console.log(timesToReconcile);
 		for (let i = 0; i < internalCandles.length; i++) {
 			const thisInternalCandle = internalCandles[i];
 			if (i % timesToReconcile === 0) {
 				try {
 					await strategy(backtestingExchange, userCandles[strategyIndex]);
 				} catch (err) {
-					strategyErrors.push(err.message);
+					strategyErrors.push(`${err.message} at candle ${i}`);
+				} finally {
+					strategyIndex++;
+					await redisClient.incr("userCandleIdx");
 				}
-				strategyIndex++;
-				await redisClient.incr("userCandleIdx");
 			}
 			await reconcile(thisInternalCandle, redisClient);
 		}

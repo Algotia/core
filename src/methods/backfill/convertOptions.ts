@@ -6,9 +6,26 @@ import { Exchange } from "ccxt";
 
 const convertOptions = (
 	backfillOptions: BackfillInput,
-	exchange: Exchange
+	exchange: Exchange,
+	internal?: boolean
 ): ConvertedBackfillOptions => {
-	const { since, until, period, pair, recordLimit, verbose } = backfillOptions;
+	let options: BackfillInput;
+	if (internal === true) {
+		options = { ...backfillOptions };
+		const newSince =
+			convertDateInputToMs(backfillOptions.since) +
+			convertPeriodToMs(backfillOptions.period);
+		options.since = new Date(newSince).toISOString();
+		const newUntil =
+			convertDateInputToMs(backfillOptions.until) +
+			convertPeriodToMs(backfillOptions.period);
+		options.until = new Date(newUntil).toISOString();
+		options.period = "1m";
+	} else {
+		options = { ...backfillOptions };
+	}
+
+	const { since, until, pair, period, recordLimit, verbose } = options;
 
 	const periodMs = convertPeriodToMs(period);
 

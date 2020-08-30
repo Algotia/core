@@ -24,7 +24,13 @@ describe("Backtest", () => {
 				strategy: async (exchange, data) => {
 					try {
 						const balance = await exchange.fetchBalance();
-						await exchange.createOrder("ETH/BTC", "market", "buy", 1000);
+						await exchange.createOrder(
+							"ETH/BTC",
+							"limit",
+							"buy",
+							1000,
+							0.019252
+						);
 						const allOrders = await exchange.fetchOrders();
 						console.log(allOrders);
 					} catch (err) {

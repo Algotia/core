@@ -46,10 +46,11 @@ describe("Backfill", () => {
 
 	test("1 month backfill is correct", async () => {
 		const OneMonthBackfillOptions: BackfillInput = {
-			since: "1/01/2020",
-			until: "1/02/2020",
+			since: "2/01/2020",
+			until: "2/02/2020",
 			pair: "ETH/BTC",
-			period: "1h"
+			period: "1h",
+			verbose: true
 		};
 
 		const OneMonthBackfillResults = await backfill(
