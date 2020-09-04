@@ -44,7 +44,7 @@
     "inquirer": "^7.3.0",
     "mongodb": "^3.5.9",
     "redis": "^3.0.2",
-    "release-it": "^13.6.7",
+    "release-it": "^14.0.1",
     "standard-version": "^9.0.0",
     "tedis": "^0.1.12",
     "time-stamp": "^2.2.0",
