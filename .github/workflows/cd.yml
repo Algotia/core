@@ -21,11 +21,14 @@ jobs:
       run: npm run build
     - name: Bump version and generate changelog
       run: npx standard-version --prerelease
-    - name: Commit version change and changelog
+    - name: Commit and push changelog and tags
       ## TODO: Change this commit message
-      run: git add . && git commit -m "From github action"
-    - name: Push git tags
-      run: git push --follow-tags origin master
+      run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .
+          git commit -m "CD"
+          git push --folow-tags origin master
     - name: Archive production artifacts
       uses: actions/upload-artifact@v1
       with:
