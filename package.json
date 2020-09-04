@@ -1,6 +1,6 @@
 {
   "name": "@algotia/core",
-  "version": "0.0.3-43",
+  "version": "0.0.3-44",
   "author": "",
   "license": "ISC",
   "description": "A technical analysis driven cryptocurrency trading and back-testing platform.",
@@ -48,8 +48,8 @@
     "standard-version": "^9.0.0",
     "tedis": "^0.1.12",
     "time-stamp": "^2.2.0",
-    "ts-json-schema-generator": "^0.70.2",
     "uuid": "^8.3.0",
+    "ts-json-schema-generator": "^0.72.1",
     "yaml": "^1.10.0"
   },
   "devDependencies": {
@@ -81,7 +81,7 @@
     "prettier": "^2.0.5",
     "rimraf": "^3.0.2",
     "ts-jest": "^26.1.1",
-    "ts-json-schema-generator": "^0.70.2",
+    "ts-json-schema-generator": "^0.72.1",
     "ts-node": "^8.10.2",
     "typescript": "^3.9.3",
     "typescript-json-schema": "^0.42.0"
