@@ -24,6 +24,9 @@ jobs:
         git config --global user.email github-actions@github.com
         git config --global user.name github-actions
     - name: Bump version and generate changelog
+      env: 
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: npx standard-version --prerelease
     - name: Commit and push changelog and tags
       ## TODO: Change this commit message
