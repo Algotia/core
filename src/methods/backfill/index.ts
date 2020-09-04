@@ -1,56 +1,71 @@
-import { BackfillOptions, BootData, BackfillDocument } from "../../types/index";
+import {
+	BackfillInput,
+	BootData,
+	BackfillDocument,
+	ConvertedBackfillOptions,
+	AnyExchange
+} from "../../types/index";
 import { log } from "../../utils/index";
 import convertOptions from "./convertOptions";
 import fetchRecords from "./fetchRecords";
 import insertDocument from "./insertDocument";
 import validateOptions from "./validateOptions";
-import { Exchange } from "ccxt";
 
 // Converts and validates input and returns converted and valid options
-class ValidationError extends Error {}
-
 const processInput = async (
-	exchange: Exchange,
-	backfillOptions: BackfillOptions
-) => {
+	exchange: AnyExchange,
+	backfillInput: BackfillInput
+): Promise<{
+	userOptions: ConvertedBackfillOptions;
+	internalOptions: ConvertedBackfillOptions;
+}> => {
 	try {
-		//TODO: Option validation
-		const convertedOptions = convertOptions(backfillOptions);
-		await validateOptions(exchange, convertedOptions);
+		const internalOptions = convertOptions(backfillInput, exchange, true);
+		const userOptions = convertOptions(backfillInput, exchange);
+		await validateOptions(exchange, userOptions);
 
-		return convertedOptions;
+		return { internalOptions, userOptions };
 	} catch (err) {
-		throw new ValidationError(
-			`Error while validating backfill options \n ${err}`
-		);
+		throw err;
 	}
 };
 
 const backfill = async (
 	bootData: BootData,
-	backfillOptions: BackfillOptions
+	backfillOptions: BackfillInput
 ): Promise<BackfillDocument> => {
 	try {
-		const { exchange, client } = bootData;
+		const { exchange, mongoClient } = bootData;
 		const { verbose } = backfillOptions;
 
-		const convertedOptions = await processInput(exchange, backfillOptions);
+		const { userOptions, internalOptions } = await processInput(
+			exchange,
+			backfillOptions
+		);
 
-		verbose && log.info(`Records to fetch ${convertedOptions.recordsToFetch}`);
+		verbose && log.info(`Records to fetch ${userOptions.recordsToFetch}`);
 
-		const records = await fetchRecords(exchange, convertedOptions);
+		const { userCandles, internalCandles } = await fetchRecords(
+			exchange,
+			userOptions,
+			internalOptions
+		);
 
 		const insertOptions = {
-			convertedOptions,
-			records
+			userOptions,
+			userCandles,
+			internalCandles
 		};
 
-		const document = await insertDocument(insertOptions, client);
+		if (userCandles && internalCandles) {
+			const document = await insertDocument(insertOptions, mongoClient);
+			verbose &&
+				log.success(
+					`Wrote document ${document.name} to the backfill collection`
+				);
 
-		verbose &&
-			log.success(`Wrote document ${document.name} to the backfill collection`);
-
-		return document;
+			return document;
+		}
 	} catch (err) {
 		throw err;
 	}

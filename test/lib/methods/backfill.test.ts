@@ -4,7 +4,7 @@ import {
 	convertPeriodToMs,
 	log
 } from "../../../src/utils/index";
-import { BackfillOptions, BackfillDocument } from "../../../src/types/index";
+import { BackfillInput, BackfillDocument } from "../../../src/types/index";
 
 const getMsDiff = (document: BackfillDocument): number => {
 	const periodMs = convertPeriodToMs(document.period);
@@ -17,27 +17,25 @@ describe("Backfill", () => {
 	beforeAll(async () => {
 		bootData = await boot({
 			exchange: {
-				exchangeId: "bitfinex",
+				exchangeId: "binance",
 				apiKey: "badString",
 				apiSecret: "secree",
 				timeout: 8000
 			}
 		});
-	});
+	}, 1800000);
 
 	afterAll(async () => {
-		await bootData.client.close();
+		await bootData.quit();
 	});
 
 	test("Bad input throws error", async () => {
 		try {
-			const BadInput: BackfillOptions = {
+			const BadInput: BackfillInput = {
 				since: "1/01/2020",
 				until: "1/01/2020",
-				pair: "ETH/USD",
-				period: "1h",
-				recordLimit: 200,
-				verbose: true
+				pair: "ETH/BTC",
+				period: "1h"
 			};
 
 			await expect(backfill(bootData, BadInput)).rejects.toThrowError();
@@ -47,12 +45,11 @@ describe("Backfill", () => {
 	});
 
 	test("1 month backfill is correct", async () => {
-		const OneMonthBackfillOptions: BackfillOptions = {
-			since: "1/01/2020",
-			until: "2/01/2020",
-			pair: "ETH/USD",
-			period: "1h",
-			recordLimit: 200
+		const OneMonthBackfillOptions: BackfillInput = {
+			since: "2/01/2020",
+			until: "2/02/2020",
+			pair: "ETH/BTC",
+			period: "1h"
 		};
 
 		const OneMonthBackfillResults = await backfill(
@@ -60,15 +57,18 @@ describe("Backfill", () => {
 			OneMonthBackfillOptions
 		);
 
-		expect(OneMonthBackfillResults.records.length).toStrictEqual(744);
+		expect(OneMonthBackfillResults.userCandles.length).toStrictEqual(24);
+		expect(OneMonthBackfillResults.internalCandles.length).toStrictEqual(
+			24 * 60
+		);
 
-		expect(OneMonthBackfillResults.records[0].timestamp).toStrictEqual(
+		expect(OneMonthBackfillResults.userCandles[0].timestamp).toStrictEqual(
 			convertDateInputToMs(OneMonthBackfillOptions.since)
 		);
 		// Last timestamp is one unit before untilInput
 		expect(
-			OneMonthBackfillResults.records[
-				OneMonthBackfillResults.records.length - 1
+			OneMonthBackfillResults.userCandles[
+				OneMonthBackfillResults.userCandles.length - 1
 			].timestamp
 		).toStrictEqual(
 			convertDateInputToMs(OneMonthBackfillOptions.until) -
@@ -90,55 +90,5 @@ describe("Backfill", () => {
 		expect(OneMonthBackfillResults.until).toStrictEqual(
 			convertDateInputToMs(OneMonthBackfillOptions.until)
 		);
-	}, 10000);
-
-	test("24 hour backfill is correct", async () => {
-		try {
-			const OneDayBackfillOptions: BackfillOptions = {
-				since: "12/05/2019 12:00 PST",
-				until: "12/06/2019 12:00 PST",
-				pair: "BTC/USD",
-				period: "1h",
-				recordLimit: 100
-			};
-
-			const OneDayBackfillResults = await backfill(
-				bootData,
-				OneDayBackfillOptions
-			);
-
-			// Number of records is 24
-			expect(OneDayBackfillResults.records.length).toStrictEqual(24);
-			// First timestamp is equal to sinceInput
-			expect(OneDayBackfillResults.records[0].timestamp).toStrictEqual(
-				convertDateInputToMs(OneDayBackfillOptions.since)
-			);
-			// Last timestamp is one unit before untilInput
-			expect(
-				OneDayBackfillResults.records[OneDayBackfillResults.records.length - 1]
-					.timestamp
-			).toStrictEqual(
-				convertDateInputToMs(OneDayBackfillOptions.until) -
-					getMsDiff(OneDayBackfillResults)
-			);
-			// Period is the same as options
-			expect(OneDayBackfillResults.period).toStrictEqual(
-				OneDayBackfillOptions.period
-			);
-			// Pair is the same as options
-			expect(OneDayBackfillResults.pair).toStrictEqual(
-				OneDayBackfillOptions.pair
-			);
-			// Since input is saved as unix timestamp
-			expect(OneDayBackfillResults.since).toStrictEqual(
-				convertDateInputToMs(OneDayBackfillOptions.since)
-			);
-			// Until input is saved as unix timestamp
-			expect(OneDayBackfillResults.until).toStrictEqual(
-				convertDateInputToMs(OneDayBackfillOptions.until)
-			);
-		} catch (err) {
-			fail(err);
-		}
-	}, 10000);
+	}, 90000);
 });

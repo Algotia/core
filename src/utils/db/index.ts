@@ -1,2 +1,2 @@
-export { default as connectToDb } from "./connectToDb";
-export { default as getBackfillCollection } from "./getBackfillCollection";
+export * from "./mongo/";
+export * from "./redis/";

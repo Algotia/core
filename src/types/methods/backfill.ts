@@ -1,6 +1,6 @@
 import { OHLCV } from "..";
 
-export interface BackfillOptions {
+export interface BackfillInput {
 	since: string;
 	until?: string;
 	pair: string;
@@ -16,10 +16,11 @@ export interface BackfillDocument {
 	pair: string;
 	since: number;
 	until: number;
-	records: OHLCV[];
+	userCandles: OHLCV[];
+	internalCandles: OHLCV[];
 }
 
-export interface ConvertedBackfillOptions extends BackfillOptions {
+export interface ConvertedBackfillOptions extends BackfillInput {
 	sinceMs: number;
 	untilMs: number;
 	period: string;

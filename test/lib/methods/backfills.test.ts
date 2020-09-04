@@ -1,31 +1,28 @@
-import { backfills, boot } from "../../../src/algotia";
-import { log, getBackfillCollection } from "../../../src/utils";
+import { backfills, boot, BootData } from "../../../src/algotia";
+import { getBackfillCollection } from "../../../src/utils";
 
 describe("Backfills", () => {
+	let bootData: BootData;
+	beforeAll(async () => {
+		bootData = await boot({
+			exchange: {
+				exchangeId: "binance",
+				timeout: 8000
+			}
+		});
+	});
+	afterAll(async () => {
+		bootData.quit();
+	});
 	test("List All", async () => {
 		try {
-			const bootData = await boot({
-				exchange: {
-					exchangeId: "bitfinex",
-					apiKey: "badString",
-					apiSecret: "secree",
-					timeout: 8000
-				}
-			});
-
-			const { client } = bootData;
-			const backfillCollection = await getBackfillCollection(client);
+			const { mongoClient } = bootData;
+			const backfillCollection = await getBackfillCollection(mongoClient);
 
 			const realLength = await backfillCollection.countDocuments();
 
-			if (realLength) {
-				const allBackfills = await backfills.listBackfills(bootData);
-				expect(allBackfills.length).toStrictEqual(realLength);
-			} else {
-				await expect(backfills.listBackfills(bootData)).rejects.toThrowError();
-			}
-
-			await bootData.client.close();
+			const allBackfills = await backfills.listBackfills(bootData);
+			expect(allBackfills.length).toStrictEqual(realLength);
 		} catch (err) {
 			throw err;
 		}

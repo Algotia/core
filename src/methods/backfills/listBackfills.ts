@@ -1,5 +1,10 @@
-import { BootData, ListBackfillOptions, BackfillDocument } from "../../types";
-import { getBackfillCollection, log } from "../../utils";
+import {
+	BootData,
+	ListBackfillInput,
+	BackfillDocument,
+	InputError
+} from "../../types";
+import { getBackfillCollection } from "../../utils";
 import { Collection } from "mongodb";
 
 const getOneBackfill = async (
@@ -33,12 +38,12 @@ const getAllBackfills = async (
 
 const listBackfills = async (
 	bootData: BootData,
-	options?: ListBackfillOptions
+	options?: ListBackfillInput
 ): Promise<BackfillDocument[]> => {
 	try {
-		const { client } = bootData;
+		const { mongoClient } = bootData;
 
-		const backfillCollection = await getBackfillCollection(client);
+		const backfillCollection = await getBackfillCollection(mongoClient);
 
 		if (options && options.documentName) {
 			// List one
@@ -49,7 +54,9 @@ const listBackfills = async (
 			if (oneBackfill) {
 				return oneBackfill;
 			} else {
-				throw new Error(`No backfill named ${options.documentName} saved.`);
+				throw new InputError(
+					`No backfill named ${options.documentName} saved.`
+				);
 			}
 		} else {
 			// List all
@@ -58,7 +65,7 @@ const listBackfills = async (
 			if (allBackfills.length) {
 				return allBackfills;
 			} else {
-				throw new Error("No backfills saved.");
+				return [];
 			}
 		}
 	} catch (err) {

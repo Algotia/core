@@ -8,12 +8,12 @@ enum Unit {
 	Week = "week"
 }
 
-const converPeriodToMs = (timeframe: string): number => {
-	const amount: number = parseInt(timeframe.replace(/[^0-9\.]+/g, ""), 10);
+const converPeriodToMs = (period: string): number => {
+	const amount: number = parseInt(period.replace(/[^0-9\.]+/g, ""), 10);
 
 	let unit: Unit;
 
-	switch (timeframe.replace(/[0-9]/g, "")) {
+	switch (period.replace(/[0-9]/g, "")) {
 		case "m":
 			unit = Unit.Minute;
 			break;

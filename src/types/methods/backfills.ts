@@ -1,8 +1,8 @@
-export interface ListBackfillOptions {
+export interface ListBackfillInput {
 	documentName?: string;
 	pretty?: boolean;
 }
 
-export interface DeleteBackfillOptions {
+export interface DeleteBackfillInput {
 	documentName?: string;
 }

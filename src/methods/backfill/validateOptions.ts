@@ -1,13 +1,5 @@
-import { ConvertedBackfillOptions } from "../../types";
+import { ConvertedBackfillOptions, AnyExchange, InputError } from "../../types";
 import chalk from "chalk";
-import { Exchange } from "ccxt";
-
-class InputError extends Error {
-	constructor(message: string) {
-		super(message);
-		this.name = "Input Error";
-	}
-}
 
 const compareSinceAndUntil = (sinceMs: number, untilMs: number) => {
 	if (sinceMs >= untilMs) {
@@ -17,14 +9,12 @@ const compareSinceAndUntil = (sinceMs: number, untilMs: number) => {
 		throw new InputError(
 			`Parameter ${chalk.bold.underline(
 				"since"
-			)} cannot be ${greaterOrEqual} parameter ${chalk.bold.underline(
-				"until"
-			)} `
+			)} cannot be ${greaterOrEqual} parameter ${chalk.bold.underline("until")}`
 		);
 	}
 };
 
-const checkPeriod = (exchange: Exchange, period: string) => {
+const checkPeriod = (exchange: AnyExchange, period: string) => {
 	const allowedPeriods = Object.keys(exchange.timeframes);
 	if (!allowedPeriods.includes(period)) {
 		throw new InputError(
@@ -37,7 +27,7 @@ const checkPeriod = (exchange: Exchange, period: string) => {
 	}
 };
 
-const checkPair = async (exchange: Exchange, pair: string) => {
+const checkPair = async (exchange: AnyExchange, pair: string) => {
 	await exchange.loadMarkets();
 	const allowedPairs = Object.keys(exchange.markets);
 	if (!allowedPairs.includes(pair)) {
@@ -49,14 +39,24 @@ const checkPair = async (exchange: Exchange, pair: string) => {
 	}
 };
 
+const checkRecordLimit = (exchange: AnyExchange, recordLimit: number) => {
+	if (recordLimit > exchange.historicalRecordLimit) {
+		throw new InputError(`Record limit ${chalk.bold.underline(
+			recordLimit
+		)} must be less than the
+			internal limit for ${exchange.name}: ${exchange.historicalRecordLimit}`);
+	}
+};
+
 const validateOptions = async (
-	exchange: Exchange,
+	exchange: AnyExchange,
 	backfillOptions: ConvertedBackfillOptions
 ) => {
-	const { sinceMs, untilMs, period, pair } = backfillOptions;
+	const { sinceMs, untilMs, period, pair, recordLimit } = backfillOptions;
 
 	compareSinceAndUntil(sinceMs, untilMs);
 	checkPeriod(exchange, period);
+	checkRecordLimit(exchange, recordLimit);
 	await checkPair(exchange, pair);
 };
 

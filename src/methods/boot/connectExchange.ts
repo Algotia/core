@@ -1,22 +1,19 @@
-import { ConfigOptions, BootOptions } from "../../types";
-import { Exchange } from "ccxt";
-import { log, ccxt } from "../../utils";
+import { ConfigOptions, AnyExchange } from "../../types";
+import { ccxt } from "../../utils";
 
-const connectExchange = async (
-	config: ConfigOptions,
-	options?: BootOptions
-): Promise<Exchange> => {
+const connectExchange = async (config: ConfigOptions): Promise<AnyExchange> => {
 	try {
 		const { exchangeId, apiKey, apiSecret, timeout } = config.exchange;
-		const exchange: Exchange = new ccxt[exchangeId]({
+
+		const exchange = ccxt[exchangeId];
+
+		const connected = new exchange({
 			apiKey,
 			secret: apiSecret,
 			timeout
 		});
-		if (options) {
-			options.verbose && log.info(`Created an instance of ${exchange.name}.`);
-		}
-		return exchange;
+
+		return connected;
 	} catch (err) {
 		throw err;
 	}

@@ -5,7 +5,7 @@ import { MongoClient } from "mongodb";
 
 const mockBootConfig: ConfigOptions = {
 	exchange: {
-		exchangeId: "bitfinex",
+		exchangeId: "binance",
 		apiKey: "some string",
 		apiSecret: "some string",
 		timeout: 5000
@@ -17,8 +17,9 @@ test("Boot function", async () => {
 		const bootData = await boot(mockBootConfig);
 		expect(bootData.config).toStrictEqual(mockBootConfig);
 		expect(bootData.exchange).toBeInstanceOf(Exchange);
-		expect(bootData.client).toBeInstanceOf(MongoClient);
-		await bootData.client.close();
+		expect(bootData.mongoClient).toBeInstanceOf(MongoClient);
+
+		bootData.quit();
 	} catch (err) {
 		throw err;
 	}

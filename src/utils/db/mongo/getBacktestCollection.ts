@@ -1,15 +1,15 @@
 import { Collection, MongoClient } from "mongodb";
 import connectToDb from "./connectToDb";
 
-const getBackfillCollection = async (
+const getBacktestCollection = async (
 	client: MongoClient
 ): Promise<Collection> => {
 	try {
 		const db = await connectToDb(client);
-		return db.collection("backfill");
+		return db.collection("backtest");
 	} catch (err) {
 		throw err;
 	}
 };
 
-export default getBackfillCollection;
+export default getBacktestCollection;
