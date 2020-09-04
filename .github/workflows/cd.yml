@@ -19,13 +19,15 @@ jobs:
       run: npm ci
     - name: Build
       run: npm run build
+    - name: Set git config
+      run: |
+        git config --global user.email github-actions@github.com
+        git config --global user.name github-actions
     - name: Bump version and generate changelog
       run: npx standard-version --prerelease
     - name: Commit and push changelog and tags
       ## TODO: Change this commit message
       run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
           git push --follow-tags origin HEAD
     - name: Archive production artifacts
       uses: actions/upload-artifact@v1
