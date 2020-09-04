@@ -26,9 +26,7 @@ jobs:
       run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git add .
-          git commit -m "CD"
-          git push --folow-tags origin master
+          git push --folow-tags origin HEAD
     - name: Archive production artifacts
       uses: actions/upload-artifact@v1
       with:
