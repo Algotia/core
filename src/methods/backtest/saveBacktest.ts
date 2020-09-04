@@ -10,7 +10,7 @@ const saveBacktest = async (
 ): Promise<BacktestDocument> => {
 	try {
 		const backtestCollection = await getBacktestCollection(mongoClient);
-		const documentCount = await backtestCollection.count();
+		const documentCount = await backtestCollection.countDocuments();
 		const backtestName = `backtest-${documentCount + 1}`;
 
 		const backtestDocument: BacktestDocument = {

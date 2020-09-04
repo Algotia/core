@@ -19,7 +19,7 @@ test("Boot function", async () => {
 		expect(bootData.exchange).toBeInstanceOf(Exchange);
 		expect(bootData.mongoClient).toBeInstanceOf(MongoClient);
 
-		await bootData.mongoClient.close();
+		bootData.quit();
 	} catch (err) {
 		throw err;
 	}

@@ -7,52 +7,65 @@ const initializeBacktest = async (
 	bootData: BootData,
 	backtestInput: BacktestInput
 ) => {
-	const { mongoClient, redisClient, exchange } = bootData;
-	const { backfillName, initialBalance } = backtestInput;
-	const backfillCollection = await getBackfillCollection(mongoClient);
-	const backfill: WithId<BackfillDocument> = await backfillCollection.findOne({
-		name: backfillName
-	});
+	try {
+		const { mongoClient, redisClient, exchange } = bootData;
+		const { backfillName, initialBalance } = backtestInput;
+		const backfillCollection = await getBackfillCollection(mongoClient);
 
-	const startingBalance = {
-		info: {
-			free: initialBalance.quote,
-			used: 0,
-			total: initialBalance.quote
-		},
-		base: {
-			free: initialBalance.base,
-			used: 0,
-			total: initialBalance.base
-		},
-		quote: {
-			free: initialBalance.quote,
-			used: 0,
-			total: initialBalance.quote
+		const backfill: WithId<BackfillDocument> = await backfillCollection.findOne(
+			{
+				name: backfillName
+			}
+		);
+
+		if (!backfill) {
+			throw new Error(
+				`Backfill ${backfillName} does not exist in the databse.`
+			);
 		}
-	};
 
-	const encodedBalance = encodeObject(startingBalance);
+		const startingBalance = {
+			info: {
+				free: initialBalance.quote,
+				used: 0,
+				total: initialBalance.quote
+			},
+			base: {
+				free: initialBalance.base,
+				used: 0,
+				total: initialBalance.base
+			},
+			quote: {
+				free: initialBalance.quote,
+				used: 0,
+				total: initialBalance.quote
+			}
+		};
 
-	await redisClient.hmset("balance", {
-		...encodedBalance
-	});
+		const encodedBalance = encodeObject(startingBalance);
 
-	await redisClient.set("backfillName", backfillName);
+		await redisClient.hmset("balance", {
+			...encodedBalance
+		});
 
-	await redisClient.set("userCandleIdx", "0");
-	await redisClient.set("internalCandleIdx", "0");
+		await redisClient.set("backfillName", backfillName);
 
-	const backtestingExchange = await createBacktestingExchange(
-		exchange,
-		mongoClient,
-		redisClient
-	);
+		await redisClient.set("userCandleIdx", "0");
+		await redisClient.set("internalCandleIdx", "0");
 
-	return {
-		backfill,
-		backtestingExchange
-	};
+		const backtestingExchange = await createBacktestingExchange(
+			exchange,
+			mongoClient,
+			redisClient
+		);
+
+		return {
+			backfill,
+			backtestingExchange
+		};
+	} catch (err) {
+		throw err;
+	}
 };
 
 export default initializeBacktest;
