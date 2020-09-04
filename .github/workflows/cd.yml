@@ -19,10 +19,6 @@ jobs:
       run: npm ci
     - name: Build
       run: npm run build
-    - name: Set git config
-      run: |
-        git config --global user.email github-actions@github.com
-        git config --global user.name github-actions
     - name: Bump version and generate changelog
       env: 
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
