@@ -21,6 +21,9 @@ jobs:
       run: npm run build
     - name: Bump version and generate changelog
       run: npx standard-version --prerelease
+    - name: Commit version change and changelog
+      ## TODO: Change this commit message
+      run: git add . && git commit -m "From github action"
     - name: Push git tags
       run: git push --follow-tags origin master
     - name: Archive production artifacts
