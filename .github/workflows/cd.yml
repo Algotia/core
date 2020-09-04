@@ -1,7 +1,7 @@
 name: CD
 
 on:
-  pull_request:
+  push:
     branches:
       - master
 
@@ -27,7 +27,7 @@ jobs:
       env: 
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      run: npx standard-version --prerelease
+      run: npx semantic-release --prerelease
     - name: Archive production artifacts
       uses: actions/upload-artifact@v1
       with:
