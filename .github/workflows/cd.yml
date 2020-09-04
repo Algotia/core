@@ -28,10 +28,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: npx standard-version --prerelease
-    - name: Commit and push changelog and tags
-      ## TODO: Change this commit message
-      run: |
-          git push --follow-tags origin HEAD
     - name: Archive production artifacts
       uses: actions/upload-artifact@v1
       with:
