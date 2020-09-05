@@ -5,7 +5,7 @@ module.exports = {
 		[
 			"@semantic-release/git",
 			{
-				assets: ["dist/**/*.{js,css}", "docs", "package.json"],
+				assets: ["dist/**/*.{js}", "package.json"],
 				message:
 					"chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
 			}
@@ -13,10 +13,7 @@ module.exports = {
 		[
 			"@semantic-release/github",
 			{
-				assets: [
-					{ path: "dist/asset.min.css", label: "CSS distribution" },
-					{ path: "dist/asset.min.js", label: "JS distribution" }
-				]
+				assets: ["dist/**/*.{js}", "package.json"]
 			}
 		]
 	]
