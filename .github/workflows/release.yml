@@ -22,7 +22,7 @@ jobs:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      run: npx semantic-release --prerelease
+      run: npx semantic-release
 
   #publish_npm: 
     #needs: build

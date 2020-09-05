@@ -15,6 +15,7 @@ module.exports = {
 			{
 				assets: ["dist/**/*.{js}", "package.json"]
 			}
-		]
+		],
+		"@semantic-release/npm"
 	]
 };
