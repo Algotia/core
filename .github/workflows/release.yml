@@ -15,10 +15,6 @@ jobs:
         persist-credentials: false
     - name: Setup Node.js environment
       uses: actions/setup-node@v1.4.2
-    - name: Install dependencies
-      run: npm ci
-    - name: Build
-      run: npm run build
     - name: Semantic release
       env: 
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
