@@ -1,6 +1,6 @@
 {
   "name": "@algotia/core",
-  "version": "0.0.3-44",
+  "version": "0.0.0-development",
   "author": "",
   "license": "ISC",
   "description": "A technical analysis driven cryptocurrency trading and back-testing platform.",
@@ -8,7 +8,7 @@
   "typings": "./dist/algotia.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Algotia/core.git"
+    "url": "https://github.com/Algotia/core.git"
   },
   "scripts": {
     "test": "jest",
@@ -16,7 +16,8 @@
     "clean": "npx gulp clean",
     "dev": "npx gulp watch",
     "start": "node dist/algotia.js",
-    "buildAndTest": "npm run build && npm t"
+    "buildAndTest": "npm run build && npm t",
+    "semantic-release": "semantic-release"
   },
   "husky": {
     "hooks": {
@@ -81,6 +82,7 @@
     "ts-json-schema-generator": "^0.72.1",
     "ts-node": "^9.0.0",
     "typescript": "^3.9.3",
-    "typescript-json-schema": "^0.42.0"
+    "typescript-json-schema": "^0.42.0",
+    "semantic-release": "^17.1.1"
   }
 }
