@@ -42,7 +42,7 @@ jobs:
         git config --global user.name "GitHub Action"
         npx standard-version --prerelease 
         PACKAGE_VERSION=$(cat VERSION.txt)
-        CHANGELOG_CHANGES=$(sed -n "/${PACKAGE_VERSION}/,\$p" CHANGELOG.md")
+        CHANGELOG_CHANGES=$(sed -n "/$PACKAGE_VERSION/,\$p" CHANGELOG.md)
         echo "::set-output name=PACKAGE_VERSION::$PACKAGE_VERSION"
         echo "::set-output name=CHANGELOG_CHANGES:$CHANGELOG_CHANGES"
     - name: Push bump artifacts
