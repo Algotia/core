@@ -31,6 +31,8 @@ jobs:
       run: npx standard-version --prerelease
     - name: Push bump artifacts
       run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
         git push --follow-tags
     - name: Install dependencies
       run: npm ci
