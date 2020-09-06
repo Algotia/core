@@ -73,7 +73,7 @@ jobs:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   create_release:
     name: Create release
-    needs: bump_version
+    needs: publish
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
@@ -86,10 +86,3 @@ jobs:
         tag_name: v${{ needs.bump_version.outputs.package_version}}
         release_name: v${{ needs.bump_version.outputs.package_version}}
         body: ${{needs.bump_version.outputs.changelog_changes}}
-  publish_npm:
-    name: Publish to NPM
-    needs: create_release 
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
