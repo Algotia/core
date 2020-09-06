@@ -66,6 +66,7 @@ jobs:
     name: Publish to NPM
     needs: create_release 
     runs-on: ubuntu-latest
+    steps:
     - name: Checkout repository
       uses: actions/checkout@v2
     - name: Download dist
@@ -92,42 +93,3 @@ jobs:
       run: npm publish
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
-
-  #publish_npm: 
-    #needs: build
-    #runs-on: ubuntu-latest
-    #steps:
-    #- uses: actions/checkout@v2
-    #- name: Setup Node.js environment
-      #uses: actions/setup-node@v1.4.2
-      #with:
-        #registry-url: 'https://registry.npmjs.org'
-        #scope: 'algotia'
-    #- name: Download build artifacts
-      #uses: actions/download-artifact@v1
-      #with:
-        #name: dist
-    #- name: Publish to NPM
-      #run: npm publish
-      #env: 
-        #NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-  
-  #publish_gpr:
-    #needs: build
-    #runs-on: ubuntu-latest
-    #steps:
-    #- uses: actions/checkout@v2
-    #- name: Setup Node.js environment
-      #uses: actions/setup-node@v1.4.2
-      #with:
-        #registry-url: 'https://npm.pkg.github.com/'
-        #scope: '@algotia'
-    #- name: Download build artifacts
-      #uses: actions/download-artifact@v1
-      #with:
-        #name: dist
-    #- name: Publish to GPR
-      #run: npm publish
-      #env: 
-        0.0.0-development#NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
