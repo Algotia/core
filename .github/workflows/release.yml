@@ -28,12 +28,12 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
     - name: Bump version
-      run: npx standard-version --prerelease
-    - name: Push bump artifacts
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git push --follow-tags
+        git config --global user.email "action@github.com"
+        git config --global user.name "GitHub Action"
+        npx standard-version --prerelease
+    - name: Push bump artifacts
+      run: git push --follow-tags
     - name: Install dependencies
       run: npm ci
     - name: Build
@@ -44,6 +44,7 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
         scope: 'algotia'
     - name: Publish to NPM
+      id: publish_npm
       run: npm publish
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -53,23 +54,23 @@ jobs:
         registry-url: 'https://npm.pkg.github.com/'
         scope: '@algotia'
     - name: Publish to GPR
+      id: publish_gpr
       run: npm publish
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - run: |
-        PACKAGE_VERSION=$(cat VERSION.txt)
-        echo "::set-env name=PACKAGE_VERSION::$PACKAGE_VERSION"
-    - name: Create Github release
+    - name: Publish tag
+      id: publish_tag
+      run: |
+        git push --follow-tags
+        echo ::set-output name=tag_name::$(git describe HEAD --abbrev=0)
+    - name: create release
       uses: actions/create-release@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: $PACKAGE_VERSION
-        release_name: Release ${{ github.ref }}
-        body: $PACKAGE_VERSION
-        draft: false
-        prerelease: true
-
+        release_name: Release ${{ steps.publish_tag.outputs.tag_name }}
+        tag_name: ${{ steps.publish_tag.outputs.tag_name }}
+        body_path: RELEASE_BODY.md
 
     
 
