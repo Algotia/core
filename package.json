@@ -1,6 +1,6 @@
 {
   "name": "@algotia/core",
-  "version": "0.0.3-44",
+  "version": "0.0.0-development",
   "author": "",
   "license": "ISC",
   "description": "A technical analysis driven cryptocurrency trading and back-testing platform.",
@@ -8,11 +8,7 @@
   "typings": "./dist/algotia.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Algotia/core.git"
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/",
-    "access": "public"
+    "url": "https://github.com/Algotia/core.git"
   },
   "scripts": {
     "test": "jest",
@@ -20,11 +16,11 @@
     "clean": "npx gulp clean",
     "dev": "npx gulp watch",
     "start": "node dist/algotia.js",
-    "buildAndTest": "npm run build && npm t"
+    "buildAndTest": "npm run build && npm t",
+    "semantic-release": "semantic-release"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run buildAndTest",
       "pre-push": "npm run buildAndTest",
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
@@ -49,12 +45,12 @@
     "tedis": "^0.1.12",
     "time-stamp": "^2.2.0",
     "uuid": "^8.3.0",
-    "ts-json-schema-generator": "^0.72.1",
     "yaml": "^1.10.0"
   },
   "devDependencies": {
     "@adobe/jsonschema2md": "^4.0.0",
     "@commitlint/config-conventional": "^9.1.2",
+    "@semantic-release/changelog": "^5.0.1",
     "@semantic-release/git": "^9.0.0",
     "@shelf/jest-mongodb": "^1.2.2",
     "@types/fancy-log": "^1.3.1",
@@ -85,6 +81,7 @@
     "ts-json-schema-generator": "^0.72.1",
     "ts-node": "^9.0.0",
     "typescript": "^3.9.3",
-    "typescript-json-schema": "^0.42.0"
+    "typescript-json-schema": "^0.42.0",
+    "semantic-release": "^17.1.1"
   }
 }
