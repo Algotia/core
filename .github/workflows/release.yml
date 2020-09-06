@@ -6,23 +6,70 @@ on:
       - master
 
 jobs:
-  build:
+  build_and_test:
+    name: Build and test
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
+    - name: Checkout repository
       uses: actions/checkout@v2
-      with: 
-        persist-credentials: false
     - name: Setup Node.js environment
       uses: actions/setup-node@v1.4.2
     - name: Install dependencies
       run: npm ci
-    - name: Semantic release
-      env: 
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    - name: Build
+      run: npm run build
+    - name: Test
+      run: npm t
+  release:
+    name: Release
+    needs: build_and_test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Bump version
+      run: npx standard-version --prerelease
+    - name: Push bump artifacts
+      run: |
+        git push --follow-tags
+    - name: Install dependencies
+      run: npm ci
+    - name: Build
+      run: npm run build
+    - name: Setup Node.js with NPM
+      uses: actions/setup-node@v1.4.2
+      with:
+        registry-url: 'https://registry.npmjs.org'
+        scope: 'algotia'
+    - name: Publish to NPM
+      run: npm publish
+      env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      run: npx semantic-release
+    - name: Setup Node.js with GPR
+      uses: actions/setup-node@v1.4.2
+      with:
+        registry-url: 'https://npm.pkg.github.com/'
+        scope: '@algotia'
+    - name: Publish to GPR
+      run: npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - run: |
+        PACKAGE_VERSION=$(cat VERSION.txt)
+        echo "::set-env name=PACKAGE_VERSION::$PACKAGE_VERSION"
+    - name: Create Github release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+      with:
+        tag_name: $PACKAGE_VERSION
+        release_name: Release ${{ github.ref }}
+        body: $PACKAGE_VERSION
+        draft: false
+        prerelease: true
+
+
+    
 
   #publish_npm: 
     #needs: build
