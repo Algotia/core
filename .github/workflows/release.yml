@@ -20,24 +20,67 @@ jobs:
       run: npm run build
     - name: Test
       run: npm t
-  release:
-    name: Release
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: dist
+        path: dist/
+  bump_version:
+    name: Bump version
     needs: build_and_test
     runs-on: ubuntu-latest
+    outputs:
+      changelog_changes: ${{ steps.bump_version.outputs.CHANGELOG_CHANGES }}
+      package_version: ${{ steps.bump_version.outputs.PACKAGE_VERSION }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
     - name: Bump version
+      id: bump_version
       run: |
         git config --global user.email "action@github.com"
         git config --global user.name "GitHub Action"
-        npx standard-version --prerelease --skip.commit
+        npx standard-version --prerelease 
+        PACKAGE_VERSION=$(cat VERSION.txt)
+        CHANGELOG_CHANGES=$(sed -n "/${PACKAGE_VERSION}/,\$p" CHANGELOG.md")
+        echo "::set-output name=PACKAGE_VERSION::$PACKAGE_VERSION"
+        echo "::set-output name=CHANGELOG_CHANGES:$CHANGELOG_CHANGES"
     - name: Push bump artifacts
       run: git push --follow-tags
-    - name: Install dependencies
-      run: npm ci
-    - name: Build
-      run: npm run build
+  create_release:
+    name: Create release
+    needs: bump_version
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Generate release body
+      run: |
+<<<<<<< Updated upstream
+        PACKAGE_VERSION
+    - name: Create release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ needs.bump_version.outputs.package_version}}
+        release_name: v${{ needs.bump_version.outputs.package_version}}
+        body: ${{needs.bump_version.outputs.changelog_changes}}
+  publish_npm:
+    name: Publish to NPM
+    needs: create_release 
+=======
+        git push --follow-tags
+  publish_npm:
+    name: Publish to NPM
+>>>>>>> Stashed changes
+    runs-on: ubuntu-latest
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Download dist
+      uses: actions/download-artifact@v2
+      with:
+        name: dist
     - name: Setup Node.js with NPM
       uses: actions/setup-node@v1.4.2
       with:
@@ -58,18 +101,6 @@ jobs:
       run: npm publish
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Publish tag
-      id: publish_tag
-      run: |
-        git push --follow-tags
-        echo ::set-output name=tag_name::$(git describe HEAD --abbrev=0)
-    - name: create release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        release_name: Release ${{ steps.publish_tag.outputs.tag_name }}
-        tag_name: ${{ steps.publish_tag.outputs.tag_name }}
     
 
   #publish_npm: 
