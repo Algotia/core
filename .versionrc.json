@@ -1,4 +1,8 @@
 {
+  "packageFiles": [
+    "package.json",
+    "package-lock.json"
+  ],
   "bumpFiles": [
     {
       "filename": "VERSION.txt",

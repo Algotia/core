@@ -31,7 +31,7 @@ jobs:
       run: |
         git config --global user.email "action@github.com"
         git config --global user.name "GitHub Action"
-        npx standard-version --prerelease
+        npx standard-version --prerelease --skip.commit
     - name: Push bump artifacts
       run: git push --follow-tags
     - name: Install dependencies
@@ -70,8 +70,6 @@ jobs:
       with:
         release_name: Release ${{ steps.publish_tag.outputs.tag_name }}
         tag_name: ${{ steps.publish_tag.outputs.tag_name }}
-        body_path: RELEASE_BODY.md
-
     
 
   #publish_npm: 
