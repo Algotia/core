@@ -77,3 +77,4 @@ jobs:
         body_path: RELEASE_BODY.md
         draft: false
         prerelease: true
+
