@@ -41,10 +41,6 @@ jobs:
         git config --global user.email "action@github.com"
         git config --global user.name "GitHub Action"
         npx standard-version --prerelease 
-        PACKAGE_VERSION=$(cat VERSION.txt)
-        CHANGELOG_CHANGES=$(sed -n "/$PACKAGE_VERSION/,\$p" CHANGELOG.md)
-        echo "::set-output name=PACKAGE_VERSION::$PACKAGE_VERSION"
-        echo "::set-output name=CHANGELOG_CHANGES:$CHANGELOG_CHANGES"
     - name: Push bump artifacts
       run: git push --follow-tags
     - name: Download dist
@@ -71,18 +67,18 @@ jobs:
       run: npm publish
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  create_release:
-    name: Create release
-    needs: publish
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+    - name: Create release body file
+      run: |
+        VERSION_NUMBER=$(cat VERSION.txt)
+        sed -n "/${VERSION_NUMBER}/,\$p" > RELEASE_BODY.md  
     - name: Create release
+      id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: v${{ needs.bump_version.outputs.package_version}}
-        release_name: v${{ needs.bump_version.outputs.package_version}}
-        body: ${{needs.bump_version.outputs.changelog_changes}}
+        tag_name: "v$(cat VERSION.txt)"
+        release_name: "v$(cat VERSION.txt)"
+        body_path: RELEASE_BODY.md
+        draft: false
+        prerelease: true
