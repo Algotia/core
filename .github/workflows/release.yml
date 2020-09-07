@@ -8,11 +8,7 @@ on:
 jobs:
   publish:
     name: Publish
-    needs: build_and_test
     runs-on: ubuntu-latest
-    outputs:
-      changelog_changes: ${{ steps.bump_version.outputs.CHANGELOG_CHANGES }}
-      package_version: ${{ steps.bump_version.outputs.PACKAGE_VERSION }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -77,4 +73,3 @@ jobs:
         body_path: RELEASE_BODY.md
         draft: false
         prerelease: true
-
