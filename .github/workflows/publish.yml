@@ -1,4 +1,4 @@
-name: Release
+name: Publish
 
 on:
   push:
@@ -6,9 +6,13 @@ on:
       - master
 
 jobs:
-  build_and_test:
-    name: Build and test
+  publish:
+    name: Publish
+    needs: build_and_test
     runs-on: ubuntu-latest
+    outputs:
+      changelog_changes: ${{ steps.bump_version.outputs.CHANGELOG_CHANGES }}
+      package_version: ${{ steps.bump_version.outputs.PACKAGE_VERSION }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -25,16 +29,6 @@ jobs:
       with:
         name: dist
         path: dist/
-  publish:
-    name: Publish
-    needs: build_and_test
-    runs-on: ubuntu-latest
-    outputs:
-      changelog_changes: ${{ steps.bump_version.outputs.CHANGELOG_CHANGES }}
-      package_version: ${{ steps.bump_version.outputs.PACKAGE_VERSION }}
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
     - name: Bump version
       id: bump_version
       run: |
@@ -71,14 +65,15 @@ jobs:
       run: |
         VERSION_NUMBER=$(cat VERSION.txt)
         sed -n "/${VERSION_NUMBER}/,\$p" > RELEASE_BODY.md  
+        echo "::set-env name=VERSION::${VERSION_NUMBER}"
     - name: Create release
       id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: "v$(cat VERSION.txt)"
-        release_name: "v$(cat VERSION.txt)"
+        tag_name: v${{ env.VERSION }}
+        release_name: v${{ env.VERSION }}
         body_path: RELEASE_BODY.md
         draft: false
         prerelease: true
