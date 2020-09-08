@@ -1,4 +1,5 @@
 import { BackfillDocument, MethodFactoryArgs } from "../../../../../types";
+import { getBackfillCollection } from "../../../../../utils";
 
 const getDataSet = async (
 	args: MethodFactoryArgs
@@ -6,7 +7,9 @@ const getDataSet = async (
 	try {
 		const backfillName = await args.redisClient.get("backfillName");
 
-		const backfilldoc = await args.collections.backfill.findOne({
+		const backfillCollection = await getBackfillCollection(args.mongoClient);
+
+		const backfilldoc = await backfillCollection.findOne({
 			name: backfillName
 		});
 		return backfilldoc;

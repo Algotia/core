@@ -1,5 +1,5 @@
 import getDataSet from "./getDataSet";
-import { Collections, MethodFactoryArgs } from "../../../../../types";
+import { MethodFactoryArgs } from "../../../../../types";
 
 type StringTuple = [string, string];
 

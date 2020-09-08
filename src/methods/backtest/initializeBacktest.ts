@@ -53,10 +53,14 @@ const initializeBacktest = async (
 		await redisClient.set("userCandleIdx", "0");
 		await redisClient.set("internalCandleIdx", "0");
 
-		const backtestingExchange = await createBacktestingExchange(
+		const methodFactoryArgs = {
 			exchange,
-			mongoClient,
-			redisClient
+			redisClient,
+			mongoClient
+		};
+
+		const backtestingExchange = await createBacktestingExchange(
+			methodFactoryArgs
 		);
 
 		return {

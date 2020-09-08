@@ -16,7 +16,7 @@ describe("Backtest", () => {
 	test("Backtest working", async () => {
 		try {
 			expect(1).toStrictEqual(1);
-			//await backtest(bootData, {
+			//const backtestResults = await backtest(bootData, {
 			//backfillName: "backfill-1",
 			//initialBalance: {
 			//base: 0,
@@ -38,6 +38,7 @@ describe("Backtest", () => {
 			//}
 			//}
 			//});
+			//console.log(backtestResults);
 		} catch (err) {
 			throw err;
 		}

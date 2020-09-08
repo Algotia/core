@@ -15,16 +15,12 @@ import validateOptions from "./validateOptions";
 const processInput = async (
 	exchange: AnyExchange,
 	backfillInput: BackfillInput
-): Promise<{
-	userOptions: ConvertedBackfillOptions;
-	internalOptions: ConvertedBackfillOptions;
-}> => {
+): Promise<ConvertedBackfillOptions> => {
 	try {
-		const internalOptions = convertOptions(backfillInput, exchange, true);
-		const userOptions = convertOptions(backfillInput, exchange);
-		await validateOptions(exchange, userOptions);
+		const convertedOptions = convertOptions(backfillInput, exchange);
+		await validateOptions(exchange, convertedOptions);
 
-		return { internalOptions, userOptions };
+		return convertedOptions;
 	} catch (err) {
 		throw err;
 	}
@@ -38,27 +34,14 @@ const backfill = async (
 		const { exchange, mongoClient } = bootData;
 		const { verbose } = backfillOptions;
 
-		const { userOptions, internalOptions } = await processInput(
-			exchange,
-			backfillOptions
-		);
+		const options = await processInput(exchange, backfillOptions);
 
-		verbose && log.info(`Records to fetch ${userOptions.recordsToFetch}`);
+		verbose && log.info(`Records to fetch ${options.recordsToFetch}`);
 
-		const { userCandles, internalCandles } = await fetchRecords(
-			exchange,
-			userOptions,
-			internalOptions
-		);
+		const candles = await fetchRecords(exchange, options);
 
-		const insertOptions = {
-			userOptions,
-			userCandles,
-			internalCandles
-		};
-
-		if (userCandles && internalCandles) {
-			const document = await insertDocument(insertOptions, mongoClient);
+		if (candles) {
+			const document = await insertDocument(options, candles, mongoClient);
 			verbose &&
 				log.success(
 					`Wrote document ${document.name} to the backfill collection`

@@ -19,11 +19,6 @@ interface RetrieverOptions {
 	onDoneMessage?: (recordsFetched: number) => string;
 }
 
-interface Records {
-	userCandles: OHLCV[];
-	internalCandles: OHLCV[];
-}
-
 const retrieveCandles = async (
 	retrieveOptions: RetrieverOptions
 ): Promise<OHLCV[]> => {
@@ -82,12 +77,11 @@ const retrieveCandles = async (
 
 const fetchRecords = async (
 	exchange: AnyExchange,
-	userOptions: FetchOptions,
-	internalOptions: FetchOptions
-): Promise<Records> => {
+	userOptions: FetchOptions
+): Promise<OHLCV[]> => {
 	try {
 		//return await retrieveCandles(exchange, fetchOptions);
-		const userCandlesPromise = retrieveCandles({
+		const candles = await retrieveCandles({
 			exchange,
 			options: userOptions,
 			onStartMessage: (recordsLeftToFetch) => {
@@ -100,26 +94,7 @@ const fetchRecords = async (
 				return `Fetched ${recordsFetched} records`;
 			}
 		});
-		const internalCandlesPromise = retrieveCandles({
-			exchange,
-			options: internalOptions,
-			onStartMessage: (x) => {
-				return "Fetching records for internal use " + x;
-			},
-			onUpdateMessage: (x) => {
-				return x + " left for internal";
-			},
-			onDoneMessage: () => {
-				return "Done fetching records for internal use";
-			}
-		});
-
-		const [userCandles, internalCandles] = await Promise.all([
-			userCandlesPromise,
-			internalCandlesPromise
-		]);
-
-		return { userCandles, internalCandles };
+		return candles;
 	} catch (err) {
 		throw err;
 	}

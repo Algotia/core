@@ -18,13 +18,6 @@ jobs:
       run: npm ci
     - name: Build
       run: npm run build
-    - name: Test
-      run: npm t
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: dist
-        path: dist/
     - name: Bump version
       id: bump_version
       run: |
@@ -33,10 +26,6 @@ jobs:
         npx standard-version --prerelease 
     - name: Push bump artifacts
       run: git push --follow-tags
-    - name: Download dist
-      uses: actions/download-artifact@v2
-      with:
-        name: dist
     - name: Setup Node.js with NPM
       uses: actions/setup-node@v1.4.2
       with:

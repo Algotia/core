@@ -1,6 +1,6 @@
-import { ObjectId, Collection, WithId } from "mongodb";
+import { ObjectId, MongoClient } from "mongodb";
 import { OHLCV } from "../shared";
-import { Balances, Order, Exchange, Trade } from "ccxt";
+import { Balances, Order, Exchange } from "ccxt";
 import { Tedis } from "tedis";
 
 type SyncStrategy = (
@@ -37,11 +37,6 @@ export interface ProcessedBacktestOptions extends BacktestInput {
 	name: string;
 }
 
-export interface Collections {
-	backtest: Collection;
-	backfill: Collection;
-}
-
 export interface PrivateApi {
 	createOrder: CreateOrder;
 	fetchBalance: FetchBalance;
@@ -59,26 +54,12 @@ export interface PublicApi {
 	loadMarkets: typeof Exchange.prototype.loadMarkets;
 }
 
-export interface BacktestingExchange {
-	// Private API
-	createOrder: CreateOrder;
-	fetchBalance: FetchBalance;
-	fetchOrders: FetchOrders;
-	// Public API
-	fetchMarkets: typeof Exchange.prototype.fetchMarkets;
-	fetchCurrencies: typeof Exchange.prototype.fetchCurrencies;
-	fetchTradingLimits?: typeof Exchange.prototype.fetchTradingLimits;
-	fetchTradingFees?: typeof Exchange.prototype.fetchTradingFees;
-	fetchTicker: typeof Exchange.prototype.fetchTicker;
-	fetchOrderBook: typeof Exchange.prototype.fetchOrderBook;
-	fetchOHLCV: typeof Exchange.prototype.fetchOHLCV;
-	loadMarkets: typeof Exchange.prototype.loadMarkets;
-}
+export interface BacktestingExchange extends PrivateApi, PublicApi {}
 
 export interface MethodFactoryArgs {
+	mongoClient: MongoClient;
 	redisClient: Tedis;
 	exchange: Exchange;
-	collections: Collections;
 }
 
 export enum PrivateApiIds {

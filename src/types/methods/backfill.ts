@@ -16,8 +16,7 @@ export interface BackfillDocument {
 	pair: string;
 	since: number;
 	until: number;
-	userCandles: OHLCV[];
-	internalCandles: OHLCV[];
+	candles: OHLCV[];
 }
 
 export interface ConvertedBackfillOptions extends BackfillInput {

@@ -4,7 +4,11 @@ import {
 	convertPeriodToMs,
 	log
 } from "../../../src/utils/index";
-import { BackfillInput, BackfillDocument } from "../../../src/types/index";
+import {
+	BackfillInput,
+	BackfillDocument,
+	BootData
+} from "../../../src/types/index";
 
 const getMsDiff = (document: BackfillDocument): number => {
 	const periodMs = convertPeriodToMs(document.period);
@@ -12,7 +16,7 @@ const getMsDiff = (document: BackfillDocument): number => {
 };
 
 describe("Backfill", () => {
-	let bootData;
+	let bootData: BootData;
 
 	beforeAll(async () => {
 		bootData = await boot({
@@ -26,7 +30,7 @@ describe("Backfill", () => {
 	}, 1800000);
 
 	afterAll(async () => {
-		await bootData.quit();
+		bootData.quit();
 	});
 
 	test("Bad input throws error", async () => {
@@ -57,18 +61,15 @@ describe("Backfill", () => {
 			OneMonthBackfillOptions
 		);
 
-		expect(OneMonthBackfillResults.userCandles.length).toStrictEqual(24);
-		expect(OneMonthBackfillResults.internalCandles.length).toStrictEqual(
-			24 * 60
-		);
+		expect(OneMonthBackfillResults.candles.length).toStrictEqual(24);
 
-		expect(OneMonthBackfillResults.userCandles[0].timestamp).toStrictEqual(
+		expect(OneMonthBackfillResults.candles[0].timestamp).toStrictEqual(
 			convertDateInputToMs(OneMonthBackfillOptions.since)
 		);
 		// Last timestamp is one unit before untilInput
 		expect(
-			OneMonthBackfillResults.userCandles[
-				OneMonthBackfillResults.userCandles.length - 1
+			OneMonthBackfillResults.candles[
+				OneMonthBackfillResults.candles.length - 1
 			].timestamp
 		).toStrictEqual(
 			convertDateInputToMs(OneMonthBackfillOptions.until) -
