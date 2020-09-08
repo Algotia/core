@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 0.0.4-5 (2020-09-08)
+
+
+### Bug Fixes
+
+* **backfill:** removed internal candle logic ([#187](https://github.com/Algotia/core/issues/187)) ([9b6801b](https://github.com/Algotia/core/commit/9b6801bc3823f82f344029377e84ba6987312ed7)), closes [#185](https://github.com/Algotia/core/issues/185)
+
 ### 0.0.4-4 (2020-09-07)
 
 
