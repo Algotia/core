@@ -2,7 +2,6 @@ import { BootData, BacktestInput, BacktestDocument } from "../../types";
 import { decodeObject } from "../../utils";
 import initializeBacktest from "./initializeBacktest";
 import reconcile from "./reconcile";
-import converPeriodToMs from "../../utils/time/convertPeriodToMs";
 import saveBacktest from "./saveBacktest";
 
 interface BacktestResults {
@@ -21,25 +20,19 @@ const backtest = async (
 			backtestInput
 		);
 
-		const { period, userCandles, internalCandles } = backfill;
+		const { candles } = backfill;
 
-		const timesToReconcile = converPeriodToMs(period) / 60000;
-
-		let strategyIndex = 0;
 		let backtestErrors = [];
-		for (let i = 0; i < internalCandles.length; i++) {
-			const thisInternalCandle = internalCandles[i];
-			if (i % timesToReconcile === 0) {
-				try {
-					await strategy(backtestingExchange, userCandles[strategyIndex]);
-				} catch (err) {
-					backtestErrors.push(`${err.message} at candle ${i}`);
-				} finally {
-					strategyIndex++;
-					await redisClient.incr("userCandleIdx");
-				}
+		for (let i = 0; i < candles.length; i++) {
+			const thisCandle = candles[i];
+			try {
+				await strategy(backtestingExchange, thisCandle);
+			} catch (err) {
+				backtestErrors.push(`${err.message} at candle ${i}`);
+			} finally {
+				await redisClient.incr("userCandleIdx");
 			}
-			await reconcile(thisInternalCandle, redisClient);
+			await reconcile(thisCandle, redisClient);
 		}
 
 		const endingBalanceRaw = await redisClient.hgetall("balance");

@@ -77,24 +77,26 @@ const fillOrder = async (
 
 		const oldBalanceRaw = await redisClient.hgetall("balance");
 		const oldBalance = decodeObject(oldBalanceRaw);
-		const newBalance: Balances = {
-			info: {
-				free: oldBalance.info.total - orderCost,
-				used: oldBalance.info.used,
-				total: oldBalance.info.total - orderCost
-			},
-			quote: {
-				free: oldBalance.quote.total - orderCost,
-				used: oldBalance.quote.used,
-				total: oldBalance.quote.total - orderCost
-			},
-			base: {
-				free: oldBalance.base.total + amount,
-				used: oldBalance.base.used,
-				total: oldBalance.base.total + amount
-			}
-		};
-
+		let newBalance: Balances;
+		if (side === "buy") {
+			newBalance = {
+				info: {
+					free: oldBalance.info.total - orderCost,
+					used: oldBalance.info.used - orderCost,
+					total: oldBalance.info.total - orderCost
+				},
+				quote: {
+					free: oldBalance.quote.total - orderCost,
+					used: oldBalance.quote.used - orderCost,
+					total: oldBalance.quote.total - orderCost
+				},
+				base: {
+					free: oldBalance.base.total + amount,
+					used: oldBalance.base.used,
+					total: oldBalance.base.total + amount
+				}
+			};
+		}
 		const encodedOrder = encodeObject(filledOrder);
 		const encodedBalance = encodeObject(newBalance);
 

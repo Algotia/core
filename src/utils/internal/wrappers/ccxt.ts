@@ -1,5 +1,5 @@
 import { default as ccxtOriginal } from "ccxt";
-import { AllowedExchangeIds, AllowedExchangeIdsEnum } from "../../types/";
+import { AllowedExchangeIds, AllowedExchangeIdsEnum } from "../../../types/";
 
 type AllowedExchanges = {
 	[key in AllowedExchangeIds]: typeof ccxtOriginal[key];

@@ -1,4 +1,4 @@
-import { OHLCV } from "../../types/index";
+import { OHLCV } from "../../../types/index";
 
 const reshapeOHLCV = (ohlcvArr: number[][]): OHLCV[] =>
 	ohlcvArr.map((OHLCV) => ({

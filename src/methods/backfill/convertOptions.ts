@@ -6,32 +6,18 @@ import { Exchange } from "ccxt";
 
 const convertOptions = (
 	backfillOptions: BackfillInput,
-	exchange: Exchange,
-	internal?: boolean
+	exchange: Exchange
 ): ConvertedBackfillOptions => {
-	let options: BackfillInput;
-	if (internal === true) {
-		options = { ...backfillOptions };
-		const newSince =
-			convertDateInputToMs(backfillOptions.since) +
-			convertPeriodToMs(backfillOptions.period);
-		options.since = new Date(newSince).toISOString();
-		const newUntil =
-			convertDateInputToMs(backfillOptions.until) +
-			convertPeriodToMs(backfillOptions.period);
-		options.until = new Date(newUntil).toISOString();
-		options.period = "1m";
-	} else {
-		options = { ...backfillOptions };
-	}
-
-	const { since, until, pair, period, recordLimit, verbose } = options;
+	const { since, until, pair, period, recordLimit, verbose } = backfillOptions;
 
 	const periodMs = convertPeriodToMs(period);
 
 	let sinceMs: number;
 	let untilMs: number;
 
+	// Bitstamp fetches all records AFTER the input date
+	// so we subtract 1ms to normalize the behavior to fetch
+	// records SINCE (on or after) the input date
 	if (exchange.id === "bitstamp") {
 		sinceMs = convertDateInputToMs(since) - 1;
 		untilMs = convertDateInputToMs(until) - 1;
