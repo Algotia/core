@@ -1,4 +1,11 @@
-import { BootData, BacktestInput, BacktestDocument } from "../../types";
+import {
+	BootData,
+	BacktestInput,
+	BacktestDocument,
+	SingleCandleSet,
+	MultiCandleSets,
+	OHLCV
+} from "../../types";
 import { decodeObject } from "../../utils";
 import initializeBacktest from "./initializeBacktest";
 import reconcile from "./reconcile";
@@ -20,9 +27,20 @@ const backtest = async (
 			backtestInput
 		);
 
-		const { candles } = backfill;
+		function isSingleCandleSet(
+			candles: SingleCandleSet | MultiCandleSets
+		): candles is SingleCandleSet {
+			return (candles as SingleCandleSet).length !== undefined;
+		}
 
 		let backtestErrors = [];
+		let candles: OHLCV[];
+		if (isSingleCandleSet(backfill.candles)) {
+			candles = backfill.candles;
+		} else {
+			const candleKeys = Object.keys(backfill.candles);
+			candles = backfill.candles[candleKeys[0]];
+		}
 		for (let i = 0; i < candles.length; i++) {
 			const thisCandle = candles[i];
 			try {

@@ -1,14 +1,14 @@
 import { ObjectId, MongoClient } from "mongodb";
-import { OHLCV } from "../shared";
+import { OHLCV, SingleExchange } from "../../types";
 import { Balances, Order, Exchange } from "ccxt";
 import { Tedis } from "tedis";
 
 type SyncStrategy = (
-	exchange: Exchange | BacktestingExchange,
+	exchange: SingleExchange | BacktestingExchange,
 	data: OHLCV
 ) => void;
 type AsyncStrategy = (
-	exchange: Exchange | BacktestingExchange,
+	exchange: SingleExchange | BacktestingExchange,
 	data: OHLCV
 ) => Promise<void>;
 
@@ -59,7 +59,7 @@ export interface BacktestingExchange extends PrivateApi, PublicApi {}
 export interface MethodFactoryArgs {
 	mongoClient: MongoClient;
 	redisClient: Tedis;
-	exchange: Exchange;
+	exchange: SingleExchange;
 }
 
 export enum PrivateApiIds {

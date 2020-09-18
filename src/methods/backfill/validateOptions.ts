@@ -1,4 +1,8 @@
-import { ConvertedBackfillOptions, AnyExchange, InputError } from "../../types";
+import {
+	ConvertedBackfillOptions,
+	SingleExchange,
+	InputError
+} from "../../types";
 import chalk from "chalk";
 
 const compareSinceAndUntil = (sinceMs: number, untilMs: number) => {
@@ -14,7 +18,7 @@ const compareSinceAndUntil = (sinceMs: number, untilMs: number) => {
 	}
 };
 
-const checkPeriod = (exchange: AnyExchange, period: string) => {
+const checkPeriod = (exchange: SingleExchange, period: string) => {
 	const allowedPeriods = Object.keys(exchange.timeframes);
 	if (!allowedPeriods.includes(period)) {
 		throw new InputError(
@@ -27,7 +31,7 @@ const checkPeriod = (exchange: AnyExchange, period: string) => {
 	}
 };
 
-const checkPair = async (exchange: AnyExchange, pair: string) => {
+const checkPair = async (exchange: SingleExchange, pair: string) => {
 	await exchange.loadMarkets();
 	const allowedPairs = Object.keys(exchange.markets);
 	if (!allowedPairs.includes(pair)) {
@@ -39,7 +43,7 @@ const checkPair = async (exchange: AnyExchange, pair: string) => {
 	}
 };
 
-const checkRecordLimit = (exchange: AnyExchange, recordLimit: number) => {
+const checkRecordLimit = (exchange: SingleExchange, recordLimit: number) => {
 	if (recordLimit > exchange.historicalRecordLimit) {
 		throw new InputError(`Record limit ${chalk.bold.underline(
 			recordLimit
@@ -49,7 +53,7 @@ const checkRecordLimit = (exchange: AnyExchange, recordLimit: number) => {
 };
 
 const validateOptions = async (
-	exchange: AnyExchange,
+	exchange: SingleExchange,
 	backfillOptions: ConvertedBackfillOptions
 ) => {
 	const { sinceMs, untilMs, period, pair, recordLimit } = backfillOptions;

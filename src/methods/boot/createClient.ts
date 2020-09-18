@@ -1,11 +1,14 @@
-import { ConfigOptions } from "../../types";
+import { Config } from "../../types";
 import { MongoClient } from "mongodb";
 
-const createClient = async (
-	configInput: ConfigOptions
-): Promise<MongoClient> => {
+const createClient = async (configInput: Config): Promise<MongoClient> => {
 	try {
-		const port = configInput.db.port || 27017;
+		let port: number;
+		if (configInput.mongo && configInput.mongo.port) {
+			port = configInput.mongo.port;
+		} else {
+			port = 27017;
+		}
 		//const dbUrl = `mongodb://localhost:${port}`;
 
 		const dbUrl =

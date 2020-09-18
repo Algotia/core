@@ -1,32 +1,21 @@
 import { backfill, boot } from "../../../src/algotia";
-import {
-	convertDateInputToMs,
-	convertPeriodToMs,
-	log
-} from "../../../src/utils/index";
-import {
-	BackfillInput,
-	BackfillDocument,
-	BootData
-} from "../../../src/types/index";
-
-const getMsDiff = (document: BackfillDocument): number => {
-	const periodMs = convertPeriodToMs(document.period);
-	return periodMs;
-};
+import { log } from "../../../src/utils/index";
+import { BackfillInput, BootData, Config } from "../../../src/types/index";
 
 describe("Backfill", () => {
 	let bootData: BootData;
-
 	beforeAll(async () => {
-		bootData = await boot({
+		const config: Config = {
 			exchange: {
-				exchangeId: "binance",
-				apiKey: "badString",
-				apiSecret: "secree",
-				timeout: 8000
+				binance: {
+					timeout: 8000
+				},
+				bitstamp: {
+					timeout: 8000
+				}
 			}
-		});
+		};
+		bootData = await boot(config);
 	}, 1800000);
 
 	afterAll(async () => {
@@ -48,7 +37,40 @@ describe("Backfill", () => {
 		}
 	});
 
-	test("1 month backfill is correct", async () => {
+	test("1 month multi-backfill is correct", async () => {
+		const OneMonthBackfillOptions: BackfillInput = {
+			since: "2/01/2020",
+			until: "2/02/2020",
+			pair: "ETH/BTC",
+			period: "1h",
+			type: "multi"
+		};
+
+		const OneMonthBackfillResults = await backfill(
+			bootData,
+			OneMonthBackfillOptions
+		);
+
+		const resultCandleLables = Object.keys(OneMonthBackfillResults.candles);
+		const configCandleLabels = Object.keys(bootData.config.exchange);
+
+		expect(resultCandleLables).toStrictEqual(configCandleLabels);
+
+		const binanceCandles = OneMonthBackfillResults.candles["binance"];
+		const bitstampCandles = OneMonthBackfillResults.candles["bitstamp"];
+
+		expect(bitstampCandles.length).toStrictEqual(bitstampCandles.length);
+
+		const lastBitstampCandle = bitstampCandles[bitstampCandles.length - 1];
+		const lastBinanceCandle = binanceCandles[bitstampCandles.length - 1];
+
+		expect(lastBinanceCandle.timestamp).toStrictEqual(
+			lastBitstampCandle.timestamp
+		);
+		console.log(OneMonthBackfillResults.name);
+	}, 100000);
+
+	test("1 month single-backfill is correct", async () => {
 		const OneMonthBackfillOptions: BackfillInput = {
 			since: "2/01/2020",
 			until: "2/02/2020",
@@ -61,35 +83,7 @@ describe("Backfill", () => {
 			OneMonthBackfillOptions
 		);
 
-		expect(OneMonthBackfillResults.candles.length).toStrictEqual(24);
-
-		expect(OneMonthBackfillResults.candles[0].timestamp).toStrictEqual(
-			convertDateInputToMs(OneMonthBackfillOptions.since)
-		);
-		// Last timestamp is one unit before untilInput
-		expect(
-			OneMonthBackfillResults.candles[
-				OneMonthBackfillResults.candles.length - 1
-			].timestamp
-		).toStrictEqual(
-			convertDateInputToMs(OneMonthBackfillOptions.until) -
-				getMsDiff(OneMonthBackfillResults)
-		);
-		// Period is the same as options
-		expect(OneMonthBackfillResults.period).toStrictEqual(
-			OneMonthBackfillOptions.period
-		);
-		// Pair is the same as options
-		expect(OneMonthBackfillResults.pair).toStrictEqual(
-			OneMonthBackfillOptions.pair
-		);
-		// Since input is saved as unix timestamp
-		expect(OneMonthBackfillResults.since).toStrictEqual(
-			convertDateInputToMs(OneMonthBackfillOptions.since)
-		);
-		// Until input is saved as unix timestamp
-		expect(OneMonthBackfillResults.until).toStrictEqual(
-			convertDateInputToMs(OneMonthBackfillOptions.until)
-		);
-	}, 90000);
+		expect(OneMonthBackfillResults.candles).toHaveLength(24);
+		console.log(OneMonthBackfillResults.name);
+	}, 100000);
 });

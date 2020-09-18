@@ -1,14 +1,29 @@
 import { log, getBackfillCollection } from "../../utils";
-import { ConvertedBackfillOptions, BackfillDocument, OHLCV } from "../../types";
+import {
+	BackfillDocument,
+	OHLCV,
+	BackfillInput,
+	SingleCandleSet,
+	MultiCandleSets
+} from "../../types";
 import { MongoClient } from "mongodb";
 
 const insertDocument = async (
-	options: ConvertedBackfillOptions,
-	candles: OHLCV[],
+	options: BackfillInput,
+	candles: SingleCandleSet | MultiCandleSets,
 	client: MongoClient
 ): Promise<BackfillDocument> => {
 	try {
-		const { sinceMs, untilMs, period, pair, documentName } = options;
+		const {
+			since,
+			until,
+			period,
+			pair,
+			documentName,
+			type = "single"
+		} = options;
+
+		const formatDate = (d) => new Date(d).getTime();
 
 		const backfillCollection = await getBackfillCollection(client);
 
@@ -18,11 +33,12 @@ const insertDocument = async (
 
 		const backfillDocument: BackfillDocument = {
 			name: docName,
-			since: sinceMs,
-			until: untilMs,
+			since: formatDate(since),
+			until: formatDate(until),
 			candles,
 			period,
-			pair
+			pair,
+			type
 		};
 
 		await backfillCollection.insertOne(backfillDocument);

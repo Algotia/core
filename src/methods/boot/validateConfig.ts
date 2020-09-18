@@ -1,35 +1,40 @@
-import {
-	ConfigOptions,
-	AllowedExchangeIdsEnum,
-	ConfigError
-} from "../../types";
+import { Config, AllowedExchanges, ConfigError } from "../../types";
 
-const validateConfig = (config: ConfigOptions): ConfigOptions => {
-	const { exchange } = config;
-	const { exchangeId, timeout } = exchange;
+const validateConfig = (config: Config): Config => {
+	(() => {
+		const allConfigExchages = Object.keys(config.exchange);
+		let badExchangeIds = [];
 
-	const isExchangeIdValid = () => {
-		if (Object.keys(AllowedExchangeIdsEnum).includes(exchangeId)) {
-			return true;
-		} else {
-			return false;
+		const configsAreAllowed = allConfigExchages.some((id: any) => {
+			if (AllowedExchanges.includes(id)) {
+				return true;
+			} else {
+				badExchangeIds.push(id);
+			}
+		});
+
+		if (!configsAreAllowed) {
+			let errorStr: string;
+			if (badExchangeIds.length === AllowedExchanges.length) {
+				errorStr =
+					"You must have at least one valid exchange as a property of exchange";
+			} else {
+				errorStr =
+					"The following exchanges have invalid IDs (property names): ";
+				errorStr += badExchangeIds.reduce(
+					(a, b, i) => (a += i === badExchangeIds.length ? b : b + ", "),
+					""
+				);
+			}
+			throw new ConfigError(errorStr);
 		}
-	};
 
-	// create error for these
-	if (!isExchangeIdValid) {
-		throw new ConfigError(`${exchangeId} is not a valid exchange.`);
-	}
-
-	if (timeout < 3000) {
-		throw new ConfigError(
-			`The timeout in your configuration file (${timeout}}) is too short. Please make it a value above 3000`
-		);
-	}
-
-	if (!config.db) {
-		config.db = {};
-	}
+		//if (exchange.timeout < 3000) {
+		//throw new ConfigError(
+		//`The timeout in your configuration file (${timeout}}) is too short. Please make it a value above 3000`
+		//);
+		//}
+	})();
 
 	return config;
 };

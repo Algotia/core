@@ -1,20 +1,20 @@
 import { default as ccxtOriginal } from "ccxt";
-import { AllowedExchangeIds, AllowedExchangeIdsEnum } from "../../../types/";
+import { AllowedExchangeId, AllowedExchanges } from "../../../types/";
 
 type AllowedExchanges = {
-	[key in AllowedExchangeIds]: typeof ccxtOriginal[key];
+	[key in AllowedExchangeId]: typeof ccxtOriginal[key];
 };
 
 type CcxtOriginal = typeof ccxtOriginal;
 
-type ExchangesArr = AllowedExchangeIds[];
+type ExchangesArr = AllowedExchangeId[];
 
 interface Ccxt extends AllowedExchanges {
 	exchanges: ExchangesArr;
 }
 
 type ModificationKey = {
-	[key in AllowedExchangeIds]?: any;
+	[key in AllowedExchangeId]?: any;
 };
 
 interface Modification extends ModificationKey {
@@ -36,8 +36,10 @@ const extendExchanges = (
 	exchangeModifications.forEach((modification) => {
 		const { name, ...exchanges } = modification;
 		for (const exchangeId in exchanges) {
-			const exchange = allowedExchanges[exchangeId];
-			exchange.prototype[name] = modification[exchangeId];
+			if (exchanges.hasOwnProperty(exchangeId)) {
+				const exchange = allowedExchanges[exchangeId];
+				exchange.prototype[name] = modification[exchangeId];
+			}
 		}
 	});
 
@@ -55,12 +57,8 @@ const extractAllowedExchanges = (
 	return Object.assign({}, ...exchangeArr);
 };
 
-const createExchangesArr = (): ExchangesArr => {
-	return Object.values(AllowedExchangeIdsEnum);
-};
-
 const wrapCcxt = (ccxtOriginal: CcxtOriginal): Ccxt => {
-	const allowedExchanges = createExchangesArr();
+	const allowedExchanges = [...AllowedExchanges];
 	const extractedExchanges = extractAllowedExchanges(
 		allowedExchanges,
 		ccxtOriginal

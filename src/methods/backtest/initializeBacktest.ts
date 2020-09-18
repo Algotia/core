@@ -1,5 +1,14 @@
-import { BacktestInput, BootData, BackfillDocument } from "../../types";
-import { getBackfillCollection, encodeObject } from "../../utils";
+import {
+	BacktestInput,
+	BootData,
+	BackfillDocument,
+	SingleExchange
+} from "../../types";
+import {
+	getBackfillCollection,
+	encodeObject,
+	isMultiExchange
+} from "../../utils";
 import createBacktestingExchange from "./createExchange";
 import { WithId } from "mongodb";
 
@@ -53,8 +62,16 @@ const initializeBacktest = async (
 		await redisClient.set("userCandleIdx", "0");
 		await redisClient.set("internalCandleIdx", "0");
 
+		let exchangeToUse: SingleExchange;
+		if (isMultiExchange(exchange)) {
+			const exchangeKeys = Object.keys(exchange);
+			exchangeToUse = exchange[exchangeKeys[0]];
+		} else {
+			exchangeToUse = exchange;
+		}
+
 		const methodFactoryArgs = {
-			exchange,
+			exchange: exchangeToUse,
 			redisClient,
 			mongoClient
 		};

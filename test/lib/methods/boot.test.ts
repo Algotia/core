@@ -1,26 +1,47 @@
 import { Exchange } from "ccxt";
 import { boot } from "../../../src/algotia";
-import { ConfigOptions } from "../../../src/types/index";
+import {
+	Config,
+	MultipleExchanges,
+	SingleExchange
+} from "../../../src/types/index";
 import { MongoClient } from "mongodb";
 
-const mockBootConfig: ConfigOptions = {
+const multiConfig = {
 	exchange: {
-		exchangeId: "binance",
-		apiKey: "some string",
-		apiSecret: "some string",
-		timeout: 5000
+		binance: {
+			timeout: 5000
+		},
+		bitstamp: {
+			timeout: 5000
+		}
+	}
+};
+
+const singleConfig = {
+	exchange: {
+		binance: {
+			timeout: 5000
+		}
 	}
 };
 
 test("Boot function", async () => {
 	try {
-		const bootData = await boot(mockBootConfig);
-		expect(bootData.config).toStrictEqual(mockBootConfig);
-		expect(bootData.exchange).toBeInstanceOf(Exchange);
-		expect(bootData.mongoClient).toBeInstanceOf(MongoClient);
+		const multiBootData = await boot(multiConfig);
+		for (const id in multiBootData.exchange) {
+			const exchange = multiBootData.exchange[id];
+			expect(exchange).toBeInstanceOf(Exchange);
+			expect(multiBootData.config).toStrictEqual(multiConfig);
+		}
+		multiBootData.quit();
 
-		bootData.quit();
+		const singleBootData = await boot(singleConfig);
+		console.log(singleBootData.exchange);
+		expect(singleBootData.exchange.binance).toBeInstanceOf(Exchange);
+		singleBootData.quit();
 	} catch (err) {
 		throw err;
+	} finally {
 	}
 }, 10000);

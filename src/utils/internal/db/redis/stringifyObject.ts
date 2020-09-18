@@ -10,7 +10,9 @@ const stringifyObject = (flatObj: FlatObject): StringifiedObject => {
 	let stringObj = {};
 
 	for (const key in flatObj) {
-		stringObj[key] = flatObj[key].toString();
+		if (flatObj.hasOwnProperty(key)) {
+			stringObj[key] = flatObj[key].toString();
+		}
 	}
 
 	return stringObj;
