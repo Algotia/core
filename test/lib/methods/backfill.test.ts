@@ -7,12 +7,8 @@ describe("Backfill", () => {
 	beforeAll(async () => {
 		const config: Config = {
 			exchange: {
-				binance: {
-					timeout: 8000
-				},
-				bitstamp: {
-					timeout: 8000
-				}
+				binance: true,
+				bitstamp: true
 			}
 		};
 		bootData = await boot(config);

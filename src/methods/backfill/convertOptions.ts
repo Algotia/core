@@ -1,14 +1,17 @@
 import { convertPeriodToMs, convertDateInputToMs } from "../../utils/index";
-import { ConvertedBackfillOptions, BackfillInput } from "../../types";
-import { Exchange } from "ccxt";
+import {
+	ConvertedBackfillOptions,
+	BackfillInput,
+	SingleExchange
+} from "../../types";
 
 // Converts input into friendly format
 
 const convertOptions = (
 	backfillOptions: BackfillInput,
-	exchange: Exchange
+	exchange: SingleExchange
 ): ConvertedBackfillOptions => {
-	const { since, until, pair, period, recordLimit, verbose } = backfillOptions;
+	const { since, until, period, recordLimit } = backfillOptions;
 
 	const periodMs = convertPeriodToMs(period);
 
@@ -28,18 +31,18 @@ const convertOptions = (
 
 	const msBetween = untilMs - sinceMs;
 	const recordsToFetch = Math.floor(msBetween / periodMs);
+	let defaultRecordLimit: number;
+	if (!recordLimit) {
+		defaultRecordLimit = exchange.historicalRecordLimit;
+	}
 
 	const convertedOptions = {
-		since,
-		until,
+		...backfillOptions,
 		untilMs,
 		sinceMs,
-		period,
 		periodMs,
-		pair,
-		recordLimit,
 		recordsToFetch,
-		verbose
+		recordLimit: defaultRecordLimit
 	};
 	return convertedOptions;
 };

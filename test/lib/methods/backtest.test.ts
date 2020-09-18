@@ -5,9 +5,7 @@ describe("Backtest", () => {
 	beforeAll(async () => {
 		bootData = await boot({
 			exchange: {
-				binance: {
-					timeout: 5000
-				}
+				binance: true
 			}
 		});
 	});

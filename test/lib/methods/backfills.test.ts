@@ -6,9 +6,7 @@ describe("Backfills", () => {
 	beforeAll(async () => {
 		bootData = await boot({
 			exchange: {
-				binance: {
-					timeout: 8000
-				}
+				binance: true
 			}
 		});
 	});

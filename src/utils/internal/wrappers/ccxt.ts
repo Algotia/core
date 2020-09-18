@@ -1,16 +1,23 @@
 import { default as ccxtOriginal } from "ccxt";
 import { AllowedExchangeId, AllowedExchanges } from "../../../types/";
 
-type AllowedExchanges = {
+type ExtractedExhanges = {
 	[key in AllowedExchangeId]: typeof ccxtOriginal[key];
+};
+
+interface ExtendedSingleExchange extends ccxtOriginal.Exchange {
+	historicalRecordLimit: number;
+	new (...args);
+}
+
+type ExtendedExchanges = {
+	[key in AllowedExchangeId]: ExtendedSingleExchange;
 };
 
 type CcxtOriginal = typeof ccxtOriginal;
 
-type ExchangesArr = AllowedExchangeId[];
-
-interface Ccxt extends AllowedExchanges {
-	exchanges: ExchangesArr;
+interface CcxtWrapped extends ExtendedExchanges {
+	exchanges: typeof AllowedExchanges;
 }
 
 type ModificationKey = {
@@ -21,35 +28,51 @@ interface Modification extends ModificationKey {
 	name: string;
 }
 
-const exchangeModifications: Modification[] = [
-	{
-		name: "historicalRecordLimit",
-		binance: 1500,
-		//bitfinex: 10000
-		bitstamp: 1000
-	}
-];
-
 const extendExchanges = (
-	allowedExchanges: AllowedExchanges
-): AllowedExchanges => {
+	extractedExchanges: ExtractedExhanges
+): ExtendedExchanges => {
+	// MODIFY THIS LIST TO EXTEND EXCHANGES
+	// ------------------------
+	const exchangeModifications: Modification[] = [
+		{
+			name: "historicalRecordLimit",
+			binance: 1500,
+			bitstamp: 1000
+		}
+	];
+	// ----------------------
+	let extendedExchanges: ExtendedExchanges;
+
 	exchangeModifications.forEach((modification) => {
 		const { name, ...exchanges } = modification;
-		for (const exchangeId in exchanges) {
-			if (exchanges.hasOwnProperty(exchangeId)) {
-				const exchange = allowedExchanges[exchangeId];
-				exchange.prototype[name] = modification[exchangeId];
+
+		for (const id in exchanges) {
+			if (exchanges.hasOwnProperty(id)) {
+				// The exchange could already be modified, if so re-extend it
+				const exchange =
+					extendedExchanges && extendedExchanges[id]
+						? extendedExchanges[id]
+						: extractedExchanges[id];
+				extendedExchanges = {
+					...extendedExchanges,
+					[id]: class extends exchange {
+						constructor(...args: any) {
+							super(args);
+							this[name] = modification[id];
+						}
+					}
+				};
 			}
 		}
 	});
 
-	return allowedExchanges;
+	return extendedExchanges;
 };
 
 const extractAllowedExchanges = (
-	exchanges: ExchangesArr,
+	exchanges: typeof AllowedExchanges,
 	ccxtOriginal: CcxtOriginal
-): AllowedExchanges => {
+): ExtractedExhanges => {
 	const exchangeArr = exchanges.map((exchange) => {
 		return { [exchange]: ccxtOriginal[exchange] };
 	});
@@ -57,16 +80,15 @@ const extractAllowedExchanges = (
 	return Object.assign({}, ...exchangeArr);
 };
 
-const wrapCcxt = (ccxtOriginal: CcxtOriginal): Ccxt => {
-	const allowedExchanges = [...AllowedExchanges];
+const wrapCcxt = (ccxtOriginal: CcxtOriginal): CcxtWrapped => {
 	const extractedExchanges = extractAllowedExchanges(
-		allowedExchanges,
+		AllowedExchanges,
 		ccxtOriginal
 	);
 	const extendedExchanges = extendExchanges(extractedExchanges);
 
 	return {
-		exchanges: allowedExchanges,
+		exchanges: AllowedExchanges,
 		...extendedExchanges
 	};
 };

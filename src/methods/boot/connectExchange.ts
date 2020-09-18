@@ -1,37 +1,32 @@
-import {
-	SingleExchange,
-	MultipleExchanges,
-	AllowedExchangeId,
-	Config,
-	ExchangeObj
-} from "../../types";
+import { Config, ExchangeObj, SingleExchange } from "../../types";
 import { ccxt } from "../../utils";
 
 const connectExchange = async (config: Config): Promise<ExchangeObj> => {
 	try {
 		const allConfigExchanges = Object.keys(config.exchange);
-		let multipleExchanges: MultipleExchanges;
-
-		const isAllowedId = (id: string): id is AllowedExchangeId => {
-			return (id as AllowedExchangeId) !== undefined;
-		};
+		let exchangeObj: ExchangeObj;
 
 		allConfigExchanges.forEach((id) => {
-			if (isAllowedId(id)) {
-				const exchange = ccxt[id];
-				const { apiKey, apiSecret, timeout } = config.exchange[id];
-				const singleExchange: SingleExchange = new exchange({
-					apiKey,
-					secret: apiSecret,
-					timeout
-				});
-				multipleExchanges = {
-					...multipleExchanges,
-					[id]: singleExchange
-				};
+			const exchange = ccxt[id];
+			const exchangCreds = config.exchange[id];
+
+			let singleExchange: SingleExchange;
+			if (typeof exchangCreds === "boolean") {
+				if (exchangCreds) {
+					singleExchange = new exchange();
+				} else {
+					return;
+				}
+			} else {
+				singleExchange = new exchange(exchangCreds);
 			}
+
+			exchangeObj = {
+				...exchangeObj,
+				[id]: singleExchange
+			};
 		});
-		return multipleExchanges;
+		return exchangeObj;
 	} catch (err) {
 		throw err;
 	}

@@ -20,7 +20,8 @@ const insertDocument = async (
 			period,
 			pair,
 			documentName,
-			type = "single"
+			type = "single",
+			exchanges
 		} = options;
 
 		const formatDate = (d) => new Date(d).getTime();
@@ -38,7 +39,8 @@ const insertDocument = async (
 			candles,
 			period,
 			pair,
-			type
+			type,
+			exchanges
 		};
 
 		await backfillCollection.insertOne(backfillDocument);

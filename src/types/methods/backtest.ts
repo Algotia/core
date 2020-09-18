@@ -7,6 +7,7 @@ type SyncStrategy = (
 	exchange: SingleExchange | BacktestingExchange,
 	data: OHLCV
 ) => void;
+
 type AsyncStrategy = (
 	exchange: SingleExchange | BacktestingExchange,
 	data: OHLCV
