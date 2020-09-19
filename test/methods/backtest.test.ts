@@ -1,4 +1,4 @@
-import { backtest, BootData, boot } from "../../../src/algotia";
+import { backtest, BootData, boot } from "../../src/algotia";
 
 describe("Backtest", () => {
 	let bootData: BootData;

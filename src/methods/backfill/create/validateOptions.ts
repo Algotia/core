@@ -2,7 +2,7 @@ import {
 	ConvertedBackfillOptions,
 	SingleExchange,
 	InputError
-} from "../../types";
+} from "../../../types";
 import chalk from "chalk";
 
 const compareSinceAndUntil = (sinceMs: number, untilMs: number) => {

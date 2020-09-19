@@ -1,5 +1,5 @@
-import { log, reshapeOHLCV, sleep } from "../../utils";
-import { OHLCV, SingleExchange } from "../../types";
+import { log, reshapeOHLCV, sleep } from "../../../utils";
+import { OHLCV, SingleExchange } from "../../../types";
 
 interface FetchOptions {
 	sinceMs: number;

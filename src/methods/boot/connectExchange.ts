@@ -6,7 +6,6 @@ import {
 	ExchangeConfigError
 } from "../../types";
 import { ccxt } from "../../utils";
-import { inspect } from "util";
 
 const connectExchange = <T extends ExchangeConfig>(
 	config: T

@@ -1,14 +1,6 @@
 import { Exchange } from "ccxt";
-import { boot } from "../../../src/algotia";
-import {
-	Config,
-	MultipleExchanges,
-	SingleExchange,
-	ExchangeConfigError,
-	BootData
-} from "../../../src/types/index";
-import { MongoClient } from "mongodb";
-import { inspect } from "util";
+import { boot } from "../../src/algotia";
+import { ExchangeConfigError, BootData } from "../../src/types/index";
 
 describe("Boot function", () => {
 	const multiConfig = {

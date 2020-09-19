@@ -1,6 +1,6 @@
-import { OHLCV } from "../../types";
+import { OHLCV } from "../../../types";
 import { Tedis } from "tedis";
-import { decodeObject } from "../../utils";
+import { decodeObject } from "../../../utils";
 import fillOrder from "./fillOrder";
 
 const reconcile = async (candle: OHLCV, redisClient: Tedis) => {

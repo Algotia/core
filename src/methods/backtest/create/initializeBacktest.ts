@@ -3,9 +3,9 @@ import {
 	BootData,
 	BackfillDocument,
 	SingleExchange
-} from "../../types";
-import { getBackfillCollection, encodeObject } from "../../utils";
-import createBacktestingExchange from "./createExchange";
+} from "../../../types";
+import { getBackfillCollection, encodeObject } from "../../../utils";
+import createBacktestingExchange from "../createExchange";
 import { WithId } from "mongodb";
 
 const initializeBacktest = async (

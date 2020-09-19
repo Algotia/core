@@ -1,6 +1,6 @@
-import { OHLCV, PartialOrder as POrder } from "../../types";
+import { OHLCV, PartialOrder as POrder } from "../../../types";
 import { Tedis } from "tedis";
-import { decodeObject, encodeObject } from "../../utils";
+import { decodeObject, encodeObject } from "../../../utils";
 import { Trade, Balances } from "ccxt";
 import { v4 as uuid } from "uuid";
 

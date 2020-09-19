@@ -91,6 +91,10 @@ export type CreateOrder = (
 	}
 ) => Promise<PartialOrder>;
 
+export interface BacktestResults {
+	backtest: BacktestDocument;
+	errors: string[];
+}
 export interface BacktestDocument {
 	name: string;
 	backfillId: ObjectId;

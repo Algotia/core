@@ -1,5 +1,5 @@
-import { getBacktestCollection } from "../../utils";
-import { BacktestDocument } from "../../types";
+import { getBacktestCollection } from "../../../utils";
+import { BacktestDocument } from "../../../types";
 import { MongoClient } from "mongodb";
 
 type BacktestDocWithoutName = Omit<BacktestDocument, "name">;

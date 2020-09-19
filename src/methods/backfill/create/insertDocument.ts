@@ -1,11 +1,11 @@
-import { log, getBackfillCollection } from "../../utils";
+import { log, getBackfillCollection } from "../../../utils";
 import {
 	BackfillDocument,
 	OHLCV,
 	BackfillInput,
 	SingleCandleSet,
 	MultiCandleSets
-} from "../../types";
+} from "../../../types";
 import { MongoClient } from "mongodb";
 
 const insertDocument = async (

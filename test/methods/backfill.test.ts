@@ -1,16 +1,16 @@
-import { backfill, boot } from "../../../src/algotia";
-import { log } from "../../../src/utils/index";
+import { backfill, boot } from "../../src/algotia";
 import {
 	BackfillInput,
 	BootData,
 	Config,
 	BackfillInputError,
 	isSingleCandleSet
-} from "../../../src/types/index";
-import { logger } from "../../utils";
+} from "../../src/types/index";
+import { logger } from "../utils";
 
 describe("Backfill", () => {
 	let bootData: BootData;
+	const { create } = backfill;
 	beforeAll(async () => {
 		const config: Config = {
 			exchange: {
@@ -34,7 +34,7 @@ describe("Backfill", () => {
 			period: "1h"
 		};
 
-		await expect(backfill(bootData, BadInput)).rejects.toThrowError();
+		await expect(backfill.create(bootData, BadInput)).rejects.toThrowError();
 	});
 
 	test("1 month multi-backfill is correct", async () => {
@@ -46,7 +46,7 @@ describe("Backfill", () => {
 			type: "multi"
 		};
 
-		const OneMonthBackfillResults = await backfill(
+		const OneMonthBackfillResults = await create(
 			bootData,
 			OneMonthBackfillOptions
 		);
@@ -81,7 +81,7 @@ describe("Backfill", () => {
 			period: "1h"
 		};
 
-		const OneMonthBackfillResults = await backfill(
+		const OneMonthBackfillResults = await create(
 			bootData,
 			OneMonthBackfillOptions
 		);
@@ -110,11 +110,11 @@ describe("Backfill", () => {
 			exchanges: ["bitstamp"]
 		};
 
-		const { candles: binanceCandles, name: binanceName } = await backfill(
+		const { candles: binanceCandles, name: binanceName } = await create(
 			bootData,
 			binanceOptions
 		);
-		const { candles: bitstampCandles, name: bitstampName } = await backfill(
+		const { candles: bitstampCandles, name: bitstampName } = await create(
 			bootData,
 			bitstampOptions
 		);
@@ -142,7 +142,7 @@ describe("Backfill", () => {
 			exchanges: ["binance"]
 		};
 
-		const results = backfill(bootData, badOptions);
+		const results = create(bootData, badOptions);
 		await expect(results).rejects.toThrowError(BackfillInputError);
 	});
 
@@ -156,7 +156,7 @@ describe("Backfill", () => {
 			exchanges: ["binance", "bitstamp"]
 		};
 
-		const results = backfill(bootData, badOptions);
+		const results = create(bootData, badOptions);
 		await expect(results).rejects.toThrowError(BackfillInputError);
 	});
 });
