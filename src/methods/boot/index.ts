@@ -8,7 +8,7 @@ import createRedisClient from "./createRedisClient";
 const boot = async (configInput: Config): Promise<BootData> => {
 	try {
 		const config = validateConfig(configInput);
-		const exchange = await connectExchange(configInput);
+		const exchange = await connectExchange(configInput.exchange);
 		const mongoClient = await createClient(config);
 		const eventBus = createEventBus();
 		const redisClient = createRedisClient();

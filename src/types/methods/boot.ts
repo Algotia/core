@@ -21,6 +21,7 @@ export type ExchangeConfig = {
 export type ExchangeObj = {
 	[key in AllowedExchangeId]?: SingleExchange;
 };
+
 export interface Config {
 	exchange: ExchangeConfig;
 	mongo?: MongoConfig;

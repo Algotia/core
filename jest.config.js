@@ -1,5 +1,6 @@
 module.exports = {
 	//preset: "@shelf/jest-mongodb",
+	verbose: true,
 	collectCoverageFrom: ["./src/**/*.ts"],
 	transform: {
 		".(ts|tsx)": "ts-jest"

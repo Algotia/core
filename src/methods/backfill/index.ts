@@ -7,7 +7,8 @@ import {
 	MultiCandleSets,
 	ExchangeObj,
 	AllowedExchangeId,
-	AllowedExchanges
+	AllowedExchanges,
+	BackfillInputError
 } from "../../types/index";
 import { log } from "../../utils/index";
 import convertOptions from "./convertOptions";
@@ -35,11 +36,33 @@ const backfill = async (
 	backfillOptions: BackfillInput
 ): Promise<BackfillDocument> => {
 	try {
-		const { exchange, mongoClient, eventBus } = bootData;
+		const { exchange, config, mongoClient } = bootData;
 		const { verbose, type = "single" } = backfillOptions;
 
 		if (type && type === "multi") {
 			// MULTI EXCHANGE BACKFILL
+
+			const exchangeKeyLength = Object.keys(exchange).length;
+			if (exchangeKeyLength === 1) {
+				throw new BackfillInputError(
+					"Type of backfill is multi, but only one exchange is configured",
+					{ ...config.exchange },
+					{
+						exchange: {
+							binance: true,
+							bitstamp: true
+						}
+					}
+				);
+			}
+			if (backfillOptions.exchanges) {
+				if (backfillOptions.exchanges.length === 1) {
+					throw new BackfillInputError(
+						"Type of backfill is multi, but only one exchange was passed to exchanges option"
+					);
+				}
+			}
+
 			let candles: MultiCandleSets;
 			let exchangesToUse: ExchangeObj;
 			if (backfillOptions.exchanges) {
@@ -80,6 +103,12 @@ const backfill = async (
 			const isAllowedExchangeId = (str: string): str is AllowedExchangeId => {
 				if (AllowedExchanges.includes(str as AllowedExchangeId)) return true;
 			};
+
+			if (backfillOptions.exchanges && backfillOptions.exchanges.length > 1) {
+				throw new BackfillInputError(
+					"Backfill type is single, but multiple exchanges passed to exchanges option"
+				);
+			}
 
 			const exchangeIds = Object.keys(exchange);
 			let singleExchange: SingleExchange;
