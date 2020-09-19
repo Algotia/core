@@ -64,13 +64,11 @@ const backfill = async (
 			}
 
 			let candles: MultiCandleSets;
-			let exchangesToUse: ExchangeObj;
+			let exchangesToUse = exchange;
+
 			if (backfillOptions.exchanges) {
 				backfillOptions.exchanges.forEach((id) => {
-					exchangesToUse = {
-						...exchangesToUse,
-						[id]: exchange[id]
-					};
+					delete exchangesToUse[id];
 				});
 			} else {
 				exchangesToUse = exchange;

@@ -1,4 +1,5 @@
 import { Exchange as CcxtExchange } from "ccxt";
+
 export const AllowedExchanges = ["binance", "bitstamp"] as const;
 export type AllowedExchangeId = typeof AllowedExchanges[number];
 

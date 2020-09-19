@@ -1,14 +1,14 @@
-import { Config, BootData } from "../../types/";
+import { Config, BootData, ExchangeConfig } from "../../types/";
 import validateConfig from "./validateConfig";
 import connectExchange from "./connectExchange";
 import createClient from "./createClient";
 import createEventBus from "./createEventBus";
 import createRedisClient from "./createRedisClient";
 
-const boot = async (configInput: Config): Promise<BootData> => {
+const boot = async <T extends Config>(configInput: T): Promise<BootData> => {
 	try {
 		const config = validateConfig(configInput);
-		const exchange = await connectExchange(configInput.exchange);
+		const exchange = connectExchange(config.exchange);
 		const mongoClient = await createClient(config);
 		const eventBus = createEventBus();
 		const redisClient = createRedisClient();

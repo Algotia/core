@@ -2,6 +2,7 @@ import { MongoClient, MongoClientOptions } from "mongodb";
 import { Tedis } from "tedis";
 import { EventEmitter2 } from "eventemitter2";
 import { AllowedExchangeId, SingleExchange } from "../../types";
+import { Exchange } from "ccxt";
 
 export interface MongoConfig extends MongoClientOptions {
 	port?: number;
@@ -18,8 +19,8 @@ export type ExchangeConfig = {
 	[key in AllowedExchangeId]?: ExchangeCreds | boolean;
 };
 
-export type ExchangeObj = {
-	[key in AllowedExchangeId]?: SingleExchange;
+export type ExchangeObj<T extends ExchangeConfig> = {
+	[P in keyof T]: SingleExchange;
 };
 
 export interface Config {
@@ -29,7 +30,7 @@ export interface Config {
 
 export interface BootData {
 	config: Config;
-	exchange: ExchangeObj;
+	exchange: ExchangeObj<ExchangeConfig>;
 	mongoClient: MongoClient;
 	redisClient: Tedis;
 	eventBus: EventEmitter2;
