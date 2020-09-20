@@ -1,15 +1,15 @@
 import {
 	ExchangeObj,
 	SingleExchange,
-	ExchangeConfig,
 	isAllowedExchangeId,
-	ExchangeConfigError
+	ExchangeConfigError,
+	Config
 } from "../../types";
 import { ccxt } from "../../utils";
 
-const connectExchange = <T extends ExchangeConfig>(
+const connectExchange = <T extends Config["exchange"]>(
 	config: T
-): ExchangeObj<T> => {
+): { [V in keyof T]: SingleExchange } => {
 	try {
 		let exchangeObj: ExchangeObj<T>;
 

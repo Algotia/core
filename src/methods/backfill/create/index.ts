@@ -39,7 +39,7 @@ const backfill = async (
 		const { verbose, type = "single" } = backfillOptions;
 
 		if (type && type === "multi") {
-			// MULTI EXCHANGE BACKFILL
+			//MULTI EXCHANGE BACKFILL
 
 			const exchangeKeyLength = Object.keys(exchange).length;
 			if (exchangeKeyLength === 1) {

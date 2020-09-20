@@ -23,6 +23,10 @@ export type ExchangeObj<T extends ExchangeConfig> = {
 	[P in keyof T]: SingleExchange;
 };
 
+export type AnyExchangeObj = ExchangeObj<
+	{ [K in AllowedExchangeId]?: SingleExchange }
+>;
+
 export interface Config {
 	exchange: ExchangeConfig;
 	mongo?: MongoConfig;

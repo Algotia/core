@@ -45,8 +45,8 @@ const createBacktest = async (
 				backtestErrors.push(`${err.message} at candle ${i}`);
 			} finally {
 				await redisClient.incr("userCandleIdx");
+				await reconcile(thisCandle, redisClient);
 			}
-			await reconcile(thisCandle, redisClient);
 		}
 
 		const endingBalanceRaw = await redisClient.hgetall("balance");
