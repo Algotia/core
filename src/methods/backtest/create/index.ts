@@ -1,9 +1,6 @@
 import {
-	BootData,
+	LooseBootData,
 	BacktestInput,
-	SingleCandleSet,
-	MultiCandleSets,
-	OHLCV,
 	BacktestResults,
 	SingleInitData
 } from "../../../types";
@@ -17,7 +14,7 @@ const isSingleInitData = (initData: any): initData is SingleInitData => {
 };
 
 const createBacktest = async (
-	bootData: BootData,
+	bootData: LooseBootData,
 	backtestInput: BacktestInput
 ): Promise<BacktestResults> => {
 	try {

@@ -1,6 +1,6 @@
 import {
 	BackfillInput,
-	BootData,
+	LooseBootData,
 	BackfillDocument,
 	ConvertedBackfillOptions,
 	SingleExchange,
@@ -31,7 +31,7 @@ const processInput = async (
 };
 
 const backfill = async (
-	bootData: BootData,
+	bootData: LooseBootData,
 	backfillOptions: BackfillInput
 ): Promise<BackfillDocument> => {
 	try {

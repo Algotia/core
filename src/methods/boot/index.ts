@@ -1,28 +1,13 @@
-import { Config, BootData, ExchangeConfig, SingleExchange } from "../../types/";
+import { Config, BootData } from "../../types/";
 import validateConfig from "./validateConfig";
 import connectExchange from "./connectExchange";
 import createClient from "./createClient";
 import createEventBus from "./createEventBus";
 import createRedisClient from "./createRedisClient";
-import { Tedis } from "tedis";
-import { MongoClient } from "mongodb";
-import { EventEmitter2 } from "eventemitter2";
 
-interface Boot {
-	<UserConfig extends Config>(config: UserConfig): Promise<{
-		config: Config;
-		exchange: {
-			[ExchangeID in keyof UserConfig["exchange"]]: SingleExchange;
-		};
-		eventBus: EventEmitter2;
-		mongoClient: MongoClient;
-		redisClient: Tedis;
-		quit: () => void;
-	}>;
-}
-const boot: Boot = async <UserConfig extends Config>(
+const boot = async <UserConfig extends Config>(
 	configInput: UserConfig
-) => {
+): Promise<BootData<UserConfig>> => {
 	try {
 		const config = validateConfig(configInput);
 		const exchange = connectExchange<UserConfig["exchange"]>(config.exchange);

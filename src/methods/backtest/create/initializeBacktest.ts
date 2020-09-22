@@ -1,6 +1,6 @@
 import {
 	BacktestInput,
-	BootData,
+	LooseBootData,
 	BackfillDocument,
 	SingleExchange,
 	MultiBalance,
@@ -55,7 +55,7 @@ const initializeBalance = (initialBalance: SingleBalance) => {
 };
 
 const initializeMulti = async (
-	bootData: BootData,
+	bootData: LooseBootData,
 	input: BacktestInput
 ): Promise<MultiInitData> => {
 	try {
@@ -108,7 +108,7 @@ const initializeMulti = async (
 };
 
 const initializeSingle = async (
-	bootData: BootData,
+	bootData: LooseBootData,
 	input: BacktestInput
 ): Promise<SingleInitData> => {
 	try {
@@ -157,7 +157,7 @@ const initializeSingle = async (
 };
 
 const initializeBacktest = async (
-	bootData: BootData,
+	bootData: LooseBootData,
 	input: BacktestInput
 ): Promise<SingleInitData | MultiInitData> => {
 	try {

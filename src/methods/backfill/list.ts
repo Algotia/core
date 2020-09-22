@@ -1,5 +1,5 @@
 import {
-	BootData,
+	LooseBootData,
 	ListBackfillInput,
 	BackfillDocument,
 	InputError
@@ -37,7 +37,7 @@ const getAllBackfills = async (
 };
 
 const listBackfills = async (
-	bootData: BootData,
+	bootData: LooseBootData,
 	options?: ListBackfillInput
 ): Promise<BackfillDocument[]> => {
 	try {
