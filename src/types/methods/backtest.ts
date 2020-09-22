@@ -1,45 +1,53 @@
-import { ObjectId, Collection, WithId } from "mongodb";
-import { OHLCV } from "../shared";
-import { Balances, Order, Exchange, Trade } from "ccxt";
+import { ObjectId, MongoClient, WithId } from "mongodb";
+import { OHLCV, SingleExchange, AllowedExchangeId } from "../../types";
+import { Balances, Order, Exchange } from "ccxt";
 import { Tedis } from "tedis";
+import { BackfillDocument } from "./backfill";
 
-type SyncStrategy = (
-	exchange: Exchange | BacktestingExchange,
-	data: OHLCV
-) => void;
+type SyncStrategy = (exchange: any, data: any) => void;
+
 type AsyncStrategy = (
-	exchange: Exchange | BacktestingExchange,
-	data: OHLCV
+	//TODO: ANY IS A HACK CHANGE THAT
+	exchange: any,
+	data: any
 ) => Promise<void>;
 
 type Strategy = SyncStrategy | AsyncStrategy;
 
-interface BaseAndQuoteBalances {
+export interface SingleBalance {
 	base: number;
 	quote: number;
 }
+
+export type MultiBalance = {
+	[key in AllowedExchangeId]: SingleBalance;
+};
+
+export type SingleInitData = {
+	backfill: WithId<BackfillDocument>;
+	exchange: BacktestingExchange;
+};
+
+export type MultiBacktestingExchange = {
+	[key in AllowedExchangeId]?: BacktestingExchange;
+};
+export type MultiInitData = {
+	backfill: WithId<BackfillDocument>;
+	exchanges: MultiBacktestingExchange;
+};
 
 export interface BacktestInput {
 	name?: string;
 	backfillName: string;
 	strategy: Strategy;
-	initialBalance: BaseAndQuoteBalances;
-}
-
-export interface BaseAndQuoteCurrencies {
-	base: string;
-	quote: string;
+	initialBalance: SingleBalance | MultiBalance;
+	type?: "single" | "multi";
 }
 
 export interface ProcessedBacktestOptions extends BacktestInput {
-	baseAndQuote: BaseAndQuoteCurrencies;
+	baseAndQuote: SingleBalance | MultiBalance;
 	backfillId: ObjectId;
 	name: string;
-}
-
-export interface Collections {
-	backtest: Collection;
-	backfill: Collection;
 }
 
 export interface PrivateApi {
@@ -59,26 +67,12 @@ export interface PublicApi {
 	loadMarkets: typeof Exchange.prototype.loadMarkets;
 }
 
-export interface BacktestingExchange {
-	// Private API
-	createOrder: CreateOrder;
-	fetchBalance: FetchBalance;
-	fetchOrders: FetchOrders;
-	// Public API
-	fetchMarkets: typeof Exchange.prototype.fetchMarkets;
-	fetchCurrencies: typeof Exchange.prototype.fetchCurrencies;
-	fetchTradingLimits?: typeof Exchange.prototype.fetchTradingLimits;
-	fetchTradingFees?: typeof Exchange.prototype.fetchTradingFees;
-	fetchTicker: typeof Exchange.prototype.fetchTicker;
-	fetchOrderBook: typeof Exchange.prototype.fetchOrderBook;
-	fetchOHLCV: typeof Exchange.prototype.fetchOHLCV;
-	loadMarkets: typeof Exchange.prototype.loadMarkets;
-}
+export interface BacktestingExchange extends PrivateApi, PublicApi {}
 
 export interface MethodFactoryArgs {
+	mongoClient: MongoClient;
 	redisClient: Tedis;
-	exchange: Exchange;
-	collections: Collections;
+	exchange: SingleExchange;
 }
 
 export enum PrivateApiIds {
@@ -109,6 +103,10 @@ export type CreateOrder = (
 	}
 ) => Promise<PartialOrder>;
 
+export interface BacktestResults {
+	backtest: BacktestDocument;
+	errors: string[];
+}
 export interface BacktestDocument {
 	name: string;
 	backfillId: ObjectId;

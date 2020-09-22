@@ -1,6 +1,6 @@
 {
   "name": "@algotia/core",
-  "version": "0.0.3-44",
+  "version": "0.0.4-4",
   "author": "",
   "license": "ISC",
   "description": "A technical analysis driven cryptocurrency trading and back-testing platform.",
@@ -8,11 +8,7 @@
   "typings": "./dist/algotia.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Algotia/core.git"
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/",
-    "access": "public"
+    "url": "https://github.com/Algotia/core.git"
   },
   "scripts": {
     "test": "jest",
@@ -20,7 +16,8 @@
     "clean": "npx gulp clean",
     "dev": "npx gulp watch",
     "start": "node dist/algotia.js",
-    "buildAndTest": "npm run build && npm t"
+    "buildAndTest": "npm run build && npm t",
+    "semantic-release": "semantic-release"
   },
   "husky": {
     "hooks": {
@@ -36,6 +33,7 @@
     "chalk": "^4.0.0",
     "commander": "^6.0.0",
     "commitlint": "^9.1.2",
+    "eventemitter2": "^6.4.3",
     "fancy-log": "^1.3.3",
     "find": "^0.3.0",
     "flat": "^5.0.2",
@@ -48,12 +46,12 @@
     "tedis": "^0.1.12",
     "time-stamp": "^2.2.0",
     "uuid": "^8.3.0",
-    "ts-json-schema-generator": "^0.72.1",
     "yaml": "^1.10.0"
   },
   "devDependencies": {
     "@adobe/jsonschema2md": "^4.0.0",
     "@commitlint/config-conventional": "^9.1.2",
+    "@semantic-release/changelog": "^5.0.1",
     "@semantic-release/git": "^9.0.0",
     "@shelf/jest-mongodb": "^1.2.2",
     "@types/fancy-log": "^1.3.1",
@@ -62,6 +60,7 @@
     "@types/jest": "^26.0.3",
     "@types/mongodb": "^3.5.25",
     "@types/node": "^14.0.9",
+    "@types/pino": "^6.3.0",
     "@types/redis": "^2.8.26",
     "@types/ws": "^7.2.5",
     "copyfiles": "^2.3.0",
@@ -78,8 +77,11 @@
     "invariant": "^2.2.0",
     "jest": "^26.1.0",
     "ncp": "^2.0.0",
+    "pino": "^6.6.1",
+    "pino-pretty": "^4.2.1",
     "prettier": "^2.0.5",
     "rimraf": "^3.0.2",
+    "semantic-release": "^17.1.1",
     "ts-jest": "^26.1.1",
     "ts-json-schema-generator": "^0.72.1",
     "ts-node": "^9.0.0",

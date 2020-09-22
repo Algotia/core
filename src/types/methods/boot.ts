@@ -1,49 +1,48 @@
 import { MongoClient, MongoClientOptions } from "mongodb";
-import { default as ccxtOriginal, Exchange as CcxtExchange } from "ccxt";
-import { EventEmitter } from "events";
 import { Tedis } from "tedis";
+import { EventEmitter2 } from "eventemitter2";
+import { AllowedExchangeId, SingleExchange } from "../../types";
 
-export type BinanceId = "binance";
-export type BitstampId = "bitstamp";
-
-export type Binance = typeof ccxtOriginal.binance.prototype;
-export type Bitstamp = typeof ccxtOriginal.binance.prototype;
-
-export type AnyExchange = Binance | Bitstamp;
-export type AllowedExchangeIds = BinanceId | BitstampId;
-
-export enum AllowedExchangeIdsEnum {
-	//Bitfinex = "bitfinex",
-	//Kraken = "kraken"
-	Binance = "binance",
-	Bitstamp = "bitstamp"
-}
-
-export interface ExchangeConfigOptions {
-	exchangeId: AllowedExchangeIds;
-	apiKey?: string;
-	apiSecret?: string;
-	timeout?: number;
-}
-
-export interface DbConfigOptions extends MongoClientOptions {
+export interface MongoConfig extends MongoClientOptions {
 	port?: number;
 }
 
-export interface ConfigOptions {
-	exchange: ExchangeConfigOptions;
-	db?: DbConfigOptions;
+interface ExchangeCreds {
+	apiKey?: string;
+	secret?: string;
+	timeout?: number;
+	[key: string]: number | string | boolean;
 }
 
-export interface Exchange extends CcxtExchange {
-	historicalRecordLimit: number;
+export type ExchangeConfig = {
+	[key in AllowedExchangeId]?: ExchangeCreds | boolean;
+};
+
+export type ExchangeObj<T extends ExchangeConfig> = {
+	[P in keyof T]: SingleExchange;
+};
+
+export type LooseExchangeObj = ExchangeObj<{ [K in AllowedExchangeId]?: true }>;
+
+export interface Config {
+	exchange: ExchangeConfig;
+	mongo?: MongoConfig;
 }
 
-export interface BootData {
-	config: ConfigOptions;
-	exchange: AnyExchange;
+export interface BootData<UserConfig extends Config> {
+	config: Config;
+	exchange: ExchangeObj<UserConfig["exchange"]>;
 	mongoClient: MongoClient;
-	eventBus: EventEmitter;
 	redisClient: Tedis;
+	eventBus: EventEmitter2;
+	quit: () => void;
+}
+
+export interface LooseBootData {
+	config: Config;
+	exchange: LooseExchangeObj;
+	mongoClient: MongoClient;
+	redisClient: Tedis;
+	eventBus: EventEmitter2;
 	quit: () => void;
 }

@@ -1,17 +1,14 @@
-import { MongoClient } from "mongodb";
 import createPublicApis from "./publicApi/";
 import createPrivateApis from "./privateApi/";
-import { Exchange } from "ccxt";
-import { Tedis } from "tedis";
-import { BacktestingExchange } from "../../../types";
+import { BacktestingExchange, MethodFactoryArgs } from "../../../types";
 
 const createBacktestingExchange = async (
-	exchange: Exchange,
-	client: MongoClient,
-	redisClient: Tedis
+	methodFactoryArgs: MethodFactoryArgs
 ): Promise<BacktestingExchange> => {
+	const { exchange } = methodFactoryArgs;
 	const publicApis = createPublicApis(exchange);
-	const privateApis = await createPrivateApis(exchange, client, redisClient);
+
+	const privateApis = await createPrivateApis(methodFactoryArgs);
 
 	const backtestExchange = {
 		...publicApis,

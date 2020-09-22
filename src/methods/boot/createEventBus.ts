@@ -1,7 +1,11 @@
-import { EventEmitter } from "events";
+import { EventEmitter2 } from "eventemitter2";
 
-const createEventBus = (): EventEmitter => {
-	const eventBus = new EventEmitter();
+const createEventBus = (): EventEmitter2 => {
+	const eventBus = new EventEmitter2({
+		wildcard: true,
+		verboseMemoryLeak: true
+	});
+
 	return eventBus;
 };
 
