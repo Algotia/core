@@ -9,10 +9,10 @@ import { MongoClient } from "mongodb";
 import { EventEmitter2 } from "eventemitter2";
 
 interface Boot {
-	<T extends Config>(conf: T): Promise<{
+	<UserConfig extends Config>(config: UserConfig): Promise<{
 		config: Config;
 		exchange: {
-			[V in keyof T["exchange"]]: SingleExchange;
+			[ExchangeID in keyof UserConfig["exchange"]]: SingleExchange;
 		};
 		eventBus: EventEmitter2;
 		mongoClient: MongoClient;
@@ -20,10 +20,12 @@ interface Boot {
 		quit: () => void;
 	}>;
 }
-const boot: Boot = async <T extends Config>(configInput) => {
+const boot: Boot = async <UserConfig extends Config>(
+	configInput: UserConfig
+) => {
 	try {
 		const config = validateConfig(configInput);
-		const exchange = connectExchange<T["exchange"]>(config.exchange);
+		const exchange = connectExchange<UserConfig["exchange"]>(config.exchange);
 		const mongoClient = await createClient(config);
 		const eventBus = createEventBus();
 		const redisClient = createRedisClient();

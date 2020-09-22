@@ -4,12 +4,17 @@ import {
 	SingleCandleSet,
 	MultiCandleSets,
 	OHLCV,
-	BacktestResults
+	BacktestResults,
+	SingleInitData
 } from "../../../types";
 import { decodeObject } from "../../../utils";
 import initializeBacktest from "./initializeBacktest";
 import reconcile from "./reconcile";
 import saveBacktest from "./saveBacktest";
+
+const isSingleInitData = (initData: any): initData is SingleInitData => {
+	return initData.exchange !== undefined;
+};
 
 const createBacktest = async (
 	bootData: BootData,
@@ -18,29 +23,24 @@ const createBacktest = async (
 	try {
 		const { redisClient, mongoClient } = bootData;
 		const { strategy } = backtestInput;
-		const { backtestingExchange, backfill } = await initializeBacktest(
-			bootData,
-			backtestInput
-		);
+		const initData = await initializeBacktest(bootData, backtestInput);
 
-		function isSingleCandleSet(
-			candles: SingleCandleSet | MultiCandleSets
-		): candles is SingleCandleSet {
-			return (candles as SingleCandleSet).length !== undefined;
+		let exchanges;
+		let backfill;
+		if (!isSingleInitData(initData)) {
+			exchanges = initData.exchanges;
+			backfill = initData.backfill;
 		}
 
 		let backtestErrors = [];
-		let candles: OHLCV[];
-		if (isSingleCandleSet(backfill.candles)) {
-			candles = backfill.candles;
-		} else {
-			const candleKeys = Object.keys(backfill.candles);
-			candles = backfill.candles[candleKeys[0]];
-		}
-		for (let i = 0; i < candles.length; i++) {
-			const thisCandle = candles[i];
+		for (let i = 0; i < backfill.candles.binance.length; i++) {
+			const thisCandle = backfill.candles.binance[i];
+			const allCandles = {
+				binance: backfill.candles.binance[i],
+				bitstamp: backfill.candles.bitstamp[i]
+			};
 			try {
-				await strategy(backtestingExchange, thisCandle);
+				await strategy(exchanges, allCandles);
 			} catch (err) {
 				backtestErrors.push(`${err.message} at candle ${i}`);
 			} finally {

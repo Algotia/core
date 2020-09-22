@@ -5,7 +5,8 @@ describe("Backtest", () => {
 	beforeAll(async () => {
 		bootData = await boot({
 			exchange: {
-				binance: true
+				binance: true,
+				bitstamp: true
 			}
 		});
 	});
@@ -14,7 +15,23 @@ describe("Backtest", () => {
 	});
 	test("Backtest working", async () => {
 		try {
-			expect(1).toStrictEqual(1);
+			await backtest.create(bootData, {
+				backfillName: "backfill-102",
+				initialBalance: {
+					binance: {
+						quote: 100,
+						base: 0
+					},
+					bitstamp: {
+						quote: 100,
+						base: 0
+					}
+				},
+				type: "multi",
+				strategy: async (exchange, data) => {
+					console.log(exchange, data);
+				}
+			});
 			//const backtestResults = await backtest(bootData, {
 			//backfillName: "backfill-16",
 			//initialBalance: {

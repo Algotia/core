@@ -7,12 +7,8 @@ import { getThisCandle, getBackfillPair } from "../helpers/";
 import fetchBalanceFactory from "./fetchBalance";
 import { Order, Balances } from "ccxt";
 import { v4 as uuid } from "uuid";
-import chalk from "chalk";
 import { encodeObject, decodeObject } from "../../../../../utils";
 
-const red = chalk.underline.red;
-const green = chalk.underline.green;
-const yellow = chalk.bold.yellow;
 class InsufficientBalanceError extends Error {
 	constructor(balanceAmount: number, orderAmount: number, currency: string) {
 		super(
@@ -22,8 +18,6 @@ class InsufficientBalanceError extends Error {
 		this.name = "InsufficientBalanceError";
 	}
 }
-
-let TESTIDX = 0;
 
 const factory = (args: MethodFactoryArgs): CreateOrder => {
 	const { redisClient } = args;
@@ -39,8 +33,7 @@ const factory = (args: MethodFactoryArgs): CreateOrder => {
 	): Promise<PartialOrder> => {
 		const thisCandle = await getThisCandle(args);
 
-		const splitPair = await getBackfillPair(args);
-		const quoteCurrency = splitPair[1];
+		const [quoteCurrency] = await getBackfillPair(args);
 
 		const fetchBalance = fetchBalanceFactory(args);
 		const balance = await fetchBalance();
@@ -52,11 +45,9 @@ const factory = (args: MethodFactoryArgs): CreateOrder => {
 		if (price) {
 			const cost = amount * price;
 			orderCost = cost;
-			console.log("Index ", TESTIDX++);
-			console.log(orderCost, freeQuoteCurrency);
 			if (cost > freeQuoteCurrency) {
 				throw new InsufficientBalanceError(
-					balance.quote.free,
+					freeQuoteCurrency,
 					orderCost,
 					quoteCurrency
 				);
@@ -64,8 +55,6 @@ const factory = (args: MethodFactoryArgs): CreateOrder => {
 		} else {
 			const cost = amount * thisCandle.close;
 			orderCost = cost;
-			console.log("Index ", TESTIDX++);
-			console.log(orderCost, freeQuoteCurrency);
 			if (cost > freeQuoteCurrency) {
 				throw new InsufficientBalanceError(
 					balance.quote.free,

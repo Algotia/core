@@ -12,4 +12,5 @@ const isSingleCandleSet = (
 ): candleSet is SingleCandleSet => {
 	return (candleSet as SingleCandleSet).length !== undefined;
 };
+
 export { isAllowedExchangeId, isSingleCandleSet };

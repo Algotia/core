@@ -15,6 +15,8 @@ const connectExchange = <T extends Config["exchange"]>(
 
 		for (const id in config) {
 			if (config.hasOwnProperty(id)) {
+				//TODO: If user passes API Key/Secret, use
+				//ccxt.checkRequiredCredentials
 				if (!isAllowedExchangeId(id)) {
 					throw new ExchangeConfigError(
 						`${id} is not an allowed exchange ID`,

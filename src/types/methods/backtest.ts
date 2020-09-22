@@ -1,39 +1,51 @@
-import { ObjectId, MongoClient } from "mongodb";
-import { OHLCV, SingleExchange } from "../../types";
+import { ObjectId, MongoClient, WithId } from "mongodb";
+import { OHLCV, SingleExchange, AllowedExchangeId } from "../../types";
 import { Balances, Order, Exchange } from "ccxt";
 import { Tedis } from "tedis";
+import { BackfillDocument } from "./backfill";
 
-type SyncStrategy = (
-	exchange: SingleExchange | BacktestingExchange,
-	data: OHLCV
-) => void;
+type SyncStrategy = (exchange: any, data: any) => void;
 
 type AsyncStrategy = (
-	exchange: SingleExchange | BacktestingExchange,
-	data: OHLCV
+	//TODO: ANY IS A HACK CHANGE THAT
+	exchange: any,
+	data: any
 ) => Promise<void>;
 
 type Strategy = SyncStrategy | AsyncStrategy;
 
-interface BaseAndQuoteBalances {
+export interface SingleBalance {
 	base: number;
 	quote: number;
 }
+
+export type MultiBalance = {
+	[key in AllowedExchangeId]: SingleBalance;
+};
+
+export type SingleInitData = {
+	backfill: WithId<BackfillDocument>;
+	exchange: BacktestingExchange;
+};
+
+export type MultiBacktestingExchange = {
+	[key in AllowedExchangeId]?: BacktestingExchange;
+};
+export type MultiInitData = {
+	backfill: WithId<BackfillDocument>;
+	exchanges: MultiBacktestingExchange;
+};
 
 export interface BacktestInput {
 	name?: string;
 	backfillName: string;
 	strategy: Strategy;
-	initialBalance: BaseAndQuoteBalances;
-}
-
-export interface BaseAndQuoteCurrencies {
-	base: string;
-	quote: string;
+	initialBalance: SingleBalance | MultiBalance;
+	type?: "single" | "multi";
 }
 
 export interface ProcessedBacktestOptions extends BacktestInput {
-	baseAndQuote: BaseAndQuoteCurrencies;
+	baseAndQuote: SingleBalance | MultiBalance;
 	backfillId: ObjectId;
 	name: string;
 }
