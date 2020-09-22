@@ -86,6 +86,6 @@
     "ts-json-schema-generator": "^0.72.1",
     "ts-node": "^9.0.0",
     "typescript": "^3.9.3",
-    "typescript-json-schema": "^0.42.0"
+    "typescript-json-schema": "^0.43.0"
   }
 }
