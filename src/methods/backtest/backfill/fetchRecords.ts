@@ -1,5 +1,5 @@
-import { Exchange, ProcessedBackfillOptions } from "../../types";
-import { parseTimeframe, reshapeOHLCV } from "../../utils";
+import { Exchange, ProcessedBackfillOptions } from "../../../types";
+import { parseTimeframe, reshapeOHLCV } from "../../../utils";
 
 const fetchRecords = async (
 	exchange: Exchange,

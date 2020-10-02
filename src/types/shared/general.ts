@@ -1,3 +1,6 @@
+import { Exchange, OHLCV } from "./ccxt";
+import { ExchangeRecord } from "../methods";
+
 type Timeframes = [
 	"1m",
 	"3m",
@@ -17,3 +20,18 @@ type Timeframes = [
 ];
 
 export type Timeframe = Timeframes[number];
+
+export type SingleSyncStrategy = (exchange: Exchange, data: OHLCV) => void;
+export type SingleAsyncStrategy = (
+	exchange: Exchange,
+	data: OHLCV
+) => Promise<void>;
+
+export type MultiSyncStartegy = (
+	exhanges: ExchangeRecord<Exchange>,
+	data: ExchangeRecord<OHLCV>
+) => void;
+export type MultiAsyncStartegy = (
+	exhanges: ExchangeRecord<Exchange>,
+	data: ExchangeRecord<OHLCV>
+) => Promise<void>;

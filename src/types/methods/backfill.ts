@@ -1,6 +1,19 @@
-import { ExchangeID, Timeframe, OHLCV } from "../shared";
+import {
+	ExchangeID,
+	Timeframe,
+	OHLCV,
+	SingleSyncStrategy,
+	SingleAsyncStrategy,
+	MultiSyncStartegy,
+	MultiAsyncStartegy,
+} from "../shared";
 
-export interface BackfillOptions {
+export interface BacktestOptions {
+	strategy:
+		| SingleSyncStrategy
+		| SingleAsyncStrategy
+		| MultiSyncStartegy
+		| MultiAsyncStartegy;
 	since: number | string | Date;
 	until: number | string | Date;
 	symbol: string;
@@ -8,26 +21,26 @@ export interface BackfillOptions {
 	type?: "single" | "multi";
 }
 
-export interface ProcessedBackfillOptions extends BackfillOptions {
+export interface ProcessedBackfillOptions extends BacktestOptions {
 	since: number;
 	until: number;
 }
 
-export interface SingleBackfillOptions extends BackfillOptions {
-	type: "single";
+export interface SingleBacktestOptions extends BacktestOptions {
+	type?: "single";
+	strategy: SingleSyncStrategy | SingleAsyncStrategy;
 }
 
-export interface MultiBackfillOptions extends BackfillOptions {
+export interface MultiBacktestOptions extends BacktestOptions {
 	type: "multi";
 	exchanges: ExchangeID[];
+	strategy: MultiSyncStartegy | MultiAsyncStartegy;
 }
 
-export interface SingleBackfillSet {
-	records: OHLCV[];
-}
+export type SingleBackfillSet = OHLCV[];
 
 export interface MultiBackfillSet<
-	Opts extends MultiBackfillOptions = MultiBackfillOptions
+	Opts extends MultiBacktestOptions = MultiBacktestOptions
 > {
-	records: Record<Opts["exchanges"][number], OHLCV[]>;
+	records: Record<Opts["exchanges"][number], SingleBackfillSet>;
 }

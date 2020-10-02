@@ -1,46 +1,38 @@
 import {
 	AnyAlgotia,
 	Exchange,
-	SingleBackfillOptions,
+	SingleBacktestOptions,
 	SingleBackfillSet,
 	MultiBackfillSet,
-	isMultiBackfillOptions,
+	isMultiBacktestOptions,
+	isSingleBacktestOptions,
 	OHLCV,
-} from "../../types";
-import { MultiBackfillOptions } from "../../types/";
+} from "../../../types";
+import { MultiBacktestOptions } from "../../../types/";
 import validate from "./validate";
 import fetchRecords from "./fetchRecords";
 import processInput from "./processInput";
+import save from "./save";
 
 // Overload functions so that backfill can return multiple types
 // based on input (Opts)
 
-type Backfill =
-	| (<Algotia extends AnyAlgotia, Opts extends SingleBackfillOptions>(
-			algotia: Algotia,
-			opts: Opts
-	  ) => Promise<SingleBackfillSet>)
-	| (<Algotia extends AnyAlgotia, Opts extends MultiBackfillOptions>(
-			algotia: Algotia,
-			opts: Opts
-	  ) => Promise<MultiBackfillSet<Opts>>);
-
 async function backfill<
 	Algotia extends AnyAlgotia,
-	Opts extends SingleBackfillOptions
+	Opts extends SingleBacktestOptions
 >(algotia: Algotia, opts: Opts): Promise<SingleBackfillSet>;
 
 async function backfill<
 	Algotia extends AnyAlgotia,
-	Opts extends MultiBackfillOptions
+	Opts extends MultiBacktestOptions
 >(algotia: Algotia, opts: Opts): Promise<MultiBackfillSet<Opts>>;
 
 // Main backfill method
 async function backfill<
 	Algotia extends AnyAlgotia,
-	Opts extends SingleBackfillOptions | MultiBackfillOptions
+	Opts extends SingleBacktestOptions | MultiBacktestOptions
 >(algotia: Algotia, opts: Opts): Promise<SingleBackfillSet | MultiBackfillSet> {
-	if (!isMultiBackfillOptions(opts)) {
+	if (isSingleBacktestOptions(opts)) {
 		// Single Backfill
 		const { type, ...fetchOptions } = opts;
 		validate(algotia, opts);
@@ -48,11 +40,10 @@ async function backfill<
 		const exchange: Exchange = algotia.exchanges[exchangeKeys[0]];
 		const processedOptions = processInput(exchange, fetchOptions);
 		const records = await fetchRecords(exchange, processedOptions);
+		await save(algotia, opts, records);
 
-		return {
-			records,
-		};
-	} else if (isMultiBackfillOptions(opts)) {
+		return records;
+	} else if (isMultiBacktestOptions(opts)) {
 		// Multi Backfill
 		const { type, exchanges, ...fetchOptions } = opts;
 		validate(algotia, opts);

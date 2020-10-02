@@ -1,8 +1,8 @@
 import {
-	BackfillOptions,
+	BacktestOptions,
 	ProcessedBackfillOptions,
 	Exchange as IExchange,
-} from "../../types";
+} from "../../../types";
 
 const parseDate = (input: string | number | Date): number => {
 	if (input instanceof Date) {
@@ -18,7 +18,7 @@ const parseDate = (input: string | number | Date): number => {
 	}
 };
 
-const processInput = <Exchange extends IExchange, Opts extends BackfillOptions>(
+const processInput = <Exchange extends IExchange, Opts extends BacktestOptions>(
 	exchange: Exchange,
 	opts: Opts
 ): ProcessedBackfillOptions => {

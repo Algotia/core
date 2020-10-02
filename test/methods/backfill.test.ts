@@ -1,5 +1,5 @@
-import { boot, backfill } from "../../src/algotia";
-import { Config } from "../../src/types/";
+import { boot } from "../../src/algotia";
+import backfill from "../../src/methods/backtest/backfill/index";
 
 describe("Backfill method", () => {
 	test("Fails on unconfigured exchange", async () => {

@@ -1,2 +1,3 @@
 export { default as isExchangeID } from "./isExchangeID";
-export { default as isMultiBackfillOptions } from "./isMultiBackfillOptions";
+export * from "./isBacktestOptions";
+export * from "./isBackfillSet";

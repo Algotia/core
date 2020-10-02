@@ -1,16 +1,16 @@
 import {
-	SingleBackfillOptions,
-	MultiBackfillOptions,
-	isMultiBackfillOptions,
+	SingleBacktestOptions,
+	MultiBacktestOptions,
+	isMultiBacktestOptions,
 	AnyAlgotia,
-} from "../../types";
+} from "../../../types";
 
 const validate = <T extends AnyAlgotia>(
 	algotia: T,
-	opts: SingleBackfillOptions | MultiBackfillOptions
+	opts: SingleBacktestOptions | MultiBacktestOptions
 ) => {
-	if (!isMultiBackfillOptions(opts)) {
-	} else if (isMultiBackfillOptions(opts)) {
+	if (!isMultiBacktestOptions(opts)) {
+	} else if (isMultiBacktestOptions(opts)) {
 		const optionsExchanges = opts.exchanges;
 		const configuredExchanges = Object.keys(algotia.exchanges);
 		const allExchangesConfigured = optionsExchanges.every((id) => {
