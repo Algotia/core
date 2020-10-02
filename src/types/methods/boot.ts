@@ -1,49 +1,42 @@
-import { MongoClient, MongoClientOptions } from "mongodb";
-import { default as ccxtOriginal, Exchange as CcxtExchange } from "ccxt";
-import { EventEmitter } from "events";
-import { Tedis } from "tedis";
+import { ExchangeID, Exchange } from "../shared";
+import { Redis, RedisOptions } from "ioredis";
+import { MongoClientOptions, MongoClient } from "mongodb";
 
-export type BinanceId = "binance";
-export type BitstampId = "bitstamp";
-
-export type Binance = typeof ccxtOriginal.binance.prototype;
-export type Bitstamp = typeof ccxtOriginal.binance.prototype;
-
-export type AnyExchange = Binance | Bitstamp;
-export type AllowedExchangeIds = BinanceId | BitstampId;
-
-export enum AllowedExchangeIdsEnum {
-	//Bitfinex = "bitfinex",
-	//Kraken = "kraken"
-	Binance = "binance",
-	Bitstamp = "bitstamp"
-}
-
-export interface ExchangeConfigOptions {
-	exchangeId: AllowedExchangeIds;
-	apiKey?: string;
-	apiSecret?: string;
-	timeout?: number;
-}
-
-export interface DbConfigOptions extends MongoClientOptions {
+interface MongoConfig extends MongoClientOptions {
 	port?: number;
+	uri?: string;
 }
 
-export interface ConfigOptions {
-	exchange: ExchangeConfigOptions;
-	db?: DbConfigOptions;
+interface RedisConfig extends RedisOptions {
+	port?: number;
+	uri?: string;
+}
+type ExchangeConfig = {
+	[key in ExchangeID]?: ExchangeOptions | boolean;
+};
+
+export interface ExchangeOptions {
+	apiKey?: string;
+	secret?: string;
+	timeout?: number;
+	[key: string]: any;
 }
 
-export interface Exchange extends CcxtExchange {
-	historicalRecordLimit: number;
+export interface Config {
+	exchange: ExchangeConfig;
+	mongo?: MongoConfig;
+	redis?: RedisConfig;
 }
 
-export interface BootData {
-	config: ConfigOptions;
-	exchange: AnyExchange;
+export type ExchangeRecord<T> = Record<keyof Config["exchange"], T>;
+
+export type AlgotiaExchanges = ExchangeRecord<Exchange>;
+
+export interface Algotia<Conf extends Config> {
+	config: Conf;
+	exchanges: AlgotiaExchanges;
 	mongoClient: MongoClient;
-	eventBus: EventEmitter;
-	redisClient: Tedis;
-	quit: () => void;
+	redisClient: Redis;
 }
+
+export type AnyAlgotia = Algotia<Config>;

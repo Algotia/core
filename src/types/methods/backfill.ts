@@ -1,31 +1,33 @@
-import { OHLCV } from "..";
+import { ExchangeID, Timeframe, OHLCV } from "../shared";
 
-export interface BackfillInput {
-	since: string;
-	until?: string;
-	pair: string;
-	period?: string;
-	recordLimit?: number;
-	documentName?: string;
-	verbose?: boolean;
+export interface BackfillOptions {
+	since: number | string | Date;
+	until: number | string | Date;
+	symbol: string;
+	timeframe: Timeframe;
+	type?: "single" | "multi";
 }
 
-export interface BackfillDocument {
-	name: string;
-	period: string;
-	pair: string;
+export interface ProcessedBackfillOptions extends BackfillOptions {
 	since: number;
 	until: number;
-	candles: OHLCV[];
 }
 
-export interface ConvertedBackfillOptions extends BackfillInput {
-	sinceMs: number;
-	untilMs: number;
-	period: string;
-	periodMs: number;
-	pair: string;
-	recordsToFetch: number;
-	recordLimit: number;
-	verbose?: boolean;
+export interface SingleBackfillOptions extends BackfillOptions {
+	type: "single";
+}
+
+export interface MultiBackfillOptions extends BackfillOptions {
+	type: "multi";
+	exchanges: ExchangeID[];
+}
+
+export interface SingleBackfillSet {
+	records: OHLCV[];
+}
+
+export interface MultiBackfillSet<
+	Opts extends MultiBackfillOptions = MultiBackfillOptions
+> {
+	records: Record<Opts["exchanges"][number], OHLCV[]>;
 }
