@@ -37,6 +37,7 @@ export interface Algotia<Conf extends Config> {
 	exchanges: AlgotiaExchanges;
 	mongoClient: MongoClient;
 	redisClient: Redis;
+	quit: () => void;
 }
 
 export type AnyAlgotia = Algotia<Config>;

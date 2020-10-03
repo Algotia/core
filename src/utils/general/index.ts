@@ -1,5 +1,5 @@
 import { OHLCV as CcxtOHLCV } from "ccxt";
-import { OHLCV } from "../../../types/";
+import { OHLCV, Config, ExchangeID, isExchangeID } from "../../types/";
 
 export const reshapeOHLCV = (ohlcv: CcxtOHLCV[]): OHLCV[] => {
 	return ohlcv.map((candle) => ({
@@ -10,4 +10,11 @@ export const reshapeOHLCV = (ohlcv: CcxtOHLCV[]): OHLCV[] => {
 		close: candle[4],
 		volume: candle[5],
 	}));
+};
+
+export const getDefaultExchangeId = (config: Config): ExchangeID => {
+	const key = Object.keys(config.exchange)[0];
+	if (isExchangeID(key)) {
+		return key;
+	}
 };

@@ -5,7 +5,7 @@ import {
 	ExchangeID,
 	ExchangeModifications,
 	isExchangeID,
-} from "../../../types";
+} from "../../types";
 
 type Modifcations = {
 	[key in ExchangeID]: {

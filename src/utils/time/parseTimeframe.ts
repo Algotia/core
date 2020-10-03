@@ -1,4 +1,4 @@
-import { Timeframe } from "../../../types";
+import { Timeframe } from "../../types";
 
 const parseTimeframe = (timeframe: Timeframe) => {
 	let [amountStr, unitStr] = timeframe.split("");

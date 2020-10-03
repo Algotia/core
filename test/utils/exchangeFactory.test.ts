@@ -1,4 +1,4 @@
-import exchangeFactory from "../../src/utils/internal/exchangeFactory";
+import exchangeFactory from "../../src/utils/exchangeFactory";
 import { AllowedExchanges } from "../../src/types";
 
 describe("Exchange Factory", () => {

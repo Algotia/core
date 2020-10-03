@@ -1,6 +1,5 @@
-import { Config, AlgotiaExchanges } from "../../types/methods/boot";
-import exchangeFactory from "../../utils/internal/exchangeFactory";
-import { isExchangeID } from "../../types";
+import { exchangeFactory } from "../../utils/";
+import { isExchangeID, Config, AlgotiaExchanges } from "../../types";
 
 const isBooleanExchangeConfig = (obj: any): obj is boolean => {
 	return typeof obj === "boolean";

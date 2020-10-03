@@ -13,6 +13,7 @@ import validate from "./validate";
 import fetchRecords from "./fetchRecords";
 import processInput from "./processInput";
 import save from "./save";
+import { getDefaultExchangeId } from "../../../utils";
 
 // Overload functions so that backfill can return multiple types
 // based on input (Opts)
@@ -36,8 +37,8 @@ async function backfill<
 		// Single Backfill
 		const { type, ...fetchOptions } = opts;
 		validate(algotia, opts);
-		const exchangeKeys = Object.keys(algotia.exchanges);
-		const exchange: Exchange = algotia.exchanges[exchangeKeys[0]];
+		const defaultExchangeId = getDefaultExchangeId(algotia.config);
+		const exchange: Exchange = algotia.exchanges[defaultExchangeId];
 		const processedOptions = processInput(exchange, fetchOptions);
 		const records = await fetchRecords(exchange, processedOptions);
 		await save(algotia, opts, records);

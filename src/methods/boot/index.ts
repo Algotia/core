@@ -9,6 +9,10 @@ const boot = async <Conf extends Config>(
 	try {
 		const { mongoClient, redisClient } = bootDatabases(config);
 		const exchanges = bootExhanges(config);
+		const quit = () => {
+			mongoClient.close();
+			redisClient.quit();
+		};
 		validateConfig(config);
 
 		return {
@@ -16,6 +20,7 @@ const boot = async <Conf extends Config>(
 			mongoClient,
 			redisClient,
 			exchanges,
+			quit,
 		};
 	} catch (err) {
 		throw err;

@@ -1,6 +1,5 @@
 import ccxt from "ccxt";
-import { Config, AlgotiaExchanges } from "../../types/methods/boot";
-import { isExchangeID } from "../../types";
+import { isExchangeID, Config } from "../../types";
 
 class ConfigError extends TypeError {
 	constructor(message: string) {
