@@ -24,20 +24,23 @@ const processInput = <Exchange extends IExchange, Opts extends BacktestOptions>(
 ): ProcessedBackfillOptions => {
 	try {
 		const { id } = exchange;
-		const { since, until } = opts;
+		const { until, since } = opts;
 
-		// Normalize bitstamp behavior, figure out better place to do this
+		let sinceMs: number;
+		let untilMs: number;
+
+		// normalize bitstamp fetchOHLCV behavior
 		if (id === "bitstamp") {
-			return {
-				...opts,
-				since: parseDate(since) - 1,
-				until: parseDate(until),
-			};
+			sinceMs = parseDate(since) - 1;
+		} else {
+			sinceMs = parseDate(since);
 		}
+		untilMs = parseDate(until);
+
 		return {
 			...opts,
-			since: parseDate(since),
-			until: parseDate(until),
+			since: sinceMs,
+			until: untilMs,
 		};
 	} catch (err) {
 		throw err;

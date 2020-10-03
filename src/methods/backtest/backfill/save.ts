@@ -1,160 +1,115 @@
 import {
-	AnyAlgotia,
-	SingleBacktestOptions,
-	MultiBacktestOptions,
-	SingleBackfillSet,
-	MultiBackfillSet,
-	isMultiBacktestOptions,
-	isSingleBacktestOptions,
-	isMultiBackfillSet,
-	isSingleBackfillSet,
+	BacktestOptions,
 	AllowedExchanges,
-	ExchangeID,
+	AnyAlgotia,
 	OHLCV,
 } from "../../../types";
+import { Collection } from "mongodb";
 import {
+	getBackfillCollection,
 	connectToDb,
 	getDefaultExchangeId,
-	getBackfillCollection,
+	buildRegexPath,
 } from "../../../utils";
-import { Collection } from "mongodb";
 
-const setupBackfillCollection = async (
-	backfillCollection: Collection
-): Promise<void> => {
-	const exchangeNodes = AllowedExchanges.map((id) => ({
-		node: id,
-		path: `,${id},`,
-	}));
-	await backfillCollection.insertMany([
-		{ node: "exchanges", path: null },
+const initializeTree = async (backfillCollection: Collection) => {
+	const exchangeNodes = AllowedExchanges.map((id) => {
+		return {
+			_id: id,
+			path: buildRegexPath(id),
+		};
+	});
+
+	backfillCollection.insertMany([
+		{
+			_id: "exchanges",
+			path: buildRegexPath(),
+		},
 		...exchangeNodes,
 	]);
 };
 
-const checkIfNeedToSetupCollection = async (
-	backfillCollection: Collection
-): Promise<boolean> => {
-	const count = await backfillCollection.find({ node: "exchanges" }).count();
-	if (count === 0) {
-		return true;
-	}
-	return false;
-};
-
-const buildDocumentTree = async (
+const initializeSymbolNode = async (
 	backfillCollection: Collection,
-	id: ExchangeID,
-	symbol: string,
-	timeframe: string
-): Promise<void> => {
-	const symbolPath = `,${id},${symbol},`,
-		symbolRegex = new RegExp(`/${symbolPath}/`),
-		doesSymbolExist = await backfillCollection.findOne({
-			path: symbolRegex,
-		});
-
-	const timeframePath = `,${id},${symbol},${timeframe},`,
-		timeframeRegex = new RegExp(`/${timeframePath}/`),
-		doesTimeframeExist = await backfillCollection.findOne({
-			path: timeframeRegex,
-		});
-
-	if (!doesSymbolExist) {
+	id: string,
+	symbol: string
+) => {
+	try {
 		await backfillCollection.insertOne({
-			node: symbol,
-			path: symbolPath,
+			_id: `${id}-${symbol}`,
+			path: buildRegexPath(id, symbol),
 		});
-	}
-	if (!doesTimeframeExist) {
-		await backfillCollection.insertOne({
-			node: timeframe,
-			path: timeframePath,
-			sets: [],
-		});
+	} catch (err) {
+		throw err;
 	}
 };
 
-const insertSet = async (
+const initializeTimeframeNode = async (
 	backfillCollection: Collection,
-	set: OHLCV[],
-	id: ExchangeID,
+	id: string,
 	symbol: string,
 	timeframe: string
 ) => {
 	try {
-		const regexPath = new RegExp(`,${id},${symbol},${timeframe},`);
-		await backfillCollection.updateOne(
-			{ path: regexPath },
-			{
-				$push: {
-					sets: set,
-				},
-			}
+		await backfillCollection.insertOne({
+			_id: `${id}-${symbol}-${timeframe}`,
+			path: buildRegexPath(id, symbol, timeframe),
+		});
+	} catch (err) {
+		throw err;
+	}
+};
+
+const saveSet = async (
+	algotia: AnyAlgotia,
+	options: BacktestOptions,
+	set: OHLCV[]
+) => {
+	try {
+		const { mongoClient, config } = algotia;
+		const { symbol, timeframe } = options;
+		const db = await connectToDb(mongoClient);
+		const backfillCollection = getBackfillCollection(db);
+
+		const rootNodeExists = await backfillCollection.findOne({
+			_id: "exchanges",
+		});
+
+		if (!rootNodeExists) {
+			await initializeTree(backfillCollection);
+		}
+
+		const defaultExchangeId = getDefaultExchangeId(config);
+
+		const symbolPath = buildRegexPath(defaultExchangeId, symbol);
+		const symbolNodeExists = await backfillCollection.findOne({
+			path: new RegExp(symbolPath),
+		});
+
+		if (!symbolNodeExists) {
+			await initializeSymbolNode(backfillCollection, defaultExchangeId, symbol);
+		}
+
+		const timeframePath = buildRegexPath(defaultExchangeId, symbol, timeframe);
+		const timeframeNodeExists = await backfillCollection.findOne({
+			path: new RegExp(timeframePath),
+		});
+
+		if (!timeframeNodeExists) {
+			await initializeTimeframeNode(
+				backfillCollection,
+				defaultExchangeId,
+				symbol,
+				timeframe
+			);
+		}
+
+		await backfillCollection.findOneAndUpdate(
+			{ path: new RegExp(timeframePath) },
+			{ $push: { sets: set } }
 		);
 	} catch (err) {
 		throw err;
 	}
 };
-
-async function save(
-	algotia: AnyAlgotia,
-	options: SingleBacktestOptions,
-	records: SingleBackfillSet
-);
-
-async function save(
-	algotia: AnyAlgotia,
-	options: MultiBacktestOptions,
-	records: MultiBackfillSet
-);
-
-async function save(
-	algotia: AnyAlgotia,
-	options: SingleBacktestOptions | MultiBacktestOptions,
-	records: SingleBackfillSet | MultiBackfillSet
-) {
-	try {
-		if (isMultiBacktestOptions(options)) {
-			if (isMultiBackfillSet(records)) {
-				console.log(records);
-			} else {
-				throw new Error("Options is type multi but set is type single");
-			}
-		} else if (isSingleBacktestOptions(options)) {
-			if (isSingleBackfillSet(records)) {
-				const { mongoClient, config } = algotia,
-					{ symbol, timeframe } = options,
-					db = await connectToDb(mongoClient),
-					backfillCollection = getBackfillCollection(db),
-					id = getDefaultExchangeId(config);
-
-				const needToSetup = await checkIfNeedToSetupCollection(
-					backfillCollection
-				);
-				if (needToSetup) {
-					await setupBackfillCollection(backfillCollection);
-				}
-
-				const pairDocument = await backfillCollection
-					.find({
-						path: `,${id},${symbol},${timeframe}`,
-					})
-					.count();
-				if (pairDocument) {
-				} else {
-					await buildDocumentTree(backfillCollection, id, symbol, timeframe);
-					await insertSet(backfillCollection, records, id, symbol, timeframe);
-				}
-			} else {
-				throw new Error("Options type is single but set type is multi");
-			}
-		}
-	} catch (err) {
-		throw err;
-	} finally {
-		algotia.quit();
-	}
-}
-
-export default save;
+export default saveSet;

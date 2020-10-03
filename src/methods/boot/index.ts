@@ -10,7 +10,9 @@ const boot = async <Conf extends Config>(
 		const { mongoClient, redisClient } = bootDatabases(config);
 		const exchanges = bootExhanges(config);
 		const quit = () => {
-			mongoClient.close();
+			if (mongoClient.isConnected()) {
+				mongoClient.close(true);
+			}
 			redisClient.quit();
 		};
 		validateConfig(config);

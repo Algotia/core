@@ -13,7 +13,12 @@ import validate from "./validate";
 import fetchRecords from "./fetchRecords";
 import processInput from "./processInput";
 import save from "./save";
-import { getDefaultExchangeId } from "../../../utils";
+import {
+	getDefaultExchangeId,
+	connectToDb,
+	getBackfillCollection,
+	buildRegexPath,
+} from "../../../utils";
 
 // Overload functions so that backfill can return multiple types
 // based on input (Opts)
@@ -37,11 +42,12 @@ async function backfill<
 		// Single Backfill
 		const { type, ...fetchOptions } = opts;
 		validate(algotia, opts);
+
 		const defaultExchangeId = getDefaultExchangeId(algotia.config);
 		const exchange: Exchange = algotia.exchanges[defaultExchangeId];
 		const processedOptions = processInput(exchange, fetchOptions);
-		const records = await fetchRecords(exchange, processedOptions);
-		await save(algotia, opts, records);
+
+		const records = await fetchRecords(algotia, exchange, processedOptions);
 
 		return records;
 	} else if (isMultiBacktestOptions(opts)) {
@@ -55,7 +61,11 @@ async function backfill<
 			exchanges.map(async (id) => {
 				const exchange = algotia.exchanges[id];
 				const processedOptions = processInput(exchange, fetchOptions);
-				const singleRecordSet = await fetchRecords(exchange, processedOptions);
+				const singleRecordSet = await fetchRecords(
+					algotia,
+					exchange,
+					processedOptions
+				);
 				records = {
 					...records,
 					[id]: singleRecordSet,
