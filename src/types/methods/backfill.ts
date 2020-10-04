@@ -9,12 +9,7 @@ import {
 	Exchange,
 } from "../shared";
 
-export interface BacktestOptions {
-	strategy:
-		| SingleSyncStrategy
-		| SingleAsyncStrategy
-		| MultiSyncStartegy
-		| MultiAsyncStartegy;
+export interface BackfillOptions {
 	since: number | string | Date;
 	until: number | string | Date;
 	symbol: string;
@@ -22,7 +17,7 @@ export interface BacktestOptions {
 	type?: "single" | "multi";
 }
 
-export interface ProcessedBackfillOptions extends BacktestOptions {
+export interface ProcessedBackfillOptions extends BackfillOptions {
 	since: number;
 	until: number;
 	recordsBetween: number;
@@ -30,6 +25,13 @@ export interface ProcessedBackfillOptions extends BacktestOptions {
 	exchange: Exchange;
 }
 
+export interface BacktestOptions extends BackfillOptions {
+	strategy:
+		| SingleSyncStrategy
+		| SingleAsyncStrategy
+		| MultiSyncStartegy
+		| MultiAsyncStartegy;
+}
 export interface SingleBacktestOptions extends BacktestOptions {
 	type?: "single";
 	strategy: SingleSyncStrategy | SingleAsyncStrategy;

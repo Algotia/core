@@ -6,11 +6,18 @@ import {
 	isMultiBacktestOptions,
 	isSingleBacktestOptions,
 	ExchangeID,
+	ProcessedBackfillOptions,
+	BackfillOptions,
+	Exchange,
 } from "../../../types";
 import { MultiBacktestOptions } from "../../../types/";
-import validate from "./validate";
 import fetchRecords from "./fetchRecords";
-import processInput from "./processInput";
+import {
+	parseDate,
+	getDefaultExchange,
+	exchangeFactory,
+	parseTimeframe,
+} from "../../../utils";
 
 // Overload functions so that backfill can return multiple types
 // based on input (Opts)
@@ -34,19 +41,51 @@ async function backfill<ExchangeIDs extends ExchangeID[]>(
 	exchange?: ExchangeID,
 	exchanges?: ExchangeIDs
 ): Promise<SingleBackfillSet | MultiBackfillSet<ExchangeIDs>> {
-	if (isSingleBacktestOptions(opts)) {
-		// Single Backfill
+	try {
+		if (isSingleBacktestOptions(opts)) {
+			// Single Backfill
 
-		validate(algotia, opts);
+			const options = processFetchOptions(algotia, opts, exchange);
 
-		const options = processInput(algotia, opts, exchange);
+			return await fetchRecords(algotia, options);
 
-		return await fetchRecords(algotia, options);
-
-		//TODO: retrieve records
-	} else if (isMultiBacktestOptions(opts)) {
-		// Multi Backfill
+			//TODO: retrieve records
+		} else if (isMultiBacktestOptions(opts)) {
+			// Multi Backfill
+		}
+	} catch (err) {
+		throw err;
 	}
 }
+
+const processFetchOptions = <Options extends BackfillOptions>(
+	algotia: AnyAlgotia,
+	options: Options,
+	exchangeId: ExchangeID
+): ProcessedBackfillOptions => {
+	const { until, since, timeframe } = options;
+
+	const sinceMs = parseDate(since);
+	const untilMs = parseDate(until);
+
+	let exchange: Exchange;
+	if (!exchangeId) {
+		exchange = getDefaultExchange(algotia);
+	} else {
+		exchange = exchangeFactory({ id: exchangeId });
+	}
+
+	const { periodMS } = parseTimeframe(timeframe);
+	const recordsBetween = Math.floor((untilMs - sinceMs) / periodMS);
+
+	return {
+		...options,
+		periodMS,
+		recordsBetween,
+		since: sinceMs,
+		until: untilMs,
+		exchange,
+	};
+};
 
 export default backfill;

@@ -17,9 +17,9 @@ const modifications: Modifcations = {
 	binance: {
 		OHLCVRecordLimit: 1000,
 	},
-	bitstamp: {
-		OHLCVRecordLimit: 1000,
-	},
+	/* bitstamp: { */
+	/* 	OHLCVRecordLimit: 1000, */
+	/* }, */
 	bittrex: {
 		OHLCVRecordLimit: 960,
 	},

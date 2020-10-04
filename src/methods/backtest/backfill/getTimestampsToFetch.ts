@@ -9,46 +9,50 @@ const getTimestampsToFetch = async (
 	algotia: AnyAlgotia,
 	options: ProcessedBackfillOptions
 ): Promise<number[]> => {
-	const {
-		since,
-		timeframe,
-		symbol,
-		periodMS,
-		recordsBetween,
-		exchange,
-	} = options;
+	try {
+		const {
+			since,
+			timeframe,
+			symbol,
+			periodMS,
+			recordsBetween,
+			exchange,
+		} = options;
 
-	const db = await connectToDb(algotia.mongoClient);
-	const backfillCollection = getBackfillCollection(db);
+		const db = await connectToDb(algotia.mongoClient);
+		const backfillCollection = getBackfillCollection(db);
 
-	const setPath = buildRegexPath(exchange.id, symbol, timeframe);
-	const dbSets = await backfillCollection.findOne({
-		path: setPath,
-	});
+		const setPath = buildRegexPath(exchange.id, symbol, timeframe);
+		const dbSets = await backfillCollection.findOne({
+			path: setPath,
+		});
 
-	let timestampsToFetch = [];
-	for (let i = 0; i < recordsBetween; i++) {
-		if (i === 0) {
-			timestampsToFetch[i] = since;
+		let timestampsToFetch = [];
+		for (let i = 0; i < recordsBetween; i++) {
+			if (i === 0) {
+				timestampsToFetch[i] = since;
+			}
+			timestampsToFetch[i] = since + periodMS * i;
 		}
-		timestampsToFetch[i] = since + periodMS * i;
-	}
 
-	if (dbSets) {
-		if (dbSets.sets.length) {
-			const dbTimestamps = dbSets.sets.map(({ timestamp }) => timestamp);
+		if (dbSets) {
+			if (dbSets.sets.length) {
+				const dbTimestamps = dbSets.sets.map(({ timestamp }) => timestamp);
 
-			for (let j = 0; j < dbTimestamps.length; j++) {
-				const timestamp = dbTimestamps[j];
-				if (timestampsToFetch.includes(timestamp)) {
-					const indexOfStamp = timestampsToFetch.indexOf(timestamp);
-					timestampsToFetch.splice(indexOfStamp, 1);
+				for (let j = 0; j < timestampsToFetch.length; j++) {
+					const timestamp = timestampsToFetch[j];
+					if (dbTimestamps.includes(timestamp)) {
+						const indexOfStamp = timestampsToFetch.indexOf(timestamp);
+						timestampsToFetch.splice(indexOfStamp, 1);
+					}
 				}
 			}
 		}
-	}
 
-	return timestampsToFetch;
+		return timestampsToFetch;
+	} catch (err) {
+		throw err;
+	}
 };
 
 export default getTimestampsToFetch;

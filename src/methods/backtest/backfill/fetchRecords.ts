@@ -12,21 +12,25 @@ const getWholeBackfillSet = async (
 	algotia: AnyAlgotia,
 	options: ProcessedBackfillOptions
 ): Promise<OHLCV[]> => {
-	const { symbol, timeframe, exchange } = options;
+	try {
+		const { symbol, timeframe, exchange } = options;
 
-	const db = await connectToDb(algotia.mongoClient);
+		const db = await connectToDb(algotia.mongoClient);
 
-	const backfillCollection = getBackfillCollection(db);
+		const backfillCollection = getBackfillCollection(db);
 
-	const path = buildRegexPath(exchange.id, symbol, timeframe);
+		const path = buildRegexPath(exchange.id, symbol, timeframe);
 
-	const set = await backfillCollection.findOne({
-		path,
-	});
-	const sorted = set.sets.sort((a: OHLCV, b: OHLCV) => {
-		return a.timestamp - b.timestamp;
-	});
-	return sorted;
+		const set = await backfillCollection.findOne({
+			path,
+		});
+		const sorted = set.sets.sort((a: OHLCV, b: OHLCV) => {
+			return a.timestamp - b.timestamp;
+		});
+		return sorted;
+	} catch (err) {
+		throw err;
+	}
 };
 
 const getRecordsFromDb = async (
@@ -91,12 +95,15 @@ const fetchRecords = async (
 	options: ProcessedBackfillOptions
 ) => {
 	try {
+		// Determine which candles we actually need to fetch
 		const timestampsToFetch = await getTimestampsToFetch(algotia, options);
 
 		if (timestampsToFetch.length !== 0) {
+			// fetch candles from exchange
 			return await getRecordsFromExchange(algotia, options, timestampsToFetch);
 		}
 
+		// fetch candles from db
 		return await getRecordsFromDb(algotia, options);
 	} catch (err) {
 		throw err;

@@ -31,7 +31,10 @@ const parseTimeframe = (timeframe: Timeframe) => {
 			unitLabel = "month";
 			break;
 	}
-	return { amount, unit, unitLabel };
+
+	const periodMS = amount * unit;
+
+	return { amount, unit, unitLabel, periodMS };
 };
 
 export default parseTimeframe;

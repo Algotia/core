@@ -1,5 +1,4 @@
 import {
-	BacktestOptions,
 	AllowedExchanges,
 	AnyAlgotia,
 	OHLCV,
@@ -9,7 +8,6 @@ import { Collection } from "mongodb";
 import {
 	getBackfillCollection,
 	connectToDb,
-	getDefaultExchange,
 	buildRegexPath,
 } from "../../../utils";
 

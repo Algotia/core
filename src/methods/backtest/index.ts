@@ -22,7 +22,7 @@ async function backtest(
 async function backtest<ExchangeIDs extends ExchangeID[]>(
 	algotia: AnyAlgotia,
 	options: MultiBacktestOptions,
-	exchanges?: ExchangeIDs
+	exchanges: ExchangeIDs
 ): Promise<MultiBackfillSet<ExchangeIDs>>;
 
 async function backtest<ExchangeIDs extends ExchangeID[]>(
@@ -34,7 +34,7 @@ async function backtest<ExchangeIDs extends ExchangeID[]>(
 	if (isMultiBacktestOptions(options)) {
 		return await backfill(algotia, options, exchanges);
 	} else if (isSingleBacktestOptions(options)) {
-		return await backfill(algotia, options);
+		return await backfill(algotia, options, exchange);
 	}
 }
 

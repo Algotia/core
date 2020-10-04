@@ -1,11 +1,11 @@
 import { Exchange as CcxtRawExchange, OHLCV as CcxtOHLCV } from "ccxt";
 
-export const AllowedExchanges = [
-	"binance",
-	"bitstamp",
-	"bittrex",
-	"kucoin",
-] as const;
+export const AllowedExchanges = ["binance", "bittrex", "kucoin"] as const;
+
+// bitstamp behavior (and probably others) are very close to
+// being able to be supported. For bitstmap we must subtract
+// 1ms from the since input for backfills because it fetches
+// all records AFTER input not on or after
 
 export type ExchangeID = typeof AllowedExchanges[number];
 
