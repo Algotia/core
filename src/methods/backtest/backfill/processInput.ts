@@ -1,29 +1,21 @@
 import {
 	BacktestOptions,
 	ProcessedBackfillOptions,
-	Exchange,
 	AnyAlgotia,
+	ExchangeID,
+	Exchange,
 } from "../../../types";
-import { parseTimeframe, getDefaultExchange } from "../../../utils";
-
-const parseDate = (input: string | number | Date): number => {
-	if (input instanceof Date) {
-		return input.getTime();
-	} else {
-		const dateMs = new Date(input);
-		if (!isNaN(dateMs.getTime())) {
-			return dateMs.getTime();
-		} else {
-			//TODO: Create error type for this
-			throw new Error(`Input ${input} is not a valid date.`);
-		}
-	}
-};
+import {
+	parseTimeframe,
+	getDefaultExchange,
+	parseDate,
+	exchangeFactory,
+} from "../../../utils";
 
 const processInput = (
 	algotia: AnyAlgotia,
 	opts: BacktestOptions,
-	exchange?: Exchange
+	exchangeId?: ExchangeID
 ): ProcessedBackfillOptions => {
 	try {
 		const { until, since, timeframe } = opts;
@@ -31,8 +23,11 @@ const processInput = (
 		let sinceMs: number;
 		let untilMs: number;
 
-		if (!exchange) {
+		let exchange: Exchange;
+		if (!exchangeId) {
 			exchange = getDefaultExchange(algotia);
+		} else {
+			exchange = exchangeFactory({ id: exchangeId });
 		}
 
 		const { id } = exchange;
@@ -45,11 +40,8 @@ const processInput = (
 		}
 		untilMs = parseDate(until);
 
-		console.log("TMF ", timeframe);
 		const { unit, amount } = parseTimeframe(timeframe);
-		console.log("U A ", unit, amount);
 		const periodMS = unit * amount;
-		console.log("PMS ", periodMS);
 		const recordsBetween = Math.floor((untilMs - sinceMs) / periodMS);
 
 		return {

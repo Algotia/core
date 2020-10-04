@@ -50,7 +50,6 @@ const getRecordsFromDb = async (
 			return val.timestamp === endingCandleTimestamp;
 		});
 		const indexOfEndingCandle = backfillSet.indexOf(endingCandle);
-		console.log(indexOfStartingCandle, indexOfEndingCandle);
 
 		const slice = backfillSet.slice(
 			indexOfStartingCandle,
@@ -70,7 +69,6 @@ const getRecordsFromExchange = async (
 	try {
 		const { timeframe, symbol, exchange } = options;
 		if (timestampsToFetch.length < exchange.OHLCVRecordLimit) {
-			console.log(exchange.id);
 			const rawOHLCV = await exchange.fetchOHLCV(
 				symbol,
 				timeframe,
@@ -95,7 +93,6 @@ const fetchRecords = async (
 	try {
 		const timestampsToFetch = await getTimestampsToFetch(algotia, options);
 
-		console.log(timestampsToFetch);
 		if (timestampsToFetch.length !== 0) {
 			return await getRecordsFromExchange(algotia, options, timestampsToFetch);
 		}

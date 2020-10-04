@@ -1,4 +1,4 @@
-import { AnyAlgotia, Exchange, ProcessedBackfillOptions } from "../../../types";
+import { AnyAlgotia, ProcessedBackfillOptions } from "../../../types";
 import {
 	connectToDb,
 	getBackfillCollection,
@@ -35,7 +35,6 @@ const getTimestampsToFetch = async (
 	}
 
 	if (dbSets) {
-		console.log("HAS SETS ", dbSets);
 		if (dbSets.sets.length) {
 			const dbTimestamps = dbSets.sets.map(({ timestamp }) => timestamp);
 

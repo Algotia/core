@@ -1,18 +1,7 @@
-import { MultiBackfillSet, SingleBackfillSet } from "../methods";
-import { AllowedExchanges } from "../shared";
+import { SingleBackfillSet } from "../methods";
 
-const isMultiBackfillSet = (
-	set: SingleBackfillSet | MultiBackfillSet
-): set is MultiBackfillSet => {
-	return Object.keys(set).every((key: any) => {
-		return AllowedExchanges.includes(key);
-	});
+const isSingleBackfillSet = (set: any): set is SingleBackfillSet => {
+	return set.length !== undefined;
 };
 
-const isSingleBackfillSet = (
-	set: SingleBackfillSet | MultiBackfillSet
-): set is SingleBackfillSet => {
-	return !isMultiBackfillSet(set);
-};
-
-export { isMultiBackfillSet, isSingleBackfillSet };
+export default isSingleBackfillSet;

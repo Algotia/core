@@ -103,7 +103,6 @@ const saveSet = async (
 			);
 		}
 
-		console.log("TIMEFRAME PATH ", timeframePath);
 		await backfillCollection.updateOne(
 			{ path: timeframePath },
 			{ $push: { sets: { $each: set } } }

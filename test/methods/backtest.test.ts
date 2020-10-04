@@ -17,14 +17,19 @@ describe("Backtest method", () => {
 	test("Works", async () => {
 		try {
 			const t0 = performance.now();
-			const res = await backtest(algotia, {
-				since: "1/04/2020",
-				until: "1/05/2020",
-				symbol: "ETH/BTC",
-				timeframe: "15m",
-				strategy: () => {},
-				exchange: "binance",
-			});
+			const res = await backtest(
+				algotia,
+				{
+					since: "1/04/2020",
+					until: "1/05/2020",
+					symbol: "ETH/BTC",
+					timeframe: "15m",
+					type: "single",
+					strategy: () => {},
+				},
+				"bittrex"
+			);
+
 			const t1 = performance.now();
 			const timestamps = res.map(({ timestamp }) => timestamp);
 			console.log(timestamps, res.length);

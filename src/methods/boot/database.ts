@@ -43,7 +43,6 @@ const bootDatabases = (
 		if (mongo) {
 			const { port = defaultMongoPort, uri = local, ...options } = mongo;
 			const mongoUri = `${mongoDbPrefix}${uri}:${port}`;
-			console.log("OPTS", options);
 			mongoClient = new MongoClient(mongoUri, {
 				...options,
 				...defaultMongoOptions,

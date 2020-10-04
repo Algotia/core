@@ -32,20 +32,17 @@ export interface ProcessedBackfillOptions extends BacktestOptions {
 
 export interface SingleBacktestOptions extends BacktestOptions {
 	type?: "single";
-	exchange?: ExchangeID;
 	strategy: SingleSyncStrategy | SingleAsyncStrategy;
 }
 
 export interface MultiBacktestOptions extends BacktestOptions {
 	type: "multi";
-	exchanges: ExchangeID[];
 	strategy: MultiSyncStartegy | MultiAsyncStartegy;
 }
 
 export type SingleBackfillSet = OHLCV[];
 
-export interface MultiBackfillSet<
-	Opts extends MultiBacktestOptions = MultiBacktestOptions
-> {
-	records: Record<Opts["exchanges"][number], SingleBackfillSet>;
-}
+export type MultiBackfillSet<Exchanges extends ExchangeID[]> = Record<
+	Exchanges[number],
+	SingleBackfillSet
+>;

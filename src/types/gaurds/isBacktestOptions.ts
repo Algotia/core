@@ -4,9 +4,7 @@ const isMultiBacktestOptions = (
 	opts: SingleBacktestOptions | MultiBacktestOptions
 ): opts is MultiBacktestOptions => {
 	if (opts.type && opts.type === "multi") {
-		if (opts.exchanges.length !== undefined) {
-			return true;
-		}
+		return true;
 	} else {
 		return false;
 	}
