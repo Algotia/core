@@ -1,8 +1,10 @@
 import {
 	BacktestOptions,
 	ProcessedBackfillOptions,
-	Exchange as IExchange,
+	Exchange,
+	AnyAlgotia,
 } from "../../../types";
+import { parseTimeframe, getDefaultExchange } from "../../../utils";
 
 const parseDate = (input: string | number | Date): number => {
 	if (input instanceof Date) {
@@ -18,16 +20,22 @@ const parseDate = (input: string | number | Date): number => {
 	}
 };
 
-const processInput = <Exchange extends IExchange, Opts extends BacktestOptions>(
-	exchange: Exchange,
-	opts: Opts
+const processInput = (
+	algotia: AnyAlgotia,
+	opts: BacktestOptions,
+	exchange?: Exchange
 ): ProcessedBackfillOptions => {
 	try {
-		const { id } = exchange;
-		const { until, since } = opts;
+		const { until, since, timeframe } = opts;
 
 		let sinceMs: number;
 		let untilMs: number;
+
+		if (!exchange) {
+			exchange = getDefaultExchange(algotia);
+		}
+
+		const { id } = exchange;
 
 		// normalize bitstamp fetchOHLCV behavior
 		if (id === "bitstamp") {
@@ -37,10 +45,20 @@ const processInput = <Exchange extends IExchange, Opts extends BacktestOptions>(
 		}
 		untilMs = parseDate(until);
 
+		console.log("TMF ", timeframe);
+		const { unit, amount } = parseTimeframe(timeframe);
+		console.log("U A ", unit, amount);
+		const periodMS = unit * amount;
+		console.log("PMS ", periodMS);
+		const recordsBetween = Math.floor((untilMs - sinceMs) / periodMS);
+
 		return {
 			...opts,
+			periodMS,
+			recordsBetween,
 			since: sinceMs,
 			until: untilMs,
+			exchange,
 		};
 	} catch (err) {
 		throw err;

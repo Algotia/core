@@ -17,6 +17,11 @@ const bootDatabases = (
 	const mongoDbPrefix = "mongodb://";
 	const defaultMongoUri = `${mongoDbPrefix}${local}:${defaultMongoPort}`;
 
+	const defaultMongoOptions = {
+		useUnifiedTopology: true,
+		useNewUrlParser: true,
+	};
+
 	/* const { */
 	/* 	port: mongoPort = defaultMongoPort, */
 	/* 	uri: mongoUri = `mongodb://${local}:${defaultMongoPort}`, */
@@ -29,7 +34,7 @@ const bootDatabases = (
 	/* } = redis; */
 	if (!mongo && !redis) {
 		return {
-			mongoClient: new MongoClient(defaultMongoUri),
+			mongoClient: new MongoClient(defaultMongoUri, defaultMongoOptions),
 			redisClient: new RedisClient(),
 		};
 	} else {
@@ -38,7 +43,11 @@ const bootDatabases = (
 		if (mongo) {
 			const { port = defaultMongoPort, uri = local, ...options } = mongo;
 			const mongoUri = `${mongoDbPrefix}${uri}:${port}`;
-			mongoClient = new MongoClient(mongoUri, options);
+			console.log("OPTS", options);
+			mongoClient = new MongoClient(mongoUri, {
+				...options,
+				...defaultMongoOptions,
+			});
 		}
 		if (redis) {
 			const { port = defaultRedisPort, uri = local, ...options } = redis;

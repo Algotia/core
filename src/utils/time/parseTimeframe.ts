@@ -1,7 +1,8 @@
 import { Timeframe } from "../../types";
 
 const parseTimeframe = (timeframe: Timeframe) => {
-	let [amountStr, unitStr] = timeframe.split("");
+	const amountStr = timeframe.match(/\d+/g)[0];
+	const unitStr = timeframe.match(/[a-zA-Z]+/g)[0];
 
 	const oneMinMs = 60000;
 	const amount = Number(amountStr);

@@ -1,5 +1,5 @@
 import { OHLCV as CcxtOHLCV } from "ccxt";
-import { OHLCV, Config, ExchangeID, isExchangeID } from "../../types/";
+import { OHLCV, isExchangeID, AnyAlgotia, Exchange } from "../../types/";
 
 export const reshapeOHLCV = (ohlcv: CcxtOHLCV[]): OHLCV[] => {
 	return ohlcv.map((candle) => ({
@@ -12,9 +12,10 @@ export const reshapeOHLCV = (ohlcv: CcxtOHLCV[]): OHLCV[] => {
 	}));
 };
 
-export const getDefaultExchangeId = (config: Config): ExchangeID => {
+export const getDefaultExchange = (algotia: AnyAlgotia): Exchange => {
+	const { config, exchanges } = algotia;
 	const key = Object.keys(config.exchange)[0];
 	if (isExchangeID(key)) {
-		return key;
+		return exchanges[key];
 	}
 };

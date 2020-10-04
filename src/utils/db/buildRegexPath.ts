@@ -10,7 +10,7 @@ const buildRegexPath = (...args: string[]) => {
 		const str = cleanString(arg);
 		path += `${str},`;
 	});
-	return path;
+	return new RegExp(path);
 };
 
 export default buildRegexPath;

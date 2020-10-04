@@ -1,48 +1,88 @@
-import {
-	Exchange,
-	ProcessedBackfillOptions,
-	AnyAlgotia,
-	OHLCV,
-} from "../../../types";
+import { ProcessedBackfillOptions, AnyAlgotia, OHLCV } from "../../../types";
 import {
 	reshapeOHLCV,
 	connectToDb,
 	getBackfillCollection,
 	buildRegexPath,
-	parseTimeframe,
 } from "../../../utils";
-import getRecordsToFetch from "./getRecordsToFetch";
+import getTimestampsToFetch from "./getTimestampsToFetch";
 import saveSet from "./save";
 
-const fetchSavedRecord = async (
+const getWholeBackfillSet = async (
 	algotia: AnyAlgotia,
-	exchange: Exchange,
+	options: ProcessedBackfillOptions
+): Promise<OHLCV[]> => {
+	const { symbol, timeframe, exchange } = options;
+
+	const db = await connectToDb(algotia.mongoClient);
+
+	const backfillCollection = getBackfillCollection(db);
+
+	const path = buildRegexPath(exchange.id, symbol, timeframe);
+
+	const set = await backfillCollection.findOne({
+		path,
+	});
+	const sorted = set.sets.sort((a: OHLCV, b: OHLCV) => {
+		return a.timestamp - b.timestamp;
+	});
+	return sorted;
+};
+
+const getRecordsFromDb = async (
+	algotia: AnyAlgotia,
 	options: ProcessedBackfillOptions
 ) => {
 	try {
-		const db = await connectToDb(algotia.mongoClient);
-		const backfillCollection = getBackfillCollection(db);
-		const { until, since, timeframe } = options;
+		const { since, recordsBetween, periodMS } = options;
 
-		const { unit, amount } = parseTimeframe(timeframe);
-		const periodMS = unit * amount;
-		const recordsBetween = Math.floor((until - since) / periodMS);
+		const backfillSet = await getWholeBackfillSet(algotia, options);
 
-		const path = buildRegexPath(exchange.id, options.symbol, options.timeframe);
-		const document = await backfillCollection.findOne({
-			path: new RegExp(path),
+		const startingCandle = backfillSet.find((val) => {
+			return val.timestamp === since;
 		});
 
-		const setOfTimestamps: number[][] = document.sets.map((set: OHLCV[]) => {
-			return set.map(({ timestamp }) => timestamp);
+		const indexOfStartingCandle = backfillSet.indexOf(startingCandle);
+
+		const endingCandleTimestamp = since + periodMS * (recordsBetween - 1);
+
+		const endingCandle = backfillSet.find((val) => {
+			return val.timestamp === endingCandleTimestamp;
 		});
-		const setContainingSince: number[] = setOfTimestamps.find((set) =>
-			set.some((val) => val === since)
+		const indexOfEndingCandle = backfillSet.indexOf(endingCandle);
+		console.log(indexOfStartingCandle, indexOfEndingCandle);
+
+		const slice = backfillSet.slice(
+			indexOfStartingCandle,
+			indexOfEndingCandle + 1
 		);
+		return slice;
+	} catch (err) {
+		throw err;
+	}
+};
 
-		const indexOfSince = setContainingSince.indexOf(since);
-		const records = setContainingSince.slice(indexOfSince, recordsBetween);
-		return records;
+const getRecordsFromExchange = async (
+	algotia: AnyAlgotia,
+	options: ProcessedBackfillOptions,
+	timestampsToFetch: number[]
+) => {
+	try {
+		const { timeframe, symbol, exchange } = options;
+		if (timestampsToFetch.length < exchange.OHLCVRecordLimit) {
+			console.log(exchange.id);
+			const rawOHLCV = await exchange.fetchOHLCV(
+				symbol,
+				timeframe,
+				timestampsToFetch[0],
+				timestampsToFetch.length
+			);
+			const formattedOHLCV = reshapeOHLCV(rawOHLCV);
+			await saveSet(algotia, options, formattedOHLCV);
+			return formattedOHLCV;
+		} else {
+			//TODO: Paginate requests
+		}
 	} catch (err) {
 		throw err;
 	}
@@ -50,34 +90,17 @@ const fetchSavedRecord = async (
 
 const fetchRecords = async (
 	algotia: AnyAlgotia,
-	exchange: Exchange,
 	options: ProcessedBackfillOptions
 ) => {
 	try {
-		const { OHLCVRecordLimit } = exchange;
-		const { since, timeframe, symbol } = options;
-		const recordsToFetch = await getRecordsToFetch(algotia, exchange, options);
-		console.log("Records to fetch", recordsToFetch);
+		const timestampsToFetch = await getTimestampsToFetch(algotia, options);
 
-		if (recordsToFetch === 0) {
-			const timeframeDoc = await fetchSavedRecord(algotia, exchange, options);
-			console.log("FETCHED");
-			console.log(timeframeDoc.length);
-			return timeframeDoc;
+		console.log(timestampsToFetch);
+		if (timestampsToFetch.length !== 0) {
+			return await getRecordsFromExchange(algotia, options, timestampsToFetch);
 		}
-		if (recordsToFetch < OHLCVRecordLimit) {
-			const rawOHLCV = await exchange.fetchOHLCV(
-				symbol,
-				timeframe,
-				since,
-				recordsToFetch
-			);
-			const formattedOHLCV = reshapeOHLCV(rawOHLCV);
-			await saveSet(algotia, options, formattedOHLCV);
-			console.log("INSERTED");
-			console.log(formattedOHLCV.length);
-			return formattedOHLCV;
-		}
+
+		return await getRecordsFromDb(algotia, options);
 	} catch (err) {
 		throw err;
 	}

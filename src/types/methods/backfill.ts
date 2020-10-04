@@ -6,6 +6,7 @@ import {
 	SingleAsyncStrategy,
 	MultiSyncStartegy,
 	MultiAsyncStartegy,
+	Exchange,
 } from "../shared";
 
 export interface BacktestOptions {
@@ -24,10 +25,14 @@ export interface BacktestOptions {
 export interface ProcessedBackfillOptions extends BacktestOptions {
 	since: number;
 	until: number;
+	recordsBetween: number;
+	periodMS: number;
+	exchange: Exchange;
 }
 
 export interface SingleBacktestOptions extends BacktestOptions {
 	type?: "single";
+	exchange?: ExchangeID;
 	strategy: SingleSyncStrategy | SingleAsyncStrategy;
 }
 

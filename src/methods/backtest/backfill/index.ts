@@ -1,24 +1,16 @@
 import {
 	AnyAlgotia,
-	Exchange,
 	SingleBacktestOptions,
 	SingleBackfillSet,
 	MultiBackfillSet,
 	isMultiBacktestOptions,
 	isSingleBacktestOptions,
-	OHLCV,
 } from "../../../types";
 import { MultiBacktestOptions } from "../../../types/";
 import validate from "./validate";
 import fetchRecords from "./fetchRecords";
 import processInput from "./processInput";
-import save from "./save";
-import {
-	getDefaultExchangeId,
-	connectToDb,
-	getBackfillCollection,
-	buildRegexPath,
-} from "../../../utils";
+import { exchangeFactory } from "../../../utils";
 
 // Overload functions so that backfill can return multiple types
 // based on input (Opts)
@@ -40,42 +32,18 @@ async function backfill<
 >(algotia: Algotia, opts: Opts): Promise<SingleBackfillSet | MultiBackfillSet> {
 	if (isSingleBacktestOptions(opts)) {
 		// Single Backfill
-		const { type, ...fetchOptions } = opts;
+
 		validate(algotia, opts);
 
-		const defaultExchangeId = getDefaultExchangeId(algotia.config);
-		const exchange: Exchange = algotia.exchanges[defaultExchangeId];
-		const processedOptions = processInput(exchange, fetchOptions);
+		const exchange = opts.exchange && exchangeFactory({ id: opts.exchange });
 
-		const records = await fetchRecords(algotia, exchange, processedOptions);
+		const options = processInput(algotia, opts, exchange);
 
-		return records;
+		return await fetchRecords(algotia, options);
+
+		//TODO: retrieve records
 	} else if (isMultiBacktestOptions(opts)) {
 		// Multi Backfill
-		const { type, exchanges, ...fetchOptions } = opts;
-		validate(algotia, opts);
-
-		let records: Record<typeof exchanges[number], OHLCV[]>;
-
-		await Promise.all(
-			exchanges.map(async (id) => {
-				const exchange = algotia.exchanges[id];
-				const processedOptions = processInput(exchange, fetchOptions);
-				const singleRecordSet = await fetchRecords(
-					algotia,
-					exchange,
-					processedOptions
-				);
-				records = {
-					...records,
-					[id]: singleRecordSet,
-				};
-			})
-		);
-
-		return {
-			records,
-		};
 	}
 }
 
