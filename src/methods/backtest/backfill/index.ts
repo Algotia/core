@@ -55,6 +55,8 @@ async function backfill<ExchangeIDs extends ExchangeID[]>(
 		}
 	} catch (err) {
 		throw err;
+	} finally {
+		algotia.quit();
 	}
 }
 

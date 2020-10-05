@@ -26,6 +26,7 @@ export interface Config {
 	exchange: ExchangeConfig;
 	mongo?: MongoConfig;
 	redis?: RedisConfig;
+	debug?: boolean;
 }
 
 export type ExchangeRecord<T> = Record<keyof Config["exchange"], T>;

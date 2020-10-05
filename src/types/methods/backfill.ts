@@ -48,3 +48,7 @@ export type MultiBackfillSet<Exchanges extends ExchangeID[]> = Record<
 	Exchanges[number],
 	SingleBackfillSet
 >;
+
+export interface BackfillSetDocument {
+	candles: SingleBackfillSet;
+}
