@@ -6,25 +6,29 @@ const isBooleanExchangeConfig = (obj: any): obj is boolean => {
 };
 
 const bootExhanges = <Conf extends Config>(config: Conf): AlgotiaExchanges => {
-	const { exchange } = config;
-	let exchanges: AlgotiaExchanges;
-	for (const id in exchange) {
-		if (isExchangeID(id)) {
-			const exchangeConfig = exchange[id];
-			if (isBooleanExchangeConfig(exchangeConfig)) {
-				exchanges = {
-					...exchanges,
-					[id]: exchangeFactory({ id }),
-				};
-			} else {
-				exchanges = {
-					...exchanges,
-					[id]: exchangeFactory({ id, ...exchangeConfig }),
-				};
+	try {
+		const { exchange } = config;
+		let exchanges: AlgotiaExchanges;
+		for (const id in exchange) {
+			if (isExchangeID(id)) {
+				const exchangeConfig = exchange[id];
+				if (isBooleanExchangeConfig(exchangeConfig)) {
+					exchanges = {
+						...exchanges,
+						[id]: exchangeFactory({ id }),
+					};
+				} else {
+					exchanges = {
+						...exchanges,
+						[id]: exchangeFactory({ id, ...exchangeConfig }),
+					};
+				}
 			}
 		}
+		return exchanges;
+	} catch (err) {
+		throw err;
 	}
-	return exchanges;
 };
 
 export default bootExhanges;

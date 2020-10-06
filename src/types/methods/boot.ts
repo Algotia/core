@@ -1,16 +1,7 @@
 import { ExchangeID, Exchange } from "../shared";
-import { Redis, RedisOptions } from "ioredis";
-import { MongoClientOptions, MongoClient } from "mongodb";
+import { Redis } from "ioredis";
+import { Db } from "mongodb";
 
-interface MongoConfig extends MongoClientOptions {
-	port?: number;
-	uri?: string;
-}
-
-interface RedisConfig extends RedisOptions {
-	port?: number;
-	uri?: string;
-}
 type ExchangeConfig = {
 	[key in ExchangeID]?: ExchangeOptions | boolean;
 };
@@ -24,8 +15,6 @@ export interface ExchangeOptions {
 
 export interface Config {
 	exchange: ExchangeConfig;
-	mongo?: MongoConfig;
-	redis?: RedisConfig;
 	debug?: boolean;
 }
 
@@ -36,8 +25,8 @@ export type AlgotiaExchanges = ExchangeRecord<Exchange>;
 export interface Algotia<Conf extends Config> {
 	config: Conf;
 	exchanges: AlgotiaExchanges;
-	mongoClient: MongoClient;
-	redisClient: Redis;
+	mongo: Db;
+	redis: Redis;
 	quit: () => void;
 }
 

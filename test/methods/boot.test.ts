@@ -30,4 +30,13 @@ describe("Boot method", () => {
 			expect(err).toBeInstanceOf(Error);
 		}
 	});
+
+	test("Works", async () => {
+		const algotia = await boot({
+			exchange: {
+				binance: true,
+			},
+		});
+		algotia.quit();
+	});
 });

@@ -1,61 +1,32 @@
-import { Config } from "../../types/methods/boot";
-import { MongoClient } from "mongodb";
-import RedisClient, { Redis as IRedisClient } from "ioredis";
+import { MongoClient, Db } from "mongodb";
+import RedisClient, { Redis } from "ioredis";
 
-const bootDatabases = (
-	config: Config
-): {
+const bootDatabases = async (): Promise<{
+	mongo: Db;
 	mongoClient: MongoClient;
-	redisClient: IRedisClient;
-} => {
-	const { mongo, redis } = config;
+	redis: Redis;
+}> => {
+	try {
+		const mongoClient = new MongoClient(`mongodb://localhost:27017`, {
+			useNewUrlParser: true,
+			useUnifiedTopology: true,
+			serverSelectionTimeoutMS: 10000,
+		});
 
-	const local = "127.0.0.1";
-	const defaultMongoPort = 27017;
-	const defaultRedisPort = 6379;
+		const redis = new RedisClient();
 
-	const mongoDbPrefix = "mongodb://";
-	const defaultMongoUri = `${mongoDbPrefix}${local}:${defaultMongoPort}`;
+		const connected = await mongoClient.connect();
 
-	const defaultMongoOptions = {
-		useUnifiedTopology: true,
-		useNewUrlParser: true,
-	};
+		const dbName = "algotia";
+		const mongo: Db = connected.db(dbName);
 
-	/* const { */
-	/* 	port: mongoPort = defaultMongoPort, */
-	/* 	uri: mongoUri = `mongodb://${local}:${defaultMongoPort}`, */
-	/* 	...mongoOptions */
-	/* } = mongo; */
-	/* const { */
-	/* 	port: redisPort = defaultRedisPort, */
-	/* 	uri: redisUri = local, */
-	/* 	...redisOptions */
-	/* } = redis; */
-	if (!mongo && !redis) {
 		return {
-			mongoClient: new MongoClient(defaultMongoUri, defaultMongoOptions),
-			redisClient: new RedisClient(),
-		};
-	} else {
-		let redisClient: IRedisClient;
-		let mongoClient: MongoClient;
-		if (mongo) {
-			const { port = defaultMongoPort, uri = local, ...options } = mongo;
-			const mongoUri = `${mongoDbPrefix}${uri}:${port}`;
-			mongoClient = new MongoClient(mongoUri, {
-				...options,
-				...defaultMongoOptions,
-			});
-		}
-		if (redis) {
-			const { port = defaultRedisPort, uri = local, ...options } = redis;
-			redisClient = new RedisClient(port, uri, options);
-		}
-		return {
-			redisClient,
+			mongo,
 			mongoClient,
+			redis,
 		};
+	} catch (err) {
+		throw err;
 	}
 };
 

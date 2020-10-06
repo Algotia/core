@@ -2,25 +2,46 @@ import { Config, Algotia } from "../../types/methods/boot";
 import bootDatabases from "./database";
 import bootExhanges from "./exchanges";
 import validateConfig from "./validate";
+import { debugLog } from "../../utils";
 
 const boot = async <Conf extends Config>(
 	config: Conf
 ): Promise<Algotia<Conf>> => {
 	try {
-		const { mongoClient, redisClient } = bootDatabases(config);
+		debugLog(config, "Starting boot");
+
+		validateConfig(config);
+
+		const { mongo, mongoClient, redis } = await bootDatabases(config);
+
 		const exchanges = bootExhanges(config);
+
 		const quit = () => {
 			if (mongoClient.isConnected()) {
-				mongoClient.close(true);
+				mongoClient.close();
 			}
-			redisClient.quit();
+			redis.quit();
 		};
-		validateConfig(config);
+
+		debugLog(
+			config,
+			{
+				label: "boot returned: ",
+				value: {
+					config,
+					mongo,
+					redis,
+					exchanges,
+					quit,
+				},
+			},
+			"return_value"
+		);
 
 		return {
 			config,
-			mongoClient,
-			redisClient,
+			mongo,
+			redis,
 			exchanges,
 			quit,
 		};

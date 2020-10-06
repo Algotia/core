@@ -3,13 +3,13 @@ import {
 	AnyAlgotia,
 	OHLCV,
 	BackfillSetDocument,
-	AllowedExchanges,
+	SingleBackfillSet,
 } from "../../../types";
 import {
 	reshapeOHLCV,
-	connectToDb,
 	getBackfillCollection,
 	buildRegexPath,
+	debugLog,
 } from "../../../utils";
 import { Collection } from "mongodb";
 import initializeBackfillTree from "../../../utils/db/initializeBackfillTree";
@@ -59,41 +59,60 @@ const getTimestampsToFetch = async (
 
 const getNewRecords = async (
 	algotia: AnyAlgotia,
+	backfillCollection: Collection,
 	options: ProcessedBackfillOptions,
 	timestampsToFetch: number[]
-) => {
-	const { exchange, symbol, timeframe } = options;
-	if (timestampsToFetch.length < exchange.OHLCVRecordLimit) {
-		// call CCXT method fetchOHLCV to retrieve candles
-		const rawOHLCV = await exchange.fetchOHLCV(
-			symbol,
-			timeframe,
-			timestampsToFetch[0],
-			timestampsToFetch.length
-		);
-		const candleSet = reshapeOHLCV(rawOHLCV);
-		// save retrieved candles to db
-		const { mongoClient } = algotia;
-		const db = await connectToDb(mongoClient);
-		const backfillCollection = getBackfillCollection(db);
+): Promise<void> => {
+	try {
+		const { exchange, symbol, timeframe } = options;
+		if (timestampsToFetch.length < exchange.OHLCVRecordLimit) {
+			// call CCXT method fetchOHLCV to retrieve candles
 
-		await initializeBackfillTree(backfillCollection, options);
+			const rawOHLCV = await exchange.fetchOHLCV(
+				symbol,
+				timeframe,
+				timestampsToFetch[0],
+				timestampsToFetch.length
+			);
 
-		const timeframePath = buildRegexPath(exchange.id, symbol, timeframe);
+			debugLog(
+				algotia,
+				{
+					label: `fetchOHLCV timestamps (length: ${rawOHLCV.length}) `,
+					value: rawOHLCV.map((candle) => new Date(candle[0]).toISOString()),
+				},
+				"info"
+			);
 
-		await backfillCollection.updateOne(
-			{ path: timeframePath },
-			{ $push: { candles: { $each: candleSet } } }
-		);
-	} else {
-		//TODO: Paginate requests
+			const candleSet = reshapeOHLCV(rawOHLCV);
+
+			// checks if parent nodes exist on tree if not creating them
+			await initializeBackfillTree(backfillCollection, options);
+
+			const timeframePath = buildRegexPath(exchange.id, symbol, timeframe);
+
+			debugLog(
+				algotia,
+				`Inserting ${candleSet.length} objects onto array 'candles' at document with path ${timeframePath}`
+			);
+			// save retrieved candles to db
+			await backfillCollection.updateOne(
+				{ path: timeframePath },
+				{ $push: { candles: { $each: candleSet } } }
+			);
+		} else {
+			//TODO: Paginate requests
+		}
+	} catch (err) {
+		debugLog(algotia, err.message, "error");
+		throw err;
 	}
 };
 
 const getRecordsFromDb = async (
 	backfillCollection: Collection,
 	options: ProcessedBackfillOptions
-) => {
+): Promise<SingleBackfillSet> => {
 	try {
 		const {
 			since,
@@ -140,9 +159,9 @@ const getRecordsFromDb = async (
 const fetchRecords = async (
 	algotia: AnyAlgotia,
 	options: ProcessedBackfillOptions
-) => {
+): Promise<SingleBackfillSet> => {
 	try {
-		const db = await connectToDb(algotia.mongoClient);
+		const db = algotia.mongo;
 		const backfillCollection = getBackfillCollection(db);
 
 		// Determine which candles we actually need to fetch
@@ -154,11 +173,25 @@ const fetchRecords = async (
 		// If there are any new timestamps to fetch
 		if (timestampsToFetch.length !== 0) {
 			// fetch candles from exchange
-			await getNewRecords(algotia, options, timestampsToFetch);
+			await getNewRecords(
+				algotia,
+				backfillCollection,
+				options,
+				timestampsToFetch
+			);
 		}
 
 		// fetch all requested candles from db
-		return await getRecordsFromDb(backfillCollection, options);
+		const records = await getRecordsFromDb(backfillCollection, options);
+
+		debugLog(algotia, `Pulled ${records.length} records from the database`);
+		debugLog(
+			algotia,
+			{ label: "Backfill returned ", value: records },
+			"return_value"
+		);
+
+		return records;
 	} catch (err) {
 		throw err;
 	}

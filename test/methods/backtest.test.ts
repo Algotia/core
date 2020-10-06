@@ -14,4 +14,8 @@ describe("Backtest method", () => {
 	afterAll(async () => {
 		algotia.quit();
 	});
+
+	test("works", () => {
+		expect(1).toStrictEqual(1);
+	});
 });
