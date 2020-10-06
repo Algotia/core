@@ -1,9 +1,4 @@
-import {
-	boot,
-	SingleBacktestOptions,
-	AnyAlgotia,
-	MultiBacktestOptions,
-} from "../../src/algotia";
+import { boot, AnyAlgotia, MultiBackfillOptions } from "../../src/algotia";
 import backfill from "../../src/methods/backtest/backfill/index";
 import { getBorderCharacters, table } from "table";
 import { parseTimeframe } from "../../src/utils";
@@ -48,15 +43,15 @@ describe("Backfill method", () => {
 	/* }); */
 	test("Multi backfill works", async () => {
 		try {
-			const options: MultiBacktestOptions = {
+			const res = await backfill(algotia, {
 				since: "1/01/2020",
 				until: "1/02/2020",
 				symbol: "ETH/BTC",
 				timeframe: "1h",
 				type: "multi",
-				strategy: () => {},
-			};
-			const res = await backfill(algotia, options, ["binance", "bittrex"]);
+				exchanges: ["binance", "kucoin"],
+			});
+
 			expect(1).toStrictEqual(1);
 		} catch (err) {
 			throw err;

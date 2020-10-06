@@ -1,18 +1,14 @@
 import {
 	AnyAlgotia,
-	SingleBacktestOptions,
 	SingleBackfillSet,
 	MultiBackfillSet,
-	isMultiBacktestOptions,
-	isSingleBacktestOptions,
 	ExchangeID,
 	ProcessedBackfillOptions,
 	BackfillOptions,
+	SingleBackfillOptions,
+	MultiBackfillOptions,
 	Exchange,
-	isExchangeID,
-	AllowedExchanges,
 } from "../../../types";
-import { MultiBacktestOptions } from "../../../types/";
 import fetchRecords from "./fetchRecords";
 import {
 	parseDate,
@@ -24,98 +20,73 @@ import {
 
 // Overload functions so that backfill can return multiple types
 // based on input (Opts)
-const isMultiExchangeID = (
-	arr: ExchangeID | ExchangeID[]
-): arr is ExchangeID[] => {
-	if (arr.length) {
-		return true;
-	}
+const isSingleBackfillOptions = (opts: any): opts is SingleBackfillOptions => {
+	return opts.type === "single" || undefined;
 };
 
-async function backfill<
-	Opts extends SingleBacktestOptions,
-	ID extends ExchangeID
->(algotia: AnyAlgotia, opts: Opts, exchange?: ID): Promise<SingleBackfillSet>;
+const isMultiBackfillOptions = (opts: any): opts is MultiBackfillOptions => {
+	return opts.type === "multi";
+};
 
-async function backfill<
-	Opts extends MultiBacktestOptions,
-	IDArr extends ExchangeID[]
->(
+async function backfill<Opts extends SingleBackfillOptions>(
 	algotia: AnyAlgotia,
-	opts: Opts,
-	exchanges: IDArr
-): Promise<MultiBackfillSet<ExchangeID[]>>;
+	opts: Opts
+): Promise<SingleBackfillSet>;
+
+async function backfill<Opts extends MultiBackfillOptions>(
+	algotia: AnyAlgotia,
+	opts: Opts
+): Promise<MultiBackfillSet<Opts>>;
 
 // Main backfill method
 async function backfill<
-	Opts extends SingleBacktestOptions | MultiBacktestOptions,
-	AnyExchangeID extends ExchangeID[]
+	Opts extends SingleBackfillOptions | MultiBackfillOptions
 >(
 	algotia: AnyAlgotia,
-	opts: Opts,
-	exchange?: ExchangeID,
-	exchanges?: AnyExchangeID
-): Promise<MultiBackfillSet<AnyExchangeID> | SingleBackfillSet> {
+	opts: Opts
+): Promise<SingleBackfillSet | MultiBackfillSet> {
 	try {
 		debugLog(algotia, "Starting backfill");
 
-		if (exchange) {
-			if (isSingleBacktestOptions(opts) && isExchangeID(exchange)) {
-				// Single Backfill
-				const options = processFetchOptions(algotia, opts, exchange);
+		if (isSingleBackfillOptions(opts)) {
+			// Single Backfill
+			const options = processFetchOptions(algotia, opts, opts.exchange);
+
+			debugLog(algotia, {
+				label: `processed backfill options (${options.exchange.id}): `,
+				value: options,
+			});
+
+			return await fetchRecords(algotia, options);
+
+			//TODO: retrieve records
+		} else if (isMultiBackfillOptions(opts)) {
+			let multiSet: MultiBackfillSet;
+			for (const exchangeId of opts.exchanges) {
+				const options = processFetchOptions(algotia, opts, exchangeId);
 
 				debugLog(algotia, {
-					label: `processed backfill options (${exchange}): `,
+					label: `processed backfill options (${options.exchange.id}): `,
 					value: options,
 				});
 
-				return await fetchRecords(algotia, options);
+				const singleSet = await fetchRecords(algotia, options);
 
-				//TODO: retrieve records
-			} else if (isMultiBacktestOptions(opts)) {
-				if (isMultiExchangeID(exchange)) {
-					const promises: Promise<
-						{
-							[key in ExchangeID]?: SingleBackfillSet;
-						}
-					>[] = exchange.map(async (id: ExchangeID) => {
-						const options = processFetchOptions(algotia, opts, id);
-
-						debugLog(algotia, {
-							label: `processed backfill options (${exchange}): `,
-							value: options,
-						});
-
-						const candles = await fetchRecords(algotia, options);
-
-						return { [id]: candles };
-						/* records = { */
-						/* 	...records, */
-						/* 	[id]: candles, */
-						/* }; */
-					});
-					const multiSet = await Promise.all(promises);
-
-					const set: MultiBackfillSet<AnyExchangeID> = multiSet.reduce(
-						(prev, next) => {
-							return (prev = {
-								...prev,
-								...next,
-							});
-						}
-					);
-					return set;
-				}
+				multiSet = {
+					...multiSet,
+					[exchangeId]: singleSet,
+				};
 			}
+			return multiSet;
 		}
 	} catch (err) {
 		throw err;
 	}
 }
 
-const processFetchOptions = <Options extends BackfillOptions>(
+const processFetchOptions = (
 	algotia: AnyAlgotia,
-	options: Options,
+	options: BackfillOptions,
 	exchangeId: ExchangeID
 ): ProcessedBackfillOptions => {
 	const { until, since, timeframe } = options;
