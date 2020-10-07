@@ -1,6 +1,6 @@
 import { isExchangeID, AnyAlgotia, Exchange } from "../../types/";
 
-const getDefaultExchangeId = (algotia: AnyAlgotia): Exchange => {
+const getDefaultExchange = (algotia: AnyAlgotia): Exchange => {
 	const { config, exchanges } = algotia;
 	const key = Object.keys(config.exchange)[0];
 	if (isExchangeID(key)) {
@@ -8,4 +8,4 @@ const getDefaultExchangeId = (algotia: AnyAlgotia): Exchange => {
 	}
 };
 
-export default getDefaultExchangeId;
+export default getDefaultExchange;

@@ -20,11 +20,9 @@ export interface Config {
 
 export type ExchangeRecord<T> = Record<keyof Config["exchange"], T>;
 
-export type AlgotiaExchanges = ExchangeRecord<Exchange>;
-
 export interface Algotia<Conf extends Config> {
 	config: Conf;
-	exchanges: AlgotiaExchanges;
+	exchanges: ExchangeRecord<Exchange>;
 	mongo: Db;
 	redis: Redis;
 	quit: () => void;

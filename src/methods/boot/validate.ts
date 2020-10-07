@@ -55,8 +55,7 @@ const validateConfig = (config: Config): Config => {
 		});
 
 		exec("mongo --eval '{ping: 1}'", (err) => {
-			const port =
-				config.mongo && config.mongo.port ? config.mongo.port : 27017;
+			const port = 27017;
 			if (err) throw new Error(`Mongo server is not running on ${port}`);
 		});
 
@@ -68,8 +67,7 @@ const validateConfig = (config: Config): Config => {
 
 		exec("redis-cli PING", (err) => {
 			if (err) {
-				const port =
-					config.redis && config.redis.port ? config.redis.port : 6379;
+				const port = 6379;
 				throw new Error(`Redis server is npot running on ${port}`);
 			}
 		});

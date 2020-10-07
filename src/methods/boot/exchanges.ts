@@ -1,14 +1,16 @@
 import { exchangeFactory } from "../../utils/";
-import { isExchangeID, Config, AlgotiaExchanges } from "../../types";
+import { isExchangeID, Config, ExchangeRecord, Exchange } from "../../types";
 
 const isBooleanExchangeConfig = (obj: any): obj is boolean => {
 	return typeof obj === "boolean";
 };
 
-const bootExhanges = <Conf extends Config>(config: Conf): AlgotiaExchanges => {
+const bootExhanges = <Conf extends Config>(
+	config: Conf
+): ExchangeRecord<Exchange> => {
 	try {
 		const { exchange } = config;
-		let exchanges: AlgotiaExchanges;
+		let exchanges: ExchangeRecord<Exchange>;
 		for (const id in exchange) {
 			if (isExchangeID(id)) {
 				const exchangeConfig = exchange[id];

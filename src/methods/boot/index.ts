@@ -12,7 +12,7 @@ const boot = async <Conf extends Config>(
 
 		validateConfig(config);
 
-		const { mongo, mongoClient, redis } = await bootDatabases(config);
+		const { mongo, mongoClient, redis } = await bootDatabases();
 
 		const exchanges = bootExhanges(config);
 

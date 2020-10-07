@@ -4,12 +4,18 @@ import {
 	OHLCV,
 	BackfillSetDocument,
 	SingleBackfillSet,
+	BackfillOptions,
+	ExchangeID,
+	Exchange,
 } from "../../../types";
 import {
 	reshapeOHLCV,
 	getBackfillCollection,
 	buildRegexPath,
 	debugLog,
+	parseDate,
+	getDefaultExchange,
+	parseTimeframe,
 } from "../../../utils";
 import { Collection } from "mongodb";
 import initializeBackfillTree from "../../../utils/db/initializeBackfillTree";
@@ -156,18 +162,51 @@ const getRecordsFromDb = async (
 	}
 };
 
+const processFetchOptions = (
+	algotia: AnyAlgotia,
+	options: BackfillOptions,
+	exchangeId?: ExchangeID
+): ProcessedBackfillOptions => {
+	const { until, since, timeframe } = options;
+
+	const sinceMs = parseDate(since);
+	const untilMs = parseDate(until);
+
+	let exchange: Exchange;
+	if (!exchangeId) {
+		exchange = getDefaultExchange(algotia);
+	} else {
+		exchange = algotia.exchanges[exchangeId];
+	}
+
+	const { periodMS } = parseTimeframe(timeframe);
+	const recordsBetween = Math.floor((untilMs - sinceMs) / periodMS);
+
+	return {
+		...options,
+		periodMS,
+		recordsBetween,
+		since: sinceMs,
+		until: untilMs,
+		exchange,
+	};
+};
+
 const fetchRecords = async (
 	algotia: AnyAlgotia,
-	options: ProcessedBackfillOptions
+	options: BackfillOptions,
+	exchangeId?: ExchangeID
 ): Promise<SingleBackfillSet> => {
 	try {
 		const db = algotia.mongo;
 		const backfillCollection = getBackfillCollection(db);
 
+		const processedOptions = processFetchOptions(algotia, options, exchangeId);
+
 		// Determine which candles we actually need to fetch
 		const timestampsToFetch = await getTimestampsToFetch(
 			backfillCollection,
-			options
+			processedOptions
 		);
 
 		// If there are any new timestamps to fetch
@@ -176,13 +215,16 @@ const fetchRecords = async (
 			await getNewRecords(
 				algotia,
 				backfillCollection,
-				options,
+				processedOptions,
 				timestampsToFetch
 			);
 		}
 
 		// fetch all requested candles from db
-		const records = await getRecordsFromDb(backfillCollection, options);
+		const records = await getRecordsFromDb(
+			backfillCollection,
+			processedOptions
+		);
 
 		debugLog(algotia, `Pulled ${records.length} records from the database`);
 		debugLog(

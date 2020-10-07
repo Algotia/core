@@ -9,14 +9,13 @@ import {
 	MultiBackfillOptions,
 	Exchange,
 } from "../../../types";
-import fetchRecords from "./fetchRecords";
 import {
 	parseDate,
-	getDefaultExchange,
-	exchangeFactory,
 	parseTimeframe,
 	debugLog,
+	getDefaultExchange,
 } from "../../../utils";
+import fetchRecords from "./fetchRecords";
 
 // Overload functions so that backfill can return multiple types
 // based on input (Opts)
@@ -30,12 +29,12 @@ const isMultiBackfillOptions = (opts: any): opts is MultiBackfillOptions => {
 
 async function backfill<Opts extends SingleBackfillOptions>(
 	algotia: AnyAlgotia,
-	opts: Opts
+	options: Opts
 ): Promise<SingleBackfillSet>;
 
 async function backfill<Opts extends MultiBackfillOptions>(
 	algotia: AnyAlgotia,
-	opts: Opts
+	options: Opts
 ): Promise<MultiBackfillSet<Opts>>;
 
 // Main backfill method
@@ -43,35 +42,21 @@ async function backfill<
 	Opts extends SingleBackfillOptions | MultiBackfillOptions
 >(
 	algotia: AnyAlgotia,
-	opts: Opts
+	options: Opts
 ): Promise<SingleBackfillSet | MultiBackfillSet> {
 	try {
 		debugLog(algotia, "Starting backfill");
 
-		if (isSingleBackfillOptions(opts)) {
+		if (isSingleBackfillOptions(options)) {
 			// Single Backfill
-			const options = processFetchOptions(algotia, opts, opts.exchange);
-
-			debugLog(algotia, {
-				label: `processed backfill options (${options.exchange.id}): `,
-				value: options,
-			});
 
 			return await fetchRecords(algotia, options);
 
 			//TODO: retrieve records
-		} else if (isMultiBackfillOptions(opts)) {
+		} else if (isMultiBackfillOptions(options)) {
 			let multiSet: MultiBackfillSet;
-			for (const exchangeId of opts.exchanges) {
-				const options = processFetchOptions(algotia, opts, exchangeId);
-
-				debugLog(algotia, {
-					label: `processed backfill options (${options.exchange.id}): `,
-					value: options,
-				});
-
-				const singleSet = await fetchRecords(algotia, options);
-
+			for (const exchangeId of options.exchanges) {
+				const singleSet = await fetchRecords(algotia, options, exchangeId);
 				multiSet = {
 					...multiSet,
 					[exchangeId]: singleSet,
@@ -83,35 +68,5 @@ async function backfill<
 		throw err;
 	}
 }
-
-const processFetchOptions = (
-	algotia: AnyAlgotia,
-	options: BackfillOptions,
-	exchangeId: ExchangeID
-): ProcessedBackfillOptions => {
-	const { until, since, timeframe } = options;
-
-	const sinceMs = parseDate(since);
-	const untilMs = parseDate(until);
-
-	let exchange: Exchange;
-	if (!exchangeId) {
-		exchange = getDefaultExchange(algotia);
-	} else {
-		exchange = exchangeFactory({ id: exchangeId });
-	}
-
-	const { periodMS } = parseTimeframe(timeframe);
-	const recordsBetween = Math.floor((untilMs - sinceMs) / periodMS);
-
-	return {
-		...options,
-		periodMS,
-		recordsBetween,
-		since: sinceMs,
-		until: untilMs,
-		exchange,
-	};
-};
 
 export default backfill;
