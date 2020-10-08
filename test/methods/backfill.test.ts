@@ -46,7 +46,7 @@ describe("Backfill method", () => {
 			const res = await backfill(algotia, {
 				since: "1/01/2020",
 				until: "1/02/2020",
-				symbol: "ETH/BTC",
+				pair: "ETH/BTC",
 				timeframe: "1h",
 				type: "multi",
 				exchanges: ["binance", "kucoin"],

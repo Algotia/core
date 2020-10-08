@@ -3,7 +3,7 @@ import { ExchangeID, Timeframe, OHLCV, Exchange } from "../shared";
 export interface BackfillOptions {
 	since: number | string | Date;
 	until: number | string | Date;
-	symbol: string;
+	pair: string;
 	timeframe: Timeframe;
 	type?: "single" | "multi";
 }

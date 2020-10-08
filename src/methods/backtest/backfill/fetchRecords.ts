@@ -28,13 +28,13 @@ const getTimestampsToFetch = async (
 		const {
 			since,
 			timeframe,
-			symbol,
+			pair,
 			periodMS,
 			recordsBetween,
 			exchange,
 		} = options;
 
-		const setPath = buildRegexPath(exchange.id, symbol, timeframe);
+		const setPath = buildRegexPath(exchange.id, pair, timeframe);
 		const dbSets = await backfillCollection.findOne({
 			path: setPath,
 		});
@@ -70,12 +70,12 @@ const getNewRecords = async (
 	timestampsToFetch: number[]
 ): Promise<void> => {
 	try {
-		const { exchange, symbol, timeframe } = options;
+		const { exchange, pair, timeframe } = options;
 		if (timestampsToFetch.length < exchange.OHLCVRecordLimit) {
 			// call CCXT method fetchOHLCV to retrieve candles
 
 			const rawOHLCV = await exchange.fetchOHLCV(
-				symbol,
+				pair,
 				timeframe,
 				timestampsToFetch[0],
 				timestampsToFetch.length
@@ -95,7 +95,7 @@ const getNewRecords = async (
 			// checks if parent nodes exist on tree if not creating them
 			await initializeBackfillTree(backfillCollection, options);
 
-			const timeframePath = buildRegexPath(exchange.id, symbol, timeframe);
+			const timeframePath = buildRegexPath(exchange.id, pair, timeframe);
 
 			debugLog(
 				algotia,
@@ -122,14 +122,14 @@ const getRecordsFromDb = async (
 	try {
 		const {
 			since,
-			symbol,
+			pair,
 			timeframe,
 			exchange,
 			recordsBetween,
 			periodMS,
 		} = options;
 
-		const path = buildRegexPath(exchange.id, symbol, timeframe);
+		const path = buildRegexPath(exchange.id, pair, timeframe);
 
 		const set: BackfillSetDocument = await backfillCollection.findOne({
 			path,

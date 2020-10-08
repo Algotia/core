@@ -7,7 +7,7 @@ const initializeBackfillTree = async (
 	options: ProcessedBackfillOptions
 ) => {
 	try {
-		const { exchange, symbol, timeframe } = options;
+		const { exchange, pair, timeframe } = options;
 		const rootNodeExists = await backfillCollection.findOne({
 			_id: "exchanges",
 		});
@@ -25,26 +25,26 @@ const initializeBackfillTree = async (
 				})),
 			]);
 		}
-		const symbolPath = buildRegexPath(exchange.id, symbol);
-		const symbolNodeExists = await backfillCollection.findOne({
-			path: symbolPath,
+		const pairPath = buildRegexPath(exchange.id, pair);
+		const pairPathExists = await backfillCollection.findOne({
+			path: pairPath,
 		});
 
-		if (!symbolNodeExists) {
+		if (!pairPathExists) {
 			await backfillCollection.insertOne({
-				_id: `${exchange.id}-${symbol}`,
-				path: symbolPath,
+				_id: `${exchange.id}-${pair}`,
+				path: pairPath,
 			});
 		}
 
-		const timeframePath = buildRegexPath(exchange.id, symbol, timeframe);
+		const timeframePath = buildRegexPath(exchange.id, pair, timeframe);
 		const timeframeNodeExists = await backfillCollection.findOne({
 			path: timeframePath,
 		});
 
 		if (!timeframeNodeExists) {
 			await backfillCollection.insertOne({
-				_id: `${exchange.id}-${symbol}-${timeframe}`,
+				_id: `${exchange.id}-${pair}-${timeframe}`,
 				path: timeframePath,
 				sets: [],
 			});

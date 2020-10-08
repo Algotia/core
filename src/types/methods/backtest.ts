@@ -1,5 +1,13 @@
-import { BackfillOptions, SingleBackfillOptions } from "./backfill";
+import {
+	BackfillOptions,
+	SingleBackfillOptions,
+	MultiBackfillOptions,
+	SingleBackfillSet,
+	MultiBackfillSet,
+} from "./backfill";
 import { Exchange } from "../index";
+import { ExchangeRecord } from ".";
+import { OHLCV } from "../shared";
 
 export interface BaseAndQuoteCurrencies {
 	[key: string]: number;
@@ -9,8 +17,21 @@ export type SingleInitialBalance = BaseAndQuoteCurrencies;
 
 export interface BacktestOptions extends BackfillOptions {}
 
+type SingleSyncStrategy = (exchange: BacktestingExchange, data: OHLCV) => void;
+type SingleAsyncStrategy = (
+	exchange: BacktestingExchange,
+	data: OHLCV
+) => Promise<void>;
+
+type SingleStrategy = SingleSyncStrategy | SingleAsyncStrategy;
+
 export interface SingleBacktestOptions extends SingleBackfillOptions {
 	initialBalance: SingleInitialBalance;
+	strategy: SingleStrategy;
+}
+
+export interface MultiBacktestOptions extends MultiBackfillOptions {
+	initialBalance: ExchangeRecord<SingleInitialBalance>;
 }
 
 type SupportedBackfillMethods =
