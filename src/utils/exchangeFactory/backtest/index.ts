@@ -1,8 +1,12 @@
-import { Exchange, AnyAlgotia, BackfillOptions } from "../../types";
-import { BacktestingExchange } from "../../types/methods/backtest";
+import {
+	Exchange,
+	AnyAlgotia,
+	BackfillOptions,
+	BacktestingExchange,
+} from "../../../types";
+import { parsePair, debugLog } from "../../general";
 import { Balances, Balance, Params, Order } from "ccxt";
 import { v4 as uuid } from "uuid";
-import { parsePair } from "../general";
 import { flatten } from "flat";
 
 const backtestExchangeFactory = (
@@ -10,9 +14,7 @@ const backtestExchangeFactory = (
 	options: BackfillOptions,
 	exchange: Exchange
 ): BacktestingExchange => {
-	const fetchBalance: Exchange["fetchBalance"] = async function fetchBalance(
-		params
-	) {
+	async function fetchBalance(params?: Params) {
 		const splitPair = parsePair(options.pair);
 		const balanceKeys = ["total", "used", "free"];
 
@@ -34,7 +36,7 @@ const backtestExchangeFactory = (
 		}
 		balance.info = { ...balance };
 		return balance;
-	};
+	}
 
 	async function createOrder(
 		symbol: string,
@@ -54,7 +56,10 @@ const backtestExchangeFactory = (
 				const priceString = await algotia.redis.get(`current-price:${symbol}`);
 				price = Number(priceString);
 			}
-			if (price > balance[quote].free) {
+
+			const cost = amount * price;
+
+			if (cost > balance[quote].free) {
 				throw new Error(
 					`Insufficent balance for order costing ${price} -- ${balance[quote]}`
 				);
@@ -75,7 +80,7 @@ const backtestExchangeFactory = (
 				average: null,
 				filled: 0,
 				remaining: amount,
-				cost: null,
+				cost: cost,
 				trades: [],
 				info: {},
 				fee: {
@@ -91,8 +96,15 @@ const backtestExchangeFactory = (
 			};
 			const flatOrder: any = flatten(order);
 			const orderId = `order-${uuid()}`;
+			const quoteBalancePath = `${exchange.id}-balance:${quote}`;
+			const oldBalance = await algotia.redis.hgetall(quoteBalancePath);
+			await algotia.redis.hmset(quoteBalancePath, {
+				free: Number(oldBalance.free) - cost,
+				used: Number(oldBalance.used) + cost,
+				total: Number(oldBalance.free) - cost,
+			});
 			await algotia.redis.hmset(orderId, flatOrder);
-			await algotia.redis.lpush("open-orders", orderId);
+			await algotia.redis.lpush(`${exchange.id}-open-orders`, orderId);
 
 			return order;
 		} catch (err) {
@@ -134,7 +146,7 @@ const backtestExchangeFactory = (
 		fetchOHLCV: exchange.fetchOHLCV,
 		// PRIVATE API
 		fetchBalance: fetchBalance,
-		createOrder: createOrder.bind(this),
+		createOrder: createOrder,
 		cancelOrder: exchange.cancelOrder,
 		editOrder: exchange.editOrder,
 		fetchOrder: exchange.fetchOrder,

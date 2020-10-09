@@ -1,23 +1,22 @@
-import { AnyAlgotia, ExchangeID, OHLCV } from "../../types";
 import {
+	AnyAlgotia,
+	ExchangeID,
+	OHLCV,
+	BackfillOptions,
 	SingleBacktestOptions,
 	MultiBacktestOptions,
 	SingleInitialBalance,
-} from "../../types/methods/backtest";
+	BacktestingExchange,
+	SingleStrategy,
+	isMulti,
+	isSingle,
+} from "../../types";
 import {
 	getDefaultExchange,
 	backtestExchangeFactory,
-	parsePair,
+	debugLog,
 } from "../../utils";
 import backfill from "./backfill";
-
-const isMultiOptions = (opts: any): opts is MultiBacktestOptions => {
-	return opts.type === "multi";
-};
-
-const isSingleOptions = (opts: any): opts is SingleBacktestOptions => {
-	return opts.type === "single" || undefined;
-};
 
 const initializeBalance = async (
 	algotia: AnyAlgotia,
@@ -40,35 +39,38 @@ const initializeBalance = async (
 	}
 };
 
-const updateCurrentPrice = async (
+const updateContext = async (
 	algotia: AnyAlgotia,
-	pair: string,
+	options: BackfillOptions,
 	candle: OHLCV
-) => {
+): Promise<void> => {
 	try {
 		const { redis } = algotia;
-		await redis.set(`current-price:${pair}`, candle.open);
+		await redis.set("current-time", candle.timestamp);
+		await redis.set(`current-price:${options.pair}`, candle.open);
 	} catch (err) {
 		throw err;
 	}
 };
 
-const validateOptions = (
-	algotia: AnyAlgotia,
-	options: SingleBacktestOptions | MultiBacktestOptions
-) => {
-	const configuredExchangeIDs = Object.keys(algotia.exchanges);
-
-	if (isSingleOptions(options)) {
-		if (options.exchange) {
-			if (!configuredExchangeIDs.includes(options.exchange)) {
-				throw new Error(`Exchange ${options.exchange} not configured`);
-			}
+const executeStrategy = async (
+	strategy: SingleStrategy,
+	exchange: BacktestingExchange,
+	candle: OHLCV
+): Promise<void> => {
+	try {
+		const promise = strategy(exchange, candle);
+		if (
+			promise &&
+			typeof promise.then === "function" &&
+			promise[Symbol.toStringTag] === "Promise"
+		) {
+			await Promise.resolve(promise);
+		} else {
+			return;
 		}
-		//TODO: WAY BETTER VALIDATION
-	}
-
-	if (isMultiOptions(options)) {
+	} catch (err) {
+		throw err;
 	}
 };
 
@@ -76,7 +78,7 @@ async function backtest<
 	Options extends SingleBacktestOptions | MultiBacktestOptions
 >(algotia: AnyAlgotia, options: Options) {
 	try {
-		if (isSingleOptions(options)) {
+		if (isSingle<SingleBacktestOptions>(options)) {
 			const exchange = options.exchange
 				? algotia.exchanges[options.exchange]
 				: getDefaultExchange(algotia);
@@ -89,18 +91,29 @@ async function backtest<
 				exchange
 			);
 
+			class StrategyError extends Error {
+				messages: string[];
+				push: (err: string) => void;
+				constructor() {
+					super("Strategy Error");
+					this.messages = [];
+					this.push = (err) => {
+						this.messages.push("\n" + err);
+					};
+				}
+			}
+			let strategyError = new StrategyError();
 			for (let i = 0; i < data.length; i++) {
 				const candle = data[i];
-				await updateCurrentPrice(algotia, options.pair, candle);
-				await algotia.redis.set("current-time", candle.timestamp);
-				const possiblePromise = strategy(backtestingExchange, candle);
-				if (
-					possiblePromise &&
-					typeof possiblePromise.then === "function" &&
-					possiblePromise[Symbol.toStringTag] === "Promise"
-				) {
-					await Promise.resolve(possiblePromise);
+				await updateContext(algotia, options, candle);
+				try {
+					await executeStrategy(strategy, backtestingExchange, candle);
+				} catch (err) {
+					strategyError.push(err.message);
 				}
+			}
+			if (strategyError.messages.length) {
+				throw `Strategy produced the following errors \n ${strategyError.messages}`;
 			}
 		}
 	} catch (err) {

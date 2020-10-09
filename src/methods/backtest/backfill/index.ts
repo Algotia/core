@@ -2,30 +2,16 @@ import {
 	AnyAlgotia,
 	SingleBackfillSet,
 	MultiBackfillSet,
-	ExchangeID,
-	ProcessedBackfillOptions,
-	BackfillOptions,
 	SingleBackfillOptions,
 	MultiBackfillOptions,
-	Exchange,
+	isSingle,
+	isMulti,
 } from "../../../types";
-import {
-	parseDate,
-	parseTimeframe,
-	debugLog,
-	getDefaultExchange,
-} from "../../../utils";
+import { debugLog } from "../../../utils";
 import fetchRecords from "./fetchRecords";
 
 // Overload functions so that backfill can return multiple types
 // based on input (Opts)
-const isSingleBackfillOptions = (opts: any): opts is SingleBackfillOptions => {
-	return opts.type === "single" || undefined;
-};
-
-const isMultiBackfillOptions = (opts: any): opts is MultiBackfillOptions => {
-	return opts.type === "multi";
-};
 
 async function backfill<Opts extends SingleBackfillOptions>(
 	algotia: AnyAlgotia,
@@ -47,13 +33,13 @@ async function backfill<
 	try {
 		debugLog(algotia, "Starting backfill");
 
-		if (isSingleBackfillOptions(options)) {
+		if (isSingle<SingleBackfillOptions>(options)) {
 			// Single Backfill
 
 			return await fetchRecords(algotia, options);
 
 			//TODO: retrieve records
-		} else if (isMultiBackfillOptions(options)) {
+		} else if (isMulti<MultiBackfillOptions>(options)) {
 			let multiSet: MultiBackfillSet;
 			for (const exchangeId of options.exchanges) {
 				const singleSet = await fetchRecords(algotia, options, exchangeId);

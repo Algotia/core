@@ -23,7 +23,7 @@ type SingleAsyncStrategy = (
 	data: OHLCV
 ) => Promise<void>;
 
-type SingleStrategy = SingleSyncStrategy | SingleAsyncStrategy;
+export type SingleStrategy = SingleSyncStrategy | SingleAsyncStrategy;
 
 export interface SingleBacktestOptions extends SingleBackfillOptions {
 	initialBalance: SingleInitialBalance;

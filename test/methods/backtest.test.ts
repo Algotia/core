@@ -1,5 +1,6 @@
 import { boot, backtest } from "../../src/methods";
 import { AnyAlgotia } from "../../src/types";
+import { debugLog } from "../../src/utils";
 
 describe("Backtest method", () => {
 	let algotia: AnyAlgotia;
@@ -8,6 +9,7 @@ describe("Backtest method", () => {
 			exchange: {
 				binance: true,
 			},
+			debug: false,
 		});
 	});
 
@@ -24,15 +26,11 @@ describe("Backtest method", () => {
 				timeframe: "1h",
 				type: "single",
 				initialBalance: {
-					BTC: 100,
-					ETH: 100,
+					BTC: 0.05,
+					ETH: 0,
 				},
 				strategy: async (exchange, data) => {
-					try {
-						await exchange.createOrder("ETH/BTC", "market", "buy", 1);
-					} catch (err) {
-						throw err;
-					}
+					await exchange.createOrder("ETH/BTC", "market", "buy", 1);
 				},
 			});
 		} catch (err) {
