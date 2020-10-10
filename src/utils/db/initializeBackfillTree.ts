@@ -12,7 +12,6 @@ const initializeBackfillTree = async (
 			_id: "exchanges",
 		});
 
-		console.log("ROOT NODE ", rootNodeExists);
 		if (!rootNodeExists) {
 			await backfillCollection.insertMany([
 				{

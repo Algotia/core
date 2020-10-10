@@ -9,7 +9,7 @@ describe("Backtest method", () => {
 			exchange: {
 				binance: true,
 			},
-			debug: false,
+			debug: true,
 		});
 	});
 
@@ -23,14 +23,27 @@ describe("Backtest method", () => {
 				since: "1/01/2020",
 				until: "1/02/2020",
 				pair: "ETH/BTC",
-				timeframe: "1h",
+				timeframe: "15m",
 				type: "single",
 				initialBalance: {
-					BTC: 0.05,
+					BTC: 1,
 					ETH: 0,
 				},
 				strategy: async (exchange, data) => {
-					await exchange.createOrder("ETH/BTC", "market", "buy", 1);
+					const balance = await exchange.fetchBalance();
+					const totalETH = balance["ETH"].free;
+					/* if (totalETH > 0) { */
+					/* } */
+					if (balance["BTC"].free > data.close * 50) {
+						return await exchange.createOrder("ETH/BTC", "market", "buy", 50);
+					} else {
+						return await exchange.createOrder(
+							"ETH/BTC",
+							"market",
+							"sell",
+							totalETH
+						);
+					}
 				},
 			});
 		} catch (err) {

@@ -5,7 +5,6 @@ export interface BackfillOptions {
 	until: number | string | Date;
 	pair: string;
 	timeframe: Timeframe;
-	type?: "single" | "multi";
 }
 
 export interface ProcessedBackfillOptions extends BackfillOptions {

@@ -4,114 +4,14 @@ import {
 	BackfillOptions,
 	BacktestingExchange,
 } from "../../../types";
-import { parsePair, debugLog } from "../../general";
-import { Balances, Balance, Params, Order } from "ccxt";
-import { v4 as uuid } from "uuid";
-import { flatten } from "flat";
+import createFetchBalance from "./fetchBalance";
+import createCreateOrder from "./createOrder";
 
-const backtestExchangeFactory = (
+function backtestExchangeFactory(
 	algotia: AnyAlgotia,
 	options: BackfillOptions,
 	exchange: Exchange
-): BacktestingExchange => {
-	async function fetchBalance(params?: Params) {
-		const splitPair = parsePair(options.pair);
-		const balanceKeys = ["total", "used", "free"];
-
-		let balance: Balances;
-		for (const singleCurrency of splitPair) {
-			const path = `${exchange.id}-balance:${singleCurrency}`;
-			const balanceRaw = await algotia.redis.hgetall(path);
-			let singleBalance: Balance;
-			for (const key of balanceKeys) {
-				singleBalance = {
-					...singleBalance,
-					[key]: balanceRaw[key],
-				};
-			}
-			balance = {
-				...balance,
-				[singleCurrency]: singleBalance,
-			};
-		}
-		balance.info = { ...balance };
-		return balance;
-	}
-
-	async function createOrder(
-		symbol: string,
-		type: string,
-		side: "buy" | "sell",
-		amount: number,
-		price?: number,
-		params?: Params
-	): Promise<Order> {
-		try {
-			const [base, quote] = parsePair(symbol);
-			const balance = await fetchBalance();
-			if (type === "limit" && !price) {
-				throw new Error("Cannot place limit order without price");
-			}
-			if (type === "market" && !price) {
-				const priceString = await algotia.redis.get(`current-price:${symbol}`);
-				price = Number(priceString);
-			}
-
-			const cost = amount * price;
-
-			if (cost > balance[quote].free) {
-				throw new Error(
-					`Insufficent balance for order costing ${price} -- ${balance[quote]}`
-				);
-			}
-			const currentTime = await algotia.redis.get("current-time");
-
-			const order: Order = {
-				symbol,
-				type,
-				side,
-				price,
-				amount,
-				id: uuid(),
-				datetime: new Date(Number(currentTime)).toISOString(),
-				timestamp: Number(currentTime),
-				lastTradeTimestamp: null,
-				status: "open",
-				average: null,
-				filled: 0,
-				remaining: amount,
-				cost: cost,
-				trades: [],
-				info: {},
-				fee: {
-					currency: quote,
-					type: type === "market" ? "taker" : "maker",
-					rate:
-						type === "market" ? exchange.fees["taker"] : exchange.fees["maker"],
-					cost:
-						type === "market"
-							? exchange.fees["taker"] * amount
-							: exchange.fees["taker"] * amount,
-				},
-			};
-			const flatOrder: any = flatten(order);
-			const orderId = `order-${uuid()}`;
-			const quoteBalancePath = `${exchange.id}-balance:${quote}`;
-			const oldBalance = await algotia.redis.hgetall(quoteBalancePath);
-			await algotia.redis.hmset(quoteBalancePath, {
-				free: Number(oldBalance.free) - cost,
-				used: Number(oldBalance.used) + cost,
-				total: Number(oldBalance.free) - cost,
-			});
-			await algotia.redis.hmset(orderId, flatOrder);
-			await algotia.redis.lpush(`${exchange.id}-open-orders`, orderId);
-
-			return order;
-		} catch (err) {
-			throw err;
-		}
-	}
-
+): BacktestingExchange {
 	const backtestingExchange: BacktestingExchange = {
 		id: exchange.id,
 		name: exchange.name,
@@ -143,10 +43,10 @@ const backtestExchangeFactory = (
 		fetchTicker: exchange.fetchTicker,
 		fetchOrderBook: exchange.fetchOrderBook,
 		fetchTrades: exchange.fetchTrades,
-		fetchOHLCV: exchange.fetchOHLCV,
+		fetchOHLCV: exchange.fetchOHLCV.bind(exchange),
 		// PRIVATE API
-		fetchBalance: fetchBalance,
-		createOrder: createOrder,
+		fetchBalance: createFetchBalance(algotia, options, exchange),
+		createOrder: createCreateOrder(algotia, options, exchange),
 		cancelOrder: exchange.cancelOrder,
 		editOrder: exchange.editOrder,
 		fetchOrder: exchange.fetchOrder,
@@ -154,7 +54,8 @@ const backtestExchangeFactory = (
 		fetchOrders: exchange.fetchOrders,
 		fetchMyTrades: exchange.fetchMyTrades,
 	};
+
 	return backtestingExchange;
-};
+}
 
 export default backtestExchangeFactory;

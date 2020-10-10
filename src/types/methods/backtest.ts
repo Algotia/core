@@ -15,8 +15,6 @@ export interface BaseAndQuoteCurrencies {
 
 export type SingleInitialBalance = BaseAndQuoteCurrencies;
 
-export interface BacktestOptions extends BackfillOptions {}
-
 type SingleSyncStrategy = (exchange: BacktestingExchange, data: OHLCV) => void;
 type SingleAsyncStrategy = (
 	exchange: BacktestingExchange,
