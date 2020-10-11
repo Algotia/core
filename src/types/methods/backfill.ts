@@ -10,9 +10,9 @@ export interface BackfillOptions {
 export interface ProcessedBackfillOptions extends BackfillOptions {
 	since: number;
 	until: number;
-	recordsBetween: number;
 	periodMS: number;
 	exchange: Exchange;
+	recordsBetween: number;
 }
 
 export interface SingleBackfillOptions extends BackfillOptions {

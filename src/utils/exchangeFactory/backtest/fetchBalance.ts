@@ -21,7 +21,7 @@ const createFetchBalance: FetchBalance = (algotia, options, exchange) => {
 			for (const key of balanceKeys) {
 				singleBalance = {
 					...singleBalance,
-					[key]: balanceRaw[key],
+					[key]: Number(balanceRaw[key]),
 				};
 			}
 			balance = {

@@ -19,11 +19,12 @@ describe("Backtest method", () => {
 
 	test("works", async () => {
 		try {
+			const t0 = performance.now();
 			await backtest(algotia, {
 				since: "1/01/2020",
-				until: "1/02/2020",
+				until: "3/01/2020",
 				pair: "ETH/BTC",
-				timeframe: "15m",
+				timeframe: "1h",
 				type: "single",
 				initialBalance: {
 					BTC: 1,
@@ -46,6 +47,8 @@ describe("Backtest method", () => {
 					}
 				},
 			});
+			const t1 = performance.now();
+			console.log("BACKFILL TOOK ", ((t1 - t0) / 1000).toFixed(3));
 		} catch (err) {
 			throw err;
 		}

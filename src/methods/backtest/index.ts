@@ -46,7 +46,8 @@ const initializeBacktest = async (
 			};
 			debugLog(
 				algotia,
-				`Initial balance: ${singleCurrency} - ${singleBalance}`
+				`Initial balance: ${singleCurrency} - ${singleBalance}`,
+				"info"
 			);
 			await redis.hmset(key, singleBalance);
 		}
@@ -100,7 +101,7 @@ async function backtest<
 
 			const { initialBalance, strategy, ...backfillOptions } = options;
 
-			debugLog(algotia, `Starting backtest`);
+			debugLog(algotia, "Starting backtest");
 			const data = await initializeBacktest(
 				algotia,
 				initialBalance,

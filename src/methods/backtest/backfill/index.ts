@@ -31,7 +31,7 @@ async function backfill<
 	options: Opts
 ): Promise<SingleBackfillSet | MultiBackfillSet> {
 	try {
-		debugLog(algotia, "Starting backfill");
+		debugLog(algotia, "Backfilling records");
 
 		if (isSingle<SingleBackfillOptions>(options)) {
 			// Single Backfill

@@ -8,6 +8,7 @@ describe("Backfill method", () => {
 	beforeAll(async () => {
 		algotia = await boot({
 			exchange: { binance: true, bittrex: true, kucoin: true },
+			debug: true,
 		});
 	});
 	afterAll(() => {});
@@ -44,12 +45,10 @@ describe("Backfill method", () => {
 	test("Multi backfill works", async () => {
 		try {
 			const res = await backfill(algotia, {
-				since: "1/01/2020",
-				until: "1/02/2020",
+				since: "12/31/2019",
+				until: "1/05/2020",
 				pair: "ETH/BTC",
 				timeframe: "1h",
-				type: "multi",
-				exchanges: ["binance", "kucoin"],
 			});
 
 			expect(1).toStrictEqual(1);

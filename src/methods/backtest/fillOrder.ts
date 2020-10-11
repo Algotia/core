@@ -1,61 +1,53 @@
-import { parsePair, debugLog } from "../../utils";
-import { unflatten } from "flat";
-import { Order } from "ccxt";
+import { parsePair, debugLog, parseRedisFlatObj } from "../../utils";
+import { Order, Trade } from "ccxt";
 import { BacktestingExchange, AnyAlgotia, OHLCV } from "../../types";
-import { inspect } from "util";
+import flatten from "flat";
 
-const fillBuyOrder = async (
+const isMarketOrLimit = (type: any): type is "market" | "limit" => {
+	if (type === "market" || "limit") {
+		return true;
+	}
+};
+
+const createTrade = async (
 	algotia: AnyAlgotia,
-	exchange: BacktestingExchange,
-	candle: OHLCV,
 	order: Order
-) => {
+): Promise<Trade> => {
 	try {
-		if (order.price >= candle.close) {
-			const { redis } = algotia;
-			const openOrdersPath = `${exchange.id}-open-orders`;
-			const balance = await exchange.fetchBalance();
-			const [base, quote] = parsePair(order.symbol);
-			const basePath = `${exchange.id}-balance:${base}`;
-			const quotePath = `${exchange.id}-balance:${quote}`;
+		const timeStr = await algotia.redis.get("current-time");
+		const date = new Date(Number(timeStr));
+		const datetime = date.toISOString();
+		const timestamp = date.getTime();
+		const { id, symbol, side, amount, price, cost, fee } = order;
 
-			debugLog(
-				algotia,
-				`Balance before buy order fill ${inspect(balance.info)}`
-			);
-
-			await redis.hmset(basePath, {
-				free: Number(balance[base].free) + Number(order.amount),
-				used: Number(balance[base].used),
-				total: Number(balance[base].total) + Number(order.amount),
-			});
-
-			await redis.hmset(quotePath, {
-				free: Number(balance[quote].free),
-				used: Number(balance[quote].used) - Number(order.cost),
-				total: Number(balance[quote].total) - Number(order.cost),
-			});
-
-			await redis.lrem(openOrdersPath, 0, order.id);
-
-			debugLog(
-				algotia,
-				`Bought ${order.amount} ${base} @ ${order.price} ${quote} (cost: ${order.cost} ${quote}) `
-			);
-
-			const newBalance = await exchange.fetchBalance();
-
-			debugLog(
-				algotia,
-				`Balance after buy order fill ${inspect(newBalance.info)}`
-			);
+		let type: "market" | "limit";
+		if (isMarketOrLimit(order.type)) {
+			type = order.type;
 		}
+		const trade: Omit<Trade, "info"> = {
+			id,
+			symbol,
+			side,
+			amount,
+			price,
+			cost,
+			datetime,
+			timestamp,
+			type,
+			fee,
+			takerOrMaker: fee.type,
+		};
+
+		return {
+			info: { ...trade },
+			...trade,
+		};
 	} catch (err) {
 		throw err;
 	}
 };
 
-const fillSellOrder = async (
+const updateDb = async (
 	algotia: AnyAlgotia,
 	exchange: BacktestingExchange,
 	candle: OHLCV,
@@ -64,38 +56,52 @@ const fillSellOrder = async (
 	try {
 		if (order.price <= candle.close) {
 			const { redis } = algotia;
+
 			const openOrdersPath = `${exchange.id}-open-orders`;
+			const closedOrdersPath = `${exchange.id}-closed-orders`;
+
 			const balance = await exchange.fetchBalance();
+
 			const [base, quote] = parsePair(order.symbol);
+
 			const basePath = `${exchange.id}-balance:${base}`;
 			const quotePath = `${exchange.id}-balance:${quote}`;
 
-			debugLog(algotia, `Balance before sell ${inspect(balance.info)}`);
+			if (order.side === "sell") {
+				await redis.hmset(basePath, {
+					free: balance[base].free,
+					used: balance[base].used - order.amount,
+					total: balance[base].total - order.amount,
+				});
 
-			await redis.hmset(basePath, {
-				free: Number(balance[base].free),
-				used: Number(balance[base].used) - Number(order.amount),
-				total: Number(balance[base].total) - Number(order.amount),
+				await redis.hmset(quotePath, {
+					free: balance[quote].free + order.cost - order.fee.cost,
+					used: balance[quote].used,
+					total: balance[quote].total + order.cost - order.fee.cost,
+				});
+			} else {
+				await redis.hmset(basePath, {
+					free: balance[base].free + order.amount,
+					used: balance[base].used,
+					total: balance[base].total + order.amount,
+				});
+
+				await redis.hmset(quotePath, {
+					free: balance[quote].free - order.fee.cost,
+					used: balance[quote].used - order.cost,
+					total: balance[quote].total - order.cost - order.fee.cost,
+				});
+			}
+
+			const trade = await createTrade(algotia, order);
+			const flatTrades: any = flatten({
+				trades: [...order.trades, trade],
 			});
 
-			await redis.hmset(quotePath, {
-				free: Number(balance[quote].free) + Number(order.cost),
-				used: Number(balance[quote].used),
-				total: Number(balance[quote].total) + Number(order.cost),
-			});
+			await redis.hmset(order.id, flatTrades);
+
+			await redis.lpush(closedOrdersPath, order.id);
 			await redis.lrem(openOrdersPath, 0, order.id);
-
-			debugLog(
-				algotia,
-				`Sold ${order.amount} ${base} @ ${order.price} ${quote} (cost: ${order.cost} ${quote}) `
-			);
-
-			const newBalance = await exchange.fetchBalance();
-
-			debugLog(
-				algotia,
-				`Balance after sell order fill ${inspect(newBalance.info)}`
-			);
 		}
 	} catch (err) {
 		throw err;
@@ -117,23 +123,8 @@ const fillOrder = async (
 			let orderIds = await redis.lrange(openOrdersPath, 0, openOrdersLen);
 			for (const orderId of orderIds) {
 				let rawOrder: any = await redis.hgetall(orderId);
-				for (const key in rawOrder) {
-					const value = rawOrder[key];
-					let res: string | number;
-					if (isNaN(Number(value))) {
-						res = value;
-					} else {
-						res = Number(value);
-					}
-					rawOrder[key] = res;
-				}
-				const order: Order = unflatten(rawOrder);
-				if (order.side === "buy") {
-					await fillBuyOrder(algotia, exchange, candle, order);
-				}
-				if (order.side === "sell") {
-					await fillSellOrder(algotia, exchange, candle, order);
-				}
+				const order = parseRedisFlatObj<Order>(rawOrder);
+				await updateDb(algotia, exchange, candle, order);
 			}
 		}
 	} catch (err) {
