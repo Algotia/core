@@ -6,6 +6,7 @@ import {
 } from "../../../types";
 import createFetchBalance from "./fetchBalance";
 import createCreateOrder from "./createOrder";
+import createCancelOrder from "./cancelOrder";
 
 function backtestExchangeFactory(
 	algotia: AnyAlgotia,
@@ -47,7 +48,7 @@ function backtestExchangeFactory(
 		// PRIVATE API
 		fetchBalance: createFetchBalance(algotia, options, exchange),
 		createOrder: createCreateOrder(algotia, options, exchange),
-		cancelOrder: exchange.cancelOrder,
+		cancelOrder: createCancelOrder(algotia, options, exchange),
 		editOrder: exchange.editOrder,
 		fetchOrder: exchange.fetchOrder,
 		fetchOpenOrders: exchange.fetchOpenOrders,

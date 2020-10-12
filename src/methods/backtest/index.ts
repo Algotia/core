@@ -9,14 +9,18 @@ import {
 	BacktestingExchange,
 	SingleStrategy,
 	isSingle,
+	SingleBacktestResults,
+	ProcessedBackfillOptions,
 } from "../../types";
 import {
 	getDefaultExchange,
 	backtestExchangeFactory,
 	debugLog,
+	parseRedisFlatObj,
 } from "../../utils";
 import backfill from "./backfill";
 import fillOrder from "./fillOrder";
+import { Order } from "ccxt";
 
 class StrategyError extends Error {
 	messages: string[];
@@ -86,13 +90,63 @@ const executeStrategy = async (
 			strategy(exchange, candle);
 		}
 	} catch (err) {
-		err;
+		throw err;
+	}
+};
+
+const getSingleResults = async (
+	algotia: AnyAlgotia,
+	options: SingleBacktestOptions,
+	exchange: BacktestingExchange,
+	strategyErrors: string[]
+): Promise<SingleBacktestResults> => {
+	try {
+		const { redis } = algotia;
+		const getOrders = async (arr: string[]) => {
+			const promises = arr.map(
+				async (id): Promise<Order> => {
+					const rawOrder = await redis.hgetall(id);
+					const order = parseRedisFlatObj<Order>(rawOrder);
+					return order;
+				}
+			);
+			return await Promise.all(promises);
+		};
+
+		const openOrderIds = await redis.lrange(
+			`${exchange.id}-open-orders`,
+			0,
+			-1
+		);
+
+		const closedOrderIds = await redis.lrange(
+			`${exchange.id}-closed-orders`,
+			0,
+			-1
+		);
+
+		const openOrders = await getOrders(openOrderIds);
+		const closedOrders = await getOrders(closedOrderIds);
+		const balance = await exchange.fetchBalance();
+		const errors = strategyErrors;
+
+		await redis.flushall();
+
+		return {
+			options,
+			balance,
+			closedOrders,
+			openOrders,
+			errors,
+		};
+	} catch (err) {
+		throw err;
 	}
 };
 
 async function backtest<
 	Options extends SingleBacktestOptions | MultiBacktestOptions
->(algotia: AnyAlgotia, options: Options) {
+>(algotia: AnyAlgotia, options: Options): Promise<SingleBacktestResults> {
 	try {
 		if (isSingle<SingleBacktestOptions>(options)) {
 			const exchange = options.exchange
@@ -115,20 +169,24 @@ async function backtest<
 				exchange
 			);
 
-			let strategyError = new StrategyError();
+			let strategyErrors = [];
 			for (let i = 0; i < data.length; i++) {
 				const candle = data[i];
 				await updateContext(algotia, options, candle);
 				try {
 					await executeStrategy(strategy, candle, backtestingExchange);
 				} catch (err) {
-					strategyError.push(err.message);
+					strategyErrors.push(err.message);
 				}
 				await fillOrder(algotia, backtestingExchange, candle);
 			}
-			if (strategyError.messages.length) {
-				throw `Strategy produced the following errors \n ${strategyError.messages}`;
-			}
+
+			return await getSingleResults(
+				algotia,
+				options,
+				backtestingExchange,
+				strategyErrors
+			);
 		}
 	} catch (err) {
 		throw err;

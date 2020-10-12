@@ -8,6 +8,7 @@ import {
 import { Exchange } from "../index";
 import { ExchangeRecord } from ".";
 import { OHLCV } from "../shared";
+import { Balances, Order } from "ccxt";
 
 export interface BaseAndQuoteCurrencies {
 	[key: string]: number;
@@ -30,6 +31,14 @@ export interface SingleBacktestOptions extends SingleBackfillOptions {
 
 export interface MultiBacktestOptions extends MultiBackfillOptions {
 	initialBalance: ExchangeRecord<SingleInitialBalance>;
+}
+
+export interface SingleBacktestResults {
+	options: SingleBackfillOptions;
+	balance: Balances;
+	openOrders: Order[];
+	closedOrders: Order[];
+	errors: string[];
 }
 
 type SupportedBackfillMethods =

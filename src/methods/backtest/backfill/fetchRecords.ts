@@ -23,6 +23,7 @@ const sleep = async (ms: number) =>
 	new Promise((resolve) => setTimeout(resolve, ms));
 
 const fetchOHLCV = async (
+	algotia: AnyAlgotia,
 	options: ProcessedBackfillOptions,
 	exchange: Exchange,
 	chunks: number[][]
@@ -30,35 +31,51 @@ const fetchOHLCV = async (
 	try {
 		let candles: OHLCV[] = [];
 		for (const chunk of chunks) {
+			debugLog(
+				algotia,
+				`chunk ${chunks.indexOf(chunk) + 1} of ${chunks.length}: ${
+					new Date(chunk[0]).getTime() +
+					" " +
+					" --> " +
+					new Date(chunk[chunk.length - 1]).getTime()
+				}`
+			);
 			const since = chunk[0];
 
-			const { pair, timeframe } = options;
+			const { pair, timeframe, periodMS } = options;
 			const { OHLCVRecordLimit } = exchange;
 
 			let candleSet: OHLCV[] = [];
 			let sinceCursor = since;
 			let recordsToFetch = chunk.length;
-
-			let pauseForRateLimit = false;
+			let page = 0;
 
 			while (candleSet.length < recordsToFetch) {
-				if (pauseForRateLimit) {
+				if (page) {
 					await sleep(1000);
 				}
 				const recordsLeft = recordsToFetch - candleSet.length;
 				const limit =
 					recordsLeft > OHLCVRecordLimit ? OHLCVRecordLimit : recordsLeft;
+
 				const rawOHLCV = await exchange.fetchOHLCV(
 					pair,
 					timeframe,
 					sinceCursor,
 					limit
 				);
-				const ohlcv = reshapeOHLCV(rawOHLCV);
+
+				const ohlcv = reshapeOHLCV(rawOHLCV, periodMS);
+
+				debugLog(
+					algotia,
+					`Page ${page + 1}: ${sinceCursor} -> ${ohlcv.length} records`
+				);
+
 				candles.push(...ohlcv);
 				sinceCursor = ohlcv[ohlcv.length - 1].timestamp;
 				recordsToFetch -= ohlcv.length;
-				pauseForRateLimit = true;
+				page++;
 			}
 		}
 		return candles;
@@ -80,7 +97,9 @@ const getNewRecords = async (
 
 		const timeframePath = buildRegexPath(exchange.id, pair, timeframe);
 
-		const insertCandles = async (candleSet: OHLCV[]): Promise<void> => {
+		const candleSet = await fetchOHLCV(algotia, options, exchange, chunks);
+
+		if (candleSet.length) {
 			const candleSetWithPath = candleSet.map((ohlcv) => {
 				return {
 					...ohlcv,
@@ -88,12 +107,6 @@ const getNewRecords = async (
 				};
 			});
 			await backfillCollection.insertMany(candleSetWithPath);
-		};
-
-		const candleSet = await fetchOHLCV(options, exchange, chunks);
-
-		if (candleSet.length) {
-			await insertCandles(candleSet);
 		}
 	} catch (err) {
 		debugLog(algotia, err.message, "error");
@@ -114,7 +127,7 @@ const getRecordsFromDb = async (
 			.find<OHLCV>(
 				{
 					path,
-					timestamp: { $gte: since, $lte: until },
+					timestamp: { $gte: since, $lt: until },
 				},
 				{
 					projection: {
@@ -151,7 +164,7 @@ const processFetchOptions = (
 	}
 
 	const { periodMS } = parseTimeframe(timeframe);
-	const recordsBetween = Math.floor((untilMs - sinceMs) / periodMS);
+	const recordsBetween = Math.floor((untilMs - sinceMs) / periodMS) - 1;
 
 	return {
 		...options,
@@ -226,6 +239,18 @@ const fetchRecords = async (
 
 		const processedOptions = processFetchOptions(algotia, options, exchangeId);
 
+		debugLog(
+			algotia,
+			`${processedOptions.recordsBetween} records between ${
+				new Date(processedOptions.since).toDateString() +
+				" " +
+				new Date(processedOptions.since).toTimeString()
+			} and ${
+				new Date(processedOptions.until).toDateString() +
+				" " +
+				new Date(processedOptions.until).toTimeString()
+			}`
+		);
 		// Get chunks of timestamps to fetch, less the
 		// records already saved in DB
 		const chunksToFetch = await getTimestampsToFetch(

@@ -47,39 +47,53 @@ const createTrade = async (
 	}
 };
 
-const updateDb = async (
+const fillOpenOrder = async (
 	algotia: AnyAlgotia,
 	exchange: BacktestingExchange,
 	candle: OHLCV,
 	order: Order
 ) => {
 	try {
-		if (order.price <= candle.close) {
-			const { redis } = algotia;
+		const { redis } = algotia;
 
+		const balance = await exchange.fetchBalance();
+
+		const [base, quote] = parsePair(order.symbol);
+
+		const basePath = `${exchange.id}-balance:${base}`;
+		const quotePath = `${exchange.id}-balance:${quote}`;
+
+		const closeOrder = async (order: Order) => {
 			const openOrdersPath = `${exchange.id}-open-orders`;
 			const closedOrdersPath = `${exchange.id}-closed-orders`;
 
-			const balance = await exchange.fetchBalance();
+			const trade = await createTrade(algotia, order);
 
-			const [base, quote] = parsePair(order.symbol);
+			const currentTime = await redis.get("current-time");
 
-			const basePath = `${exchange.id}-balance:${base}`;
-			const quotePath = `${exchange.id}-balance:${quote}`;
+			const orderModifications: Partial<Order> = {
+				trades: [trade],
+				average: order.price,
+				filled: order.amount,
+				remaining: 0,
+				lastTradeTimestamp: Number(currentTime),
+			};
 
-			if (order.side === "sell") {
-				await redis.hmset(basePath, {
-					free: balance[base].free,
-					used: balance[base].used - order.amount,
-					total: balance[base].total - order.amount,
-				});
+			const flatModifications: Record<string, any> = flatten(
+				orderModifications,
+				{
+					safe: true,
+				}
+			);
 
-				await redis.hmset(quotePath, {
-					free: balance[quote].free + order.cost - order.fee.cost,
-					used: balance[quote].used,
-					total: balance[quote].total + order.cost - order.fee.cost,
-				});
-			} else {
+			await redis.hmset(order.id, flatModifications);
+
+			await redis.lpush(closedOrdersPath, order.id);
+			await redis.lrem(openOrdersPath, 0, order.id);
+		};
+
+		if (order.side === "buy") {
+			if (order.price >= candle.low) {
 				await redis.hmset(basePath, {
 					free: balance[base].free + order.amount,
 					used: balance[base].used,
@@ -91,17 +105,24 @@ const updateDb = async (
 					used: balance[quote].used - order.cost,
 					total: balance[quote].total - order.cost - order.fee.cost,
 				});
+
+				await closeOrder(order);
 			}
+		} else if (order.side === "sell") {
+			if (order.price <= candle.high) {
+				await redis.hmset(basePath, {
+					free: balance[base].free,
+					used: balance[base].used - order.amount,
+					total: balance[base].total - order.amount,
+				});
 
-			const trade = await createTrade(algotia, order);
-			const flatTrades: any = flatten({
-				trades: [...order.trades, trade],
-			});
-
-			await redis.hmset(order.id, flatTrades);
-
-			await redis.lpush(closedOrdersPath, order.id);
-			await redis.lrem(openOrdersPath, 0, order.id);
+				await redis.hmset(quotePath, {
+					free: balance[quote].free + order.cost - order.fee.cost,
+					used: balance[quote].used,
+					total: balance[quote].total + order.cost - order.fee.cost,
+				});
+				await closeOrder(order);
+			}
 		}
 	} catch (err) {
 		throw err;
@@ -117,15 +138,12 @@ const fillOrder = async (
 		const { redis } = algotia;
 
 		const openOrdersPath = `${exchange.id}-open-orders`;
-		const openOrdersLen = await redis.llen(openOrdersPath);
 
-		if (openOrdersLen !== 0) {
-			let orderIds = await redis.lrange(openOrdersPath, 0, openOrdersLen);
-			for (const orderId of orderIds) {
-				let rawOrder: any = await redis.hgetall(orderId);
-				const order = parseRedisFlatObj<Order>(rawOrder);
-				await updateDb(algotia, exchange, candle, order);
-			}
+		let openOrderIds = await redis.lrange(openOrdersPath, 0, -1);
+		for (const orderId of openOrderIds) {
+			let rawOpenOrder: any = await redis.hgetall(orderId);
+			const openOrder = parseRedisFlatObj<Order>(rawOpenOrder);
+			await fillOpenOrder(algotia, exchange, candle, openOrder);
 		}
 	} catch (err) {
 		throw err;
