@@ -8,7 +8,11 @@ const boot = async <Conf extends Config>(
 	config: Conf
 ): Promise<Algotia<Conf>> => {
 	try {
-		debugLog(config, "Starting boot");
+		if (config.debug === true) {
+			process.env["ALGOTIA_DEBUG"] = "true";
+		}
+
+		debugLog("Starting boot");
 
 		validateConfig(config);
 
@@ -24,7 +28,6 @@ const boot = async <Conf extends Config>(
 		};
 
 		debugLog(
-			config,
 			{
 				label: "boot returned: ",
 				value: {

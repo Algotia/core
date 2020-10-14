@@ -6,6 +6,8 @@ import {
 	MultiBackfillOptions,
 	isSingle,
 	isMulti,
+	ExchangeID,
+	OHLCV,
 } from "../../../types";
 import { debugLog } from "../../../utils";
 import fetchRecords from "./fetchRecords";
@@ -31,7 +33,7 @@ async function backfill<
 	options: Opts
 ): Promise<SingleBackfillSet | MultiBackfillSet> {
 	try {
-		debugLog(algotia, "Backfilling records");
+		debugLog("Backfilling records");
 
 		if (isSingle<SingleBackfillOptions>(options)) {
 			// Single Backfill
@@ -40,14 +42,38 @@ async function backfill<
 
 			//TODO: retrieve records
 		} else if (isMulti<MultiBackfillOptions>(options)) {
-			let multiSet: MultiBackfillSet;
-			for (const exchangeId of options.exchanges) {
+			const { exchanges } = options;
+			let allRecords: Record<ExchangeID, OHLCV[]>;
+			for (const exchangeId of exchanges) {
 				const singleSet = await fetchRecords(algotia, options, exchangeId);
-				multiSet = {
-					...multiSet,
+				allRecords = {
+					...allRecords,
 					[exchangeId]: singleSet,
 				};
 			}
+
+			let dataLen: number;
+			let multiSet: MultiBackfillSet = [];
+
+			for (const exchangeId of exchanges) {
+				const set = allRecords[exchangeId];
+				if (!dataLen) dataLen = set.length;
+				if (dataLen !== set.length) console.log("WARNING");
+				dataLen = set.length;
+				/* throw new Error( */
+				/* 	`Set length was ${dataLen} but one records length was ${set.length}` */
+				/* ); */
+			}
+
+			for (let i = 0; i < dataLen; i++) {
+				for (const exchangeId of exchanges) {
+					multiSet[i] = {
+						...multiSet[i],
+						[exchangeId]: allRecords[exchangeId][i],
+					};
+				}
+			}
+
 			return multiSet;
 		}
 	} catch (err) {

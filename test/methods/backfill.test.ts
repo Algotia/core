@@ -1,6 +1,10 @@
-import { boot, AnyAlgotia, MultiBackfillOptions } from "../../src/algotia";
+import {
+	boot,
+	AnyAlgotia,
+	MultiBackfillOptions,
+	SingleBackfillOptions,
+} from "../../src/algotia";
 import backfill from "../../src/methods/backtest/backfill/index";
-import { getBorderCharacters, table } from "table";
 import { parseTimeframe } from "../../src/utils";
 
 describe("Backfill method", () => {
@@ -8,54 +12,73 @@ describe("Backfill method", () => {
 	beforeAll(async () => {
 		algotia = await boot({
 			exchange: { binance: true, bittrex: true, kucoin: true },
-			debug: true,
 		});
 	});
-	afterAll(() => {});
-	/* test("Single backfill works", async () => { */
-	/* 	try { */
-	/* 		const options: SingleBacktestOptions = { */
-	/* 			since: "1/01/2020", */
-	/* 			until: "1/02/2020 1:00 AM", */
-	/* 			symbol: "ETH/BTC", */
-	/* 			timeframe: "15m", */
-	/* 			type: "single", */
-	/* 			strategy: () => {}, */
-	/* 		}; */
-	/* 		const res = await backfill(algotia, options, "binance"); */
+	afterAll(() => {
+		algotia.quit();
+	});
+	test("Single backfill works", async () => {
+		try {
+			const options: SingleBackfillOptions = {
+				since: "1/01/2020",
+				until: "1/02/2020 1:00 AM",
+				pair: "ETH/BTC",
+				timeframe: "15m",
+			};
 
-	/* 		const { periodMS } = parseTimeframe(options.timeframe); */
-	/* 		for (let i = 0; i < res.length; i++) { */
-	/* 			const thisTimestamp = res[i].timestamp; */
+			const res = await backfill(algotia, options);
 
-	/* 			if (i === 0) { */
-	/* 				const sinceMs = new Date(options.since).getTime(); */
-	/* 				expect(thisTimestamp).toStrictEqual(sinceMs); */
-	/* 				continue; */
-	/* 			} */
+			const { periodMS } = parseTimeframe(options.timeframe);
+			for (let i = 0; i < res.length; i++) {
+				const thisTimestamp = res[i].timestamp;
 
-	/* 			const lastTimestamp = res[i - 1].timestamp; */
+				if (i === 0) {
+					const sinceMs = new Date(options.since).getTime();
+					expect(thisTimestamp).toStrictEqual(sinceMs);
+					continue;
+				}
 
-	/* 			expect(thisTimestamp).toStrictEqual(lastTimestamp + periodMS); */
-	/* 		} */
-	/* 	} catch (err) { */
-	/* 		throw err; */
-	/* 	} */
-	/* }); */
+				const lastTimestamp = res[i - 1].timestamp;
+
+				expect(thisTimestamp).toStrictEqual(lastTimestamp + periodMS);
+			}
+		} catch (err) {
+			throw err;
+		}
+	});
 	test("Multi backfill works", async () => {
 		try {
+			const options: MultiBackfillOptions = {
+				since: "12/31/2019",
+				until: "1/05/2020",
+				pair: "ETH/BTC",
+				timeframe: "1h",
+				type: "multi",
+				exchanges: ["kucoin", "binance"],
+			};
+
 			const res = await backfill(algotia, {
 				since: "12/31/2019",
 				until: "1/05/2020",
 				pair: "ETH/BTC",
 				timeframe: "1h",
+				type: "multi",
+				exchanges: ["kucoin", "binance"],
 			});
 
-			expect(1).toStrictEqual(1);
+			res.forEach((data) => {
+				for (const exchange of options.exchanges) {
+					expect(data).toHaveProperty(exchange);
+					expect(data[exchange]).toHaveProperty("timestamp");
+					expect(data[exchange]).toHaveProperty("open");
+					expect(data[exchange]).toHaveProperty("high");
+					expect(data[exchange]).toHaveProperty("low");
+					expect(data[exchange]).toHaveProperty("close");
+					expect(data[exchange]).toHaveProperty("volume");
+				}
+			});
 		} catch (err) {
 			throw err;
-		} finally {
-			algotia.quit();
 		}
 	});
 });

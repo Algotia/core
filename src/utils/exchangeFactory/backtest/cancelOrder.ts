@@ -20,6 +20,9 @@ const createCancelOrder: CancelOrder = (algotia, options, exchange) => {
 			const closedOrdersPath = `${exchange.id}-closed-orders`;
 
 			const rawOrder = await redis.hgetall(id);
+			if (!rawOrder) {
+				throw new Error("Could not find an open order with the id " + id);
+			}
 			const order = parseRedisFlatObj<Order>(rawOrder);
 
 			const canceledOrder: Order = {

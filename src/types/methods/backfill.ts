@@ -29,7 +29,7 @@ export type SingleBackfillSet = OHLCV[];
 
 export type MultiBackfillSet<
 	Opts extends MultiBackfillOptions = MultiBackfillOptions
-> = Record<Opts["exchanges"][number], SingleBackfillSet>;
+> = Record<Opts["exchanges"][number], OHLCV>[];
 
 export interface BackfillSetDocument {
 	candles: SingleBackfillSet;

@@ -7,11 +7,14 @@ const bootDatabases = async (): Promise<{
 	redis: Redis;
 }> => {
 	try {
-		const mongoClient = new MongoClient(`mongodb://localhost:27017`, {
-			useNewUrlParser: true,
-			useUnifiedTopology: true,
-			serverSelectionTimeoutMS: 10000,
-		});
+		const mongoClient = new MongoClient(
+			process.env.MONGO_URL || `mongodb://localhost:27017`,
+			{
+				useNewUrlParser: true,
+				useUnifiedTopology: true,
+				serverSelectionTimeoutMS: 10000,
+			}
+		);
 
 		const redis = new RedisClient();
 

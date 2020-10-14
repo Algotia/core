@@ -9,6 +9,7 @@ describe("Backtest method", () => {
 		algotia = await boot({
 			exchange: {
 				binance: true,
+				kucoin: true,
 			},
 			debug: true,
 		});
@@ -18,6 +19,35 @@ describe("Backtest method", () => {
 		algotia.quit();
 	});
 
+	test(" multi works", async () => {
+		try {
+			const t0 = performance.now();
+			const res = await backtest(algotia, {
+				since: "1/01/2020",
+				until: "1/02/2020",
+				pair: "ETH/BTC",
+				timeframe: "1h",
+				type: "multi",
+				exchanges: ["binance", "kucoin"],
+				initialBalances: {
+					kucoin: {
+						eth: 1,
+						btc: 1,
+					},
+					binance: {
+						eth: 1,
+						btc: 1,
+					},
+				},
+				strategy: () => {},
+			});
+			const t1 = performance.now();
+			console.log("BACKFILL TOOK ", ((t1 - t0) / 1000).toFixed(3));
+			console.log(inspect(res, false, 2));
+		} catch (err) {
+			throw err;
+		}
+	}, 100000);
 	test("works", async () => {
 		try {
 			const t0 = performance.now();

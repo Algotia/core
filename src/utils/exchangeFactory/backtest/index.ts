@@ -39,11 +39,11 @@ function backtestExchangeFactory(
 		requiredCredentials: exchange.requiredCredentials,
 		options: exchange.options,
 		// PUBLIC API
-		fetchMarkets: exchange.fetchMarkets,
-		fetchCurrencies: exchange.fetchCurrencies,
-		fetchTicker: exchange.fetchTicker,
-		fetchOrderBook: exchange.fetchOrderBook,
-		fetchTrades: exchange.fetchTrades,
+		fetchMarkets: exchange.fetchMarkets.bind(exchange),
+		fetchCurrencies: exchange.fetchCurrencies.bind(exchange),
+		fetchTicker: exchange.fetchTicker.bind(exchange),
+		fetchOrderBook: exchange.fetchOrderBook.bind(exchange),
+		fetchTrades: exchange.fetchTrades.bind(exchange),
 		fetchOHLCV: exchange.fetchOHLCV.bind(exchange),
 		// PRIVATE API
 		fetchBalance: createFetchBalance(algotia, options, exchange),

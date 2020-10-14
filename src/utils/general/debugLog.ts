@@ -1,5 +1,4 @@
 import algotiaLogger from "./logger";
-import { AnyAlgotia, Config } from "../../types";
 import { inspect } from "util";
 
 interface AnyObj {
@@ -15,26 +14,13 @@ interface DebugLogOptions {
 	depth?: number;
 }
 
-const isAlgotia = (obj: any): obj is AnyAlgotia => {
-	if (obj.config) {
-		return true;
-	}
-};
-
 const debugLog = (
-	algotia: AnyAlgotia | Config,
 	message: string | MessageObj,
 	level?: "error" | "arguments" | "return_value" | "info",
 	meta?: AnyObj,
 	opts?: DebugLogOptions
 ): void => {
-	let conf: Config;
-	if (isAlgotia(algotia)) {
-		conf = algotia.config;
-	} else {
-		conf = algotia;
-	}
-	if (conf.debug === true) {
+	if (process.env["ALGOTIA_DEBUG"] === "true") {
 		let formattedMessage: any;
 		if (typeof message === "object") {
 			const depth = opts && opts.depth ? opts.depth : 0;
