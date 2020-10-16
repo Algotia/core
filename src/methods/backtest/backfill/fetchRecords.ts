@@ -80,19 +80,21 @@ const fetchOHLCV = async (
 };
 
 const getNewRecords = async (
-	algotia: AnyAlgotia,
 	backfillCollection: Collection,
 	options: ProcessedBackfillOptions,
 	chunks: number[][]
-): Promise<void> => {
+): Promise<any> => {
 	try {
 		const { exchange, pair, timeframe } = options;
 
-		await initializeBackfillTree(backfillCollection, options);
+		/* await initializeBackfillTree(backfillCollection, options); */
 
 		const timeframePath = buildRegexPath(exchange.id, pair, timeframe);
 
 		const candleSet = await fetchOHLCV(options, exchange, chunks);
+
+		debugLog(`CCXT fetchOHLCV response length: ${candleSet.length}`);
+		debugLog(`Saving records with path ${timeframePath}`);
 
 		if (candleSet.length) {
 			const candleSetWithPath = candleSet.map((ohlcv) => {
@@ -101,7 +103,7 @@ const getNewRecords = async (
 					path: timeframePath,
 				};
 			});
-			await backfillCollection.insertMany(candleSetWithPath);
+			return await backfillCollection.insertMany(candleSetWithPath);
 		}
 	} catch (err) {
 		debugLog(err.message, "error");
@@ -118,6 +120,8 @@ const getRecordsFromDb = async (
 		const { since, until, timeframe, pair } = options;
 
 		const path = buildRegexPath(id, pair, timeframe);
+
+		debugLog(`Querying DB for records with path \n \t ${path}`);
 
 		const candles = await backfillCollection
 			.find<OHLCV>(
@@ -136,6 +140,8 @@ const getRecordsFromDb = async (
 				}
 			)
 			.toArray();
+
+		debugLog(`DB query returned ${candles.length} results`);
 
 		return candles;
 	} catch (err) {
@@ -195,9 +201,13 @@ const getTimestampsToFetch = async (
 				tempTimestampArr.push(timestamp);
 			}
 
+			debugLog(`DB contains ${dbTimestamps.length} records`);
+
 			const needToFetch = tempTimestampArr.filter(
 				(el) => !dbTimestamps.includes(el)
 			);
+
+			debugLog(`Need to fetch ${needToFetch.length} records`);
 
 			let chunks: number[][] = [];
 			let tempArr: number[] = [];
@@ -229,20 +239,26 @@ const getTimestampsToFetch = async (
 const fetchRecords = async (
 	algotia: AnyAlgotia,
 	options: BackfillOptions,
-	exchangeId?: ExchangeID
+	id?: ExchangeID
 ): Promise<SingleBackfillSet> => {
 	try {
+		let exchangeId: ExchangeID;
+		if (!id) {
+			exchangeId = getDefaultExchange(algotia).id;
+		} else {
+			exchangeId = id;
+		}
 		const db = algotia.mongo;
 		const backfillCollection = getBackfillCollection(db);
 
 		const processedOptions = processFetchOptions(algotia, options, exchangeId);
 
 		debugLog(
-			`${processedOptions.recordsBetween} records between ${
+			`${processedOptions.recordsBetween} records between \n \t ${
 				new Date(processedOptions.since).toDateString() +
 				" " +
 				new Date(processedOptions.since).toTimeString()
-			} and ${
+			} \n \t ${
 				new Date(processedOptions.until).toDateString() +
 				" " +
 				new Date(processedOptions.until).toTimeString()
@@ -264,15 +280,10 @@ const fetchRecords = async (
 
 		if (recordsToFetch) {
 			debugLog(
-				`Fetching ${recordsToFetch} records in ${chunksToFetch.length} chunks.`
+				`Fetching ${recordsToFetch} records from ${exchangeId} in ${chunksToFetch.length} chunks.`
 			);
 
-			await getNewRecords(
-				algotia,
-				backfillCollection,
-				processedOptions,
-				chunksToFetch
-			);
+			await getNewRecords(backfillCollection, processedOptions, chunksToFetch);
 		}
 
 		// fetch all requested candles from db

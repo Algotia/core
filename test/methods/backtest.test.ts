@@ -21,7 +21,6 @@ describe("Backtest method", () => {
 
 	test(" multi works", async () => {
 		try {
-			const t0 = performance.now();
 			const res = await backtest(algotia, {
 				since: "1/01/2020",
 				until: "1/02/2020",
@@ -41,19 +40,16 @@ describe("Backtest method", () => {
 				},
 				strategy: () => {},
 			});
-			const t1 = performance.now();
-			console.log("BACKFILL TOOK ", ((t1 - t0) / 1000).toFixed(3));
-			console.log(inspect(res, false, 2));
+			expect(res).toBe(undefined);
 		} catch (err) {
 			throw err;
 		}
 	}, 100000);
 	test("works", async () => {
 		try {
-			const t0 = performance.now();
 			const res = await backtest(algotia, {
-				since: "1/01/2020",
-				until: "1/02/2020",
+				since: "1/08/2020",
+				until: "1/09/2020",
 				pair: "ETH/BTC",
 				timeframe: "1h",
 				type: "single",
@@ -76,9 +72,7 @@ describe("Backtest method", () => {
 					/* await exchange.cancelOrder(order.id); */
 				},
 			});
-			const t1 = performance.now();
-			console.log("BACKFILL TOOK ", ((t1 - t0) / 1000).toFixed(3));
-			console.log(inspect(res, false, 2));
+			expect(res).toHaveProperty("balance");
 		} catch (err) {
 			throw err;
 		}

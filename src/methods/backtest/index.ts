@@ -209,7 +209,6 @@ async function backtest<
 
 			for (let i = 0; i < data.length; i++) {
 				const candle = data[i];
-				console.log(candle);
 			}
 			//TODO: MULTI BACKTEST
 		}

@@ -3,13 +3,10 @@ const buildRegexPath = (...args: string[]) => {
 
 	let path = basePath;
 
-	const cleanString = (str: string) => {
-		return str;
-	};
 	args.forEach((arg) => {
-		const str = cleanString(arg);
-		path += `${str},`;
+		path += arg + ",";
 	});
+
 	return new RegExp(path);
 };
 

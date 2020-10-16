@@ -35,19 +35,6 @@ const initializeBackfillTree = async (
 				path: pairPath,
 			});
 		}
-
-		const timeframePath = buildRegexPath(exchange.id, pair, timeframe);
-		const timeframeNodeExists = await backfillCollection.findOne({
-			path: timeframePath,
-		});
-
-		if (!timeframeNodeExists) {
-			await backfillCollection.insertOne({
-				_id: `${exchange.id}-${pair}-${timeframe}`,
-				path: timeframePath,
-				sets: [],
-			});
-		}
 	} catch (err) {
 		throw err;
 	}

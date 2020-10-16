@@ -57,8 +57,11 @@ async function backfill<
 
 			for (const exchangeId of exchanges) {
 				const set = allRecords[exchangeId];
-				if (!dataLen) dataLen = set.length;
-				if (dataLen !== set.length) console.log("WARNING");
+				if (!dataLen) {
+					dataLen = set.length;
+					continue;
+				}
+				if (dataLen !== set.length) console.log("WARNING", dataLen, set.length);
 				dataLen = set.length;
 				/* throw new Error( */
 				/* 	`Set length was ${dataLen} but one records length was ${set.length}` */
