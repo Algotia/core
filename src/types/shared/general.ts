@@ -35,3 +35,5 @@ export type MultiAsyncStartegy = (
 	exhanges: ExchangeRecord<Exchange>,
 	data: ExchangeRecord<OHLCV>
 ) => Promise<void>;
+
+export const AsyncFunction = async function () {}.constructor;

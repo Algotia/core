@@ -18,7 +18,7 @@ export interface Config {
 	debug?: boolean;
 }
 
-export type ExchangeRecord<T> = Record<keyof Config["exchange"], T>;
+export type ExchangeRecord<T> = Partial<Record<keyof Config["exchange"], T>>;
 
 export interface Algotia<Conf extends Config> {
 	config: Conf;

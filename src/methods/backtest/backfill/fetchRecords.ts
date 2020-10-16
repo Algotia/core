@@ -17,7 +17,6 @@ import {
 	parseTimeframe,
 } from "../../../utils";
 import { Collection } from "mongodb";
-import initializeBackfillTree from "../../../utils/db/initializeBackfillTree";
 
 const sleep = async (ms: number) =>
 	new Promise((resolve) => setTimeout(resolve, ms));
@@ -30,14 +29,6 @@ const fetchOHLCV = async (
 	try {
 		let candles: OHLCV[] = [];
 		for (const chunk of chunks) {
-			debugLog(
-				`chunk ${chunks.indexOf(chunk) + 1} of ${chunks.length}: ${
-					new Date(chunk[0]).getTime() +
-					" " +
-					" --> " +
-					new Date(chunk[chunk.length - 1]).getTime()
-				}`
-			);
 			const since = chunk[0];
 
 			const { pair, timeframe, periodMS } = options;
@@ -83,11 +74,9 @@ const getNewRecords = async (
 	backfillCollection: Collection,
 	options: ProcessedBackfillOptions,
 	chunks: number[][]
-): Promise<any> => {
+): Promise<void> => {
 	try {
 		const { exchange, pair, timeframe } = options;
-
-		/* await initializeBackfillTree(backfillCollection, options); */
 
 		const timeframePath = buildRegexPath(exchange.id, pair, timeframe);
 
@@ -103,7 +92,7 @@ const getNewRecords = async (
 					path: timeframePath,
 				};
 			});
-			return await backfillCollection.insertMany(candleSetWithPath);
+			await backfillCollection.insertMany(candleSetWithPath);
 		}
 	} catch (err) {
 		debugLog(err.message, "error");
@@ -239,19 +228,13 @@ const getTimestampsToFetch = async (
 const fetchRecords = async (
 	algotia: AnyAlgotia,
 	options: BackfillOptions,
-	id?: ExchangeID
+	exchangeId?: ExchangeID
 ): Promise<SingleBackfillSet> => {
 	try {
-		let exchangeId: ExchangeID;
-		if (!id) {
-			exchangeId = getDefaultExchange(algotia).id;
-		} else {
-			exchangeId = id;
-		}
-		const db = algotia.mongo;
-		const backfillCollection = getBackfillCollection(db);
+		const backfillCollection = getBackfillCollection(algotia.mongo);
 
 		const processedOptions = processFetchOptions(algotia, options, exchangeId);
+		const id = processedOptions.exchange.id;
 
 		debugLog(
 			`${processedOptions.recordsBetween} records between \n \t ${
@@ -269,7 +252,7 @@ const fetchRecords = async (
 		const chunksToFetch = await getTimestampsToFetch(
 			processedOptions,
 			backfillCollection,
-			exchangeId
+			id
 		);
 
 		const recordsToFetch = chunksToFetch
@@ -280,7 +263,7 @@ const fetchRecords = async (
 
 		if (recordsToFetch) {
 			debugLog(
-				`Fetching ${recordsToFetch} records from ${exchangeId} in ${chunksToFetch.length} chunks.`
+				`Fetching ${recordsToFetch} records from ${id} in ${chunksToFetch.length} chunks.`
 			);
 
 			await getNewRecords(backfillCollection, processedOptions, chunksToFetch);
@@ -290,7 +273,7 @@ const fetchRecords = async (
 		const records = await getRecordsFromDb(
 			backfillCollection,
 			processedOptions,
-			exchangeId
+			id
 		);
 
 		debugLog(

@@ -9,13 +9,12 @@ const initializeBackfillTree = async (
 	try {
 		const { exchange, pair, timeframe } = options;
 		const rootNodeExists = await backfillCollection.findOne({
-			_id: "exchanges",
+			path: buildRegexPath(),
 		});
 
 		if (!rootNodeExists) {
 			await backfillCollection.insertMany([
 				{
-					_id: "exchanges",
 					path: buildRegexPath(),
 				},
 				...AllowedExchanges.map((id) => ({

@@ -1,7 +1,5 @@
 import { boot, backtest } from "../../src/methods";
 import { AnyAlgotia } from "../../src/types";
-import { debugLog } from "../../src/utils";
-import { inspect } from "util";
 
 describe("Backtest method", () => {
 	let algotia: AnyAlgotia;
@@ -11,7 +9,7 @@ describe("Backtest method", () => {
 				binance: true,
 				kucoin: true,
 			},
-			debug: true,
+			debug: false,
 		});
 	});
 
@@ -22,8 +20,8 @@ describe("Backtest method", () => {
 	test(" multi works", async () => {
 		try {
 			const res = await backtest(algotia, {
-				since: "1/01/2020",
-				until: "1/02/2020",
+				since: "1/10/2020",
+				until: "1/11/2020",
 				pair: "ETH/BTC",
 				timeframe: "1h",
 				type: "multi",
@@ -41,6 +39,7 @@ describe("Backtest method", () => {
 				strategy: () => {},
 			});
 			expect(res).toBe(undefined);
+			return res;
 		} catch (err) {
 			throw err;
 		}
@@ -73,6 +72,7 @@ describe("Backtest method", () => {
 				},
 			});
 			expect(res).toHaveProperty("balance");
+			return res;
 		} catch (err) {
 			throw err;
 		}

@@ -6,7 +6,7 @@ const isMultiBackfillOptions = (obj: any): obj is MultiBackfillOptions => {
 
 const isSingleBackfillOptions = (obj: any): obj is SingleBackfillOptions => {
 	if (!obj.exchange && !obj.exchanges) return true;
-	if (obj.exchange && typeof obj.exchange === "string") return true;
+	if (obj.exchange) return true;
 };
 
 export { isMultiBackfillOptions, isSingleBackfillOptions };

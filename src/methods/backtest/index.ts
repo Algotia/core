@@ -7,15 +7,12 @@ import {
 	MultiBacktestOptions,
 	SingleInitialBalance,
 	BacktestingExchange,
-	SingleStrategy,
-	isSingle,
 	SingleBacktestResults,
-	MultiInitialBalance,
-	isMulti,
 	MultiBackfillResults,
+	AsyncFunction,
+	isSingleBackfillOptions,
 	SingleBackfillSet,
 	MultiBackfillSet,
-	MultiStrategy,
 } from "../../types";
 import {
 	getDefaultExchange,
@@ -26,19 +23,24 @@ import {
 import backfill from "./backfill";
 import fillOrder from "./fillOrder";
 import { Order } from "ccxt";
+import {
+	isMultiBacktestingOptions,
+	isSingleBacktestingOptions,
+} from "../../types/gaurds/isBacktestingOptions";
 
-const initializeBacktest = async <
+const initializeBalances = async <
 	Opts extends SingleBacktestOptions | MultiBacktestOptions
 >(
 	algotia: AnyAlgotia,
 	options: Opts
 ) => {
 	try {
-		const initializeSingle = async (
+		const { redis } = algotia;
+
+		const initializeSingleBalance = async (
 			initialBalance: SingleInitialBalance,
 			exchangeId: ExchangeID
 		): Promise<void> => {
-			const { redis } = algotia;
 			for (const singleCurrency in initialBalance) {
 				const key = `${exchangeId}-balance:${singleCurrency}`;
 				const singleBalance = {
@@ -53,14 +55,16 @@ const initializeBacktest = async <
 				await redis.hmset(key, singleBalance);
 			}
 		};
-		if (isMulti<MultiBacktestOptions>(options)) {
-			for (const id of options.exchanges) {
-				await initializeSingle(options.initialBalances[id], id);
+
+		if (isMultiBacktestingOptions(options)) {
+			const { exchanges, initialBalances } = options;
+			for (const exchangeId of exchanges) {
+				await initializeSingleBalance(initialBalances[exchangeId], exchangeId);
 			}
 			return await backfill(algotia, options);
-		} else if (isSingle<SingleBacktestOptions>(options)) {
-			const exchange = getDefaultExchange(algotia);
-			await initializeSingle(options.initialBalance, exchange.id);
+		} else if (isSingleBackfillOptions(options)) {
+			const exchangeId = options.exchange || getDefaultExchange(algotia).id;
+			await initializeSingleBalance(options.initialBalance, exchangeId);
 		}
 	} catch (err) {
 		throw err;
@@ -83,10 +87,9 @@ const updateContext = async (
 
 const getSingleResults = async (
 	algotia: AnyAlgotia,
-	options: SingleBacktestOptions,
-	exchange: BacktestingExchange,
-	strategyErrors: string[]
-): Promise<SingleBacktestResults> => {
+	options: SingleBacktestOptions | MultiBacktestOptions,
+	exchange: BacktestingExchange
+): Promise<Omit<SingleBacktestResults, "errors" | "options">> => {
 	try {
 		const { redis } = algotia;
 		const getOrders = async (arr: string[]) => {
@@ -115,33 +118,60 @@ const getSingleResults = async (
 		const openOrders = await getOrders(openOrderIds);
 		const closedOrders = await getOrders(closedOrderIds);
 		const balance = await exchange.fetchBalance();
-		const errors = strategyErrors;
 
 		await redis.flushall();
 
 		return {
-			options,
 			balance,
 			closedOrders,
 			openOrders,
-			errors,
 		};
 	} catch (err) {
 		throw err;
 	}
 };
 
-async function backtest<Opts extends SingleBacktestOptions>(
+async function initialize<Opts extends SingleBacktestOptions>(
 	algotia: AnyAlgotia,
 	options: Opts
-): Promise<SingleBacktestResults>;
+): Promise<SingleBackfillSet>;
 
+async function initialize<Opts extends MultiBacktestOptions>(
+	algotia: AnyAlgotia,
+	options: Opts
+): Promise<MultiBackfillSet<Opts>>;
+
+async function initialize<
+	Opts extends SingleBacktestOptions | MultiBacktestOptions
+>(
+	algotia: AnyAlgotia,
+	options: Opts
+): Promise<SingleBackfillSet | MultiBackfillSet> {
+	try {
+		await initializeBalances(algotia, options);
+		if (isSingleBacktestingOptions(options)) {
+			return await backfill(algotia, options);
+		} else if (isMultiBacktestingOptions(options)) {
+			// TODO: find a way to avoid casting here
+			return await backfill(algotia, options as MultiBacktestOptions);
+		}
+	} catch (err) {
+		throw err;
+	}
+}
+
+// backtest overloads
 async function backtest<Opts extends MultiBacktestOptions>(
 	algotia: AnyAlgotia,
 	options: Opts
 ): Promise<MultiBackfillResults<Opts["exchanges"]>>;
 
-// Main backfill method
+async function backtest<Opts extends SingleBacktestOptions>(
+	algotia: AnyAlgotia,
+	options: Opts
+): Promise<SingleBacktestResults>;
+
+// backtest
 async function backtest<
 	Opts extends SingleBacktestOptions | MultiBacktestOptions
 >(
@@ -149,17 +179,12 @@ async function backtest<
 	options: Opts
 ): Promise<SingleBacktestResults | MultiBackfillResults> {
 	try {
-		if (isSingle<SingleBacktestOptions>(options)) {
-			const data = await backfill(algotia, options);
+		if (isSingleBacktestingOptions(options)) {
+			const { strategy } = options;
 
 			const exchange = options.exchange
 				? algotia.exchanges[options.exchange]
 				: getDefaultExchange(algotia);
-
-			const { strategy } = options;
-
-			debugLog("Starting backtest");
-			await initializeBacktest(algotia, options);
 
 			const backtestingExchange = backtestExchangeFactory(
 				algotia,
@@ -167,35 +192,43 @@ async function backtest<
 				exchange
 			);
 
-			let strategyErrors = [];
+			const data = await initialize(algotia, options);
+
+			let errors = [];
 			for (let i = 0; i < data.length; i++) {
 				const candle = data[i];
 				await updateContext(algotia, options, candle);
 				try {
-					const AsyncFunction = async function () {}.constructor;
 					if (strategy instanceof AsyncFunction) {
 						await strategy(backtestingExchange, candle);
 					} else {
 						strategy(backtestingExchange, candle);
 					}
 				} catch (err) {
-					strategyErrors.push(err.message);
+					errors.push(err.message);
 				}
 				await fillOrder(algotia, backtestingExchange, candle);
 			}
 
-			return await getSingleResults(
+			const results = await getSingleResults(
 				algotia,
 				options,
-				backtestingExchange,
-				strategyErrors
+				backtestingExchange
 			);
-		} else if (isMulti<MultiBacktestOptions>(options)) {
-			const data = await backfill(algotia, options);
+			return {
+				...results,
+				errors,
+				options,
+			};
+		} else if (isMultiBacktestingOptions(options)) {
+			const data = await initialize<MultiBacktestOptions>(algotia, options);
 
-			let exchanges: Record<ExchangeID, BacktestingExchange>;
+			let exchanges: Record<
+				typeof options["exchanges"][number],
+				BacktestingExchange
+			>;
 			for (const id of options.exchanges) {
-				await initializeBacktest(algotia, options);
+				await initializeBalances(algotia, options);
 				exchanges = Object.assign({}, exchanges, {
 					[id]: backtestExchangeFactory(
 						algotia,

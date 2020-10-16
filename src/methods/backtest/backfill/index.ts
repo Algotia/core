@@ -4,10 +4,10 @@ import {
 	MultiBackfillSet,
 	SingleBackfillOptions,
 	MultiBackfillOptions,
-	isSingle,
-	isMulti,
 	ExchangeID,
 	OHLCV,
+	isSingleBackfillOptions,
+	isMultiBackfillOptions,
 } from "../../../types";
 import { debugLog } from "../../../utils";
 import fetchRecords from "./fetchRecords";
@@ -35,13 +35,13 @@ async function backfill<
 	try {
 		debugLog("Backfilling records");
 
-		if (isSingle<SingleBackfillOptions>(options)) {
+		if (isSingleBackfillOptions(options)) {
 			// Single Backfill
 
 			return await fetchRecords(algotia, options);
 
 			//TODO: retrieve records
-		} else if (isMulti<MultiBackfillOptions>(options)) {
+		} else if (isMultiBackfillOptions(options)) {
 			const { exchanges } = options;
 			let allRecords: Record<ExchangeID, OHLCV[]>;
 			for (const exchangeId of exchanges) {

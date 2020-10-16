@@ -13,12 +13,14 @@ describe("Backfill method", () => {
 	beforeAll(async () => {
 		algotia = await boot({
 			exchange: { binance: true, bittrex: true, kucoin: true },
-			debug: true,
+			debug: false,
 		});
 	});
-	afterAll(() => {
+
+	afterAll(async () => {
 		algotia.quit();
 	});
+
 	test("Single backfill works", async () => {
 		try {
 			const options: SingleBackfillOptions = {
@@ -44,10 +46,13 @@ describe("Backfill method", () => {
 
 				expect(subtractTimestamps(candle, lastCandle)).toStrictEqual(periodMS);
 			}
+
+			return res;
 		} catch (err) {
 			throw err;
 		}
 	});
+
 	test("Multi backfill works", async () => {
 		try {
 			const options: MultiBackfillOptions = {
@@ -63,6 +68,7 @@ describe("Backfill method", () => {
 
 			const res = await backfill(algotia, options);
 
+			expect(res.length).toStrictEqual(120);
 			res.forEach((data, i) => {
 				for (const exchange of options.exchanges) {
 					const exchangeCandle = data[exchange];
@@ -81,6 +87,39 @@ describe("Backfill method", () => {
 					}
 				}
 			});
+
+			const getDbLen = async (): Promise<number> => {
+				try {
+					const dbArr = await algotia.mongo
+						.collection("backfill")
+						.find()
+						.toArray();
+					return dbArr.length;
+				} catch (err) {
+					throw err;
+				}
+			};
+
+			const beforeDbLen = await getDbLen();
+
+			await backfill(algotia, {
+				since: "1/01/2020",
+				until: "1/02/2020",
+				pair: "ETH/BTC",
+				timeframe: "1h",
+				exchange: "binance",
+			});
+
+			await backfill(algotia, {
+				since: "1/03/2020",
+				until: "1/04/2020",
+				pair: "ETH/BTC",
+				timeframe: "1h",
+				exchange: "kucoin",
+			});
+
+			const afterDbLen = await getDbLen();
+			expect(beforeDbLen).toStrictEqual(afterDbLen);
 		} catch (err) {
 			throw err;
 		}

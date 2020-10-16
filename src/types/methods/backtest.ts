@@ -39,7 +39,7 @@ export interface SingleBacktestOptions extends SingleBackfillOptions {
 }
 
 export interface MultiBacktestOptions extends MultiBackfillOptions {
-	initialBalances: MultiInitialBalance;
+	initialBalances: MultiInitialBalance<MultiBackfillOptions["exchanges"]>;
 	strategy: MultiStrategy;
 }
 
