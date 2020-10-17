@@ -61,11 +61,12 @@ async function backfill<
 					dataLen = set.length;
 					continue;
 				}
-				if (dataLen !== set.length) console.log("WARNING", dataLen, set.length);
+				if (dataLen !== set.length) {
+					throw new Error(
+						`Database contains corrupted data: set should be length ${dataLen} but is ${set.length}`
+					);
+				}
 				dataLen = set.length;
-				/* throw new Error( */
-				/* 	`Set length was ${dataLen} but one records length was ${set.length}` */
-				/* ); */
 			}
 
 			for (let i = 0; i < dataLen; i++) {

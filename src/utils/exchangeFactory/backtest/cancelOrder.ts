@@ -1,7 +1,11 @@
 import { AnyAlgotia, BackfillOptions, Exchange } from "../../../types";
-import { parseRedisFlatObj, buildRegexPath } from "../../db";
+import {
+	parseRedisFlatObj,
+	setOrderHash,
+	removeOpenOrderId,
+	pushClosedOrderId,
+} from "../../db";
 import { Order } from "ccxt";
-import flatten from "flat";
 import createFetchBalance from "./fetchBalance";
 import { parsePair } from "../../general";
 
@@ -12,12 +16,9 @@ type CancelOrder = (
 ) => Exchange["cancelOrder"];
 
 const createCancelOrder: CancelOrder = (algotia, options, exchange) => {
-	return async function cancelOrder(id, symbol?) {
+	return async function cancelOrder(id) {
 		try {
 			const { redis } = algotia;
-
-			const openOrdersPath = `${exchange.id}-open-orders`;
-			const closedOrdersPath = `${exchange.id}-closed-orders`;
 
 			const rawOrder = await redis.hgetall(id);
 			if (!rawOrder) {
@@ -29,8 +30,6 @@ const createCancelOrder: CancelOrder = (algotia, options, exchange) => {
 				...order,
 				status: "canceled",
 			};
-
-			const flatCanceledOrder: Record<string, any> = flatten(canceledOrder);
 
 			const fetchBalance = createFetchBalance(algotia, options, exchange);
 			const balance = await fetchBalance();
@@ -54,9 +53,9 @@ const createCancelOrder: CancelOrder = (algotia, options, exchange) => {
 				});
 			}
 
-			await redis.hmset(id, flatCanceledOrder);
-			await redis.lrem(openOrdersPath, 1, id);
-			await redis.lpush(closedOrdersPath, id);
+			await setOrderHash(algotia, canceledOrder);
+			await removeOpenOrderId(algotia, exchange.id, order.id);
+			await pushClosedOrderId(algotia, exchange.id, order.id);
 
 			return canceledOrder;
 		} catch (err) {

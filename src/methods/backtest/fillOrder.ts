@@ -1,7 +1,18 @@
-import { parsePair, debugLog, parseRedisFlatObj } from "../../utils";
+import {
+	parsePair,
+	debugLog,
+	parseRedisFlatObj,
+	getCurrentTime,
+	getBaseAndQuotePath,
+} from "../../utils";
 import { Order, Trade } from "ccxt";
 import { BacktestingExchange, AnyAlgotia, OHLCV } from "../../types";
 import flatten from "flat";
+import {
+	pushClosedOrderId,
+	removeOpenOrderId,
+	getOpenOrderIds,
+} from "../../utils/db/backtest/orders";
 
 const isMarketOrLimit = (type: any): type is "market" | "limit" => {
 	if (type === "market" || "limit") {
@@ -60,16 +71,10 @@ const fillOpenOrder = async (
 
 		const [base, quote] = parsePair(order.symbol);
 
-		const basePath = `${exchange.id}-balance:${base}`;
-		const quotePath = `${exchange.id}-balance:${quote}`;
-
 		const closeOrder = async (order: Order) => {
-			const openOrdersPath = `${exchange.id}-open-orders`;
-			const closedOrdersPath = `${exchange.id}-closed-orders`;
-
 			const trade = await createTrade(algotia, order);
 
-			const currentTime = await redis.get("current-time");
+			const currentTime = await getCurrentTime(algotia);
 
 			const orderModifications: Partial<Order> = {
 				trades: [trade],
@@ -88,9 +93,14 @@ const fillOpenOrder = async (
 
 			await redis.hmset(order.id, flatModifications);
 
-			await redis.lpush(closedOrdersPath, order.id);
-			await redis.lrem(openOrdersPath, 0, order.id);
+			await removeOpenOrderId(algotia, exchange.id, order.id);
+			await pushClosedOrderId(algotia, exchange.id, order.id);
 		};
+
+		const [basePath, quotePath] = getBaseAndQuotePath(
+			exchange.id,
+			order.symbol
+		);
 
 		if (order.side === "buy") {
 			if (order.price >= candle.low) {
@@ -137,9 +147,7 @@ const fillOrder = async (
 	try {
 		const { redis } = algotia;
 
-		const openOrdersPath = `${exchange.id}-open-orders`;
-
-		let openOrderIds = await redis.lrange(openOrdersPath, 0, -1);
+		let openOrderIds = await getOpenOrderIds(algotia, exchange.id);
 		for (const orderId of openOrderIds) {
 			let rawOpenOrder: any = await redis.hgetall(orderId);
 			const openOrder = parseRedisFlatObj<Order>(rawOpenOrder);

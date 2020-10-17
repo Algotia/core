@@ -2,8 +2,14 @@ import { AnyAlgotia, BackfillOptions, Exchange } from "../../../types";
 import { Exchange as CcxtExchange, Params, Order } from "ccxt";
 import { parsePair } from "../../general";
 import { v4 as uuid } from "uuid";
-import { flatten } from "flat";
 import createFetchBalance from "./fetchBalance";
+import {
+	getCurrentPrice,
+	getCurrentTime,
+	pushOpenOrderId,
+	setOrderHash,
+	getBaseAndQuotePath,
+} from "../../db";
 
 type CreateCreateOrder = (
 	algotia: AnyAlgotia,
@@ -12,7 +18,7 @@ type CreateCreateOrder = (
 ) => CcxtExchange["createOrder"];
 const createCreateOrder: CreateCreateOrder = (algotia, options, exchange) => {
 	return async function createOrder(
-		symbol: string,
+		pair: string,
 		type: string,
 		side: "buy" | "sell",
 		amount: number,
@@ -20,7 +26,7 @@ const createCreateOrder: CreateCreateOrder = (algotia, options, exchange) => {
 		params?: Params
 	): Promise<Order> {
 		try {
-			const [base, quote] = parsePair(symbol);
+			const [base, quote] = parsePair(pair);
 
 			const fetchBalance = createFetchBalance(algotia, options, exchange);
 			const balance = await fetchBalance();
@@ -30,8 +36,7 @@ const createCreateOrder: CreateCreateOrder = (algotia, options, exchange) => {
 			}
 
 			if (type === "market" && !price) {
-				const priceString = await algotia.redis.get(`current-price:${symbol}`);
-				price = Number(priceString);
+				price = await getCurrentPrice(algotia, exchange.id, pair);
 			}
 
 			const cost = amount * price;
@@ -50,18 +55,18 @@ const createCreateOrder: CreateCreateOrder = (algotia, options, exchange) => {
 					);
 				}
 			}
-			const currentTime = await algotia.redis.get("current-time");
+			const currentTime = await getCurrentTime(algotia);
 			const orderId = uuid();
 
 			const order: Order = {
-				symbol,
+				symbol: pair,
 				type,
 				side,
 				price,
 				amount,
 				id: orderId,
-				datetime: new Date(Number(currentTime)).toISOString(),
-				timestamp: Number(currentTime),
+				datetime: new Date(currentTime).toISOString(),
+				timestamp: currentTime,
 				lastTradeTimestamp: null,
 				status: "open",
 				average: null,
@@ -83,9 +88,10 @@ const createCreateOrder: CreateCreateOrder = (algotia, options, exchange) => {
 							: exchange.fees["trading"]["taker"] * cost,
 				},
 			};
-			const flatOrder: any = flatten(order);
-			const quoteBalancePath = `${exchange.id}-balance:${quote}`;
-			const baseBalancePath = `${exchange.id}-balance:${base}`;
+			const [baseBalancePath, quoteBalancePath] = getBaseAndQuotePath(
+				exchange.id,
+				pair
+			);
 			if (side === "buy") {
 				await algotia.redis.hmset(quoteBalancePath, {
 					free: Number(balance[quote].free) - Number(cost),
@@ -100,8 +106,8 @@ const createCreateOrder: CreateCreateOrder = (algotia, options, exchange) => {
 					total: Number(balance[base].total),
 				});
 			}
-			await algotia.redis.hmset(orderId, flatOrder);
-			await algotia.redis.lpush(`${exchange.id}-open-orders`, orderId);
+			await setOrderHash(algotia, order);
+			await pushOpenOrderId(algotia, exchange.id, orderId);
 
 			return order;
 		} catch (err) {

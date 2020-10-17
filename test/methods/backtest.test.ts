@@ -42,6 +42,8 @@ describe("Backtest method", () => {
 			return res;
 		} catch (err) {
 			throw err;
+		} finally {
+			await algotia.redis.flushall();
 		}
 	}, 100000);
 	test("works", async () => {
@@ -58,6 +60,7 @@ describe("Backtest method", () => {
 				},
 				strategy: async (exchange, data) => {
 					const balance = await exchange.fetchBalance();
+					console.log(balance);
 					const totalETH = balance["ETH"].free;
 					/* if (totalETH > 0) { */
 					/* } */
@@ -71,6 +74,7 @@ describe("Backtest method", () => {
 					/* await exchange.cancelOrder(order.id); */
 				},
 			});
+			console.log(res);
 			expect(res).toHaveProperty("balance");
 			return res;
 		} catch (err) {
