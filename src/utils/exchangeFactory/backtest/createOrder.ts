@@ -44,7 +44,7 @@ const createCreateOrder: CreateCreateOrder = (algotia, options, exchange) => {
 			if (side === "buy") {
 				if (cost > balance[quote].free) {
 					throw new Error(
-						`Insufficent balance for order costing ${price} -- ${balance[quote]}`
+						`Insufficent balance for order costing ${cost} -- ${balance[quote]}`
 					);
 				}
 			}

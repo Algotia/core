@@ -1,5 +1,7 @@
 import { boot, backtest } from "../../src/methods";
 import { AnyAlgotia } from "../../src/types";
+import { Order } from "ccxt";
+import { inspect } from "util";
 
 describe("Backtest method", () => {
 	let algotia: AnyAlgotia;
@@ -13,11 +15,12 @@ describe("Backtest method", () => {
 		});
 	});
 
-	afterAll(async () => {
+	afterAll((done) => {
 		algotia.quit();
+		done();
 	});
 
-	test(" multi works", async () => {
+	test("Multi backtest", async () => {
 		try {
 			const res = await backtest(algotia, {
 				since: "1/10/2020",
@@ -28,25 +31,22 @@ describe("Backtest method", () => {
 				exchanges: ["binance", "kucoin"],
 				initialBalances: {
 					kucoin: {
-						eth: 1,
-						btc: 1,
+						ETH: 1,
+						BTC: 1,
 					},
 					binance: {
-						eth: 1,
-						btc: 1,
+						ETH: 1,
+						BTC: 1,
 					},
 				},
-				strategy: () => {},
+				strategy: (exchange, data) => {},
 			});
-			expect(res).toBe(undefined);
-			return res;
+			console.log(inspect(res, false, 3));
 		} catch (err) {
 			throw err;
-		} finally {
-			await algotia.redis.flushall();
 		}
 	}, 100000);
-	test("works", async () => {
+	test("Single backtest", async () => {
 		try {
 			const res = await backtest(algotia, {
 				since: "1/08/2020",
@@ -55,27 +55,45 @@ describe("Backtest method", () => {
 				timeframe: "1h",
 				type: "single",
 				initialBalance: {
-					BTC: 1,
+					BTC: 0.23,
 					ETH: 0,
 				},
 				strategy: async (exchange, data) => {
 					const balance = await exchange.fetchBalance();
-					console.log(balance);
 					const totalETH = balance["ETH"].free;
 					/* if (totalETH > 0) { */
 					/* } */
 					/* if (balance["BTC"].free > data.close * 50) { */
 					const order = await exchange.createOrder(
 						"ETH/BTC",
-						"market",
+						"limit",
 						"buy",
-						10
+						10,
+						0.0001
 					);
 					/* await exchange.cancelOrder(order.id); */
 				},
 			});
-			console.log(res);
 			expect(res).toHaveProperty("balance");
+			expect(res.balance).toHaveProperty("info");
+			expect(res.balance).toHaveProperty("ETH");
+			expect(res.balance).toHaveProperty("BTC");
+			for (const currency in res.balance) {
+				if (currency !== "info") {
+					expect(res.balance[currency]).toHaveProperty("free");
+					expect(res.balance[currency]).toHaveProperty("total");
+					expect(res.balance[currency]).toHaveProperty("used");
+				} else {
+					const { info, ...restOfBalance } = res.balance;
+					expect(info).toStrictEqual(restOfBalance);
+				}
+			}
+			expect(res.openOrders).toHaveProperty("length");
+			expect(res.closedOrders).toHaveProperty("length");
+			for (const openOrder of res.openOrders) {
+				expect(openOrder.trades).toHaveLength(0);
+			}
+
 			return res;
 		} catch (err) {
 			throw err;

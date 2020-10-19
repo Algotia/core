@@ -12,6 +12,7 @@ import {
 	AsyncFunction,
 	isSingleBackfillOptions,
 	ExchangeRecord,
+	isExchangeID,
 } from "../../types";
 import {
 	getDefaultExchange,
@@ -28,6 +29,7 @@ import {
 	isMultiBacktestingOptions,
 	isSingleBacktestingOptions,
 } from "../../types/gaurds/isBacktestingOptions";
+import { inspect } from "util";
 
 const initializeBalances = async <
 	Opts extends SingleBacktestOptions | MultiBacktestOptions
@@ -120,8 +122,6 @@ const getSingleResults = async (
 		const closedOrders = await getOrders(closedOrderIds);
 		const balance = await exchange.fetchBalance();
 
-		await redis.flushall();
-
 		return {
 			balance,
 			closedOrders,
@@ -136,7 +136,7 @@ const getSingleResults = async (
 async function backtest<Opts extends MultiBacktestOptions>(
 	algotia: AnyAlgotia,
 	options: Opts
-): Promise<MultiBackfillResults<Opts["exchanges"]>>;
+): Promise<MultiBackfillResults>;
 
 async function backtest<Opts extends SingleBacktestOptions>(
 	algotia: AnyAlgotia,
@@ -192,15 +192,19 @@ async function backtest<
 			};
 		} else if (isMultiBacktestingOptions(options)) {
 			const exchanges: ExchangeRecord<BacktestingExchange> = {
-				...options.exchanges.reduce((prev, id) => {
-					return Object.assign({}, prev, {
-						[id]: backtestExchangeFactory(
-							algotia,
-							options,
-							algotia.exchanges[id]
-						),
-					});
-				}, {}),
+				...options.exchanges
+					.map((id) => {
+						return {
+							[id]: backtestExchangeFactory(
+								algotia,
+								options,
+								algotia.exchanges[id]
+							),
+						};
+					})
+					.reduce((prev, next) => {
+						return Object.assign({}, prev, next);
+					}, {}),
 			};
 
 			const data = await backfill(algotia, options);
@@ -240,13 +244,18 @@ async function backtest<
 					algotia,
 					exchanges[exchangeId]
 				);
-				results = Object.assign({}, results, { [exchangeId]: singleResult });
+				results = {
+					...results,
+					[exchangeId]: singleResult,
+				};
 			}
 
 			return results;
 		}
 	} catch (err) {
 		throw err;
+	} finally {
+		await algotia.redis.flushall();
 	}
 }
 
