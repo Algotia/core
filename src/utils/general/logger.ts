@@ -1,15 +1,15 @@
 import winston, { format, transports } from "winston";
 import chalk from "chalk";
 
-const CcxtErrorLogger = winston.createLogger({
-	level: "error",
-	format: format.json(),
-	defaultMeta: { origin: "Ccxt" },
-	transports: [
-		new transports.Console(),
-		new transports.File({ filename: "ccxt_error.log", level: "error" }),
-	],
-});
+/* const CcxtErrorLogger = winston.createLogger({ */
+/* 	level: "error", */
+/* 	format: format.json(), */
+/* 	defaultMeta: { origin: "Ccxt" }, */
+/* 	transports: [ */
+/* 		new transports.Console(), */
+/* 		new transports.File({ filename: "ccxt_error.log", level: "error" }), */
+/* 	], */
+/* }); */
 
 const StandardLogger = winston.createLogger({
 	level: "info",
@@ -50,7 +50,6 @@ const DebugLogger = winston.createLogger({
 winston.addColors(debugLevels.colors);
 
 const logger = {
-	ccxtError: CcxtErrorLogger,
 	standard: StandardLogger,
 	debug: DebugLogger,
 };
