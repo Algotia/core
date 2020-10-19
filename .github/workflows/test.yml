@@ -12,6 +12,7 @@ jobs:
     strategy:
       matrix:
         node-version: [8.x, 10.x, 12.x]
+        mongodb-version: [4.0]
     steps:
     - uses: actions/checkout@v2
     - name: Setup Node.js environment
@@ -20,6 +21,10 @@ jobs:
       run: |
           sudo apt-get install redis-server
           sudo systemctl start redis-server
+    - name: Setup MongoDB
+      uses: supercharge/mongodb-github-action@1.3.0
+      with: 
+        mongodb-version: ${{matrix.mongodb-version}}
     - name: Install dependencies
       run: npm ci
     - name: Build
