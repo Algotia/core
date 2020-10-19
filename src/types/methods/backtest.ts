@@ -1,98 +1,96 @@
-import { ObjectId, MongoClient } from "mongodb";
-import { OHLCV } from "../shared";
-import { Balances, Order, Exchange } from "ccxt";
-import { Tedis } from "tedis";
+import { SingleBackfillOptions, MultiBackfillOptions } from "./backfill";
+import { Exchange } from "../index";
+import { ExchangeRecord } from ".";
+import { OHLCV, ExchangeID } from "../shared";
+import { Balances, Order } from "ccxt";
 
-type SyncStrategy = (
-	exchange: Exchange | BacktestingExchange,
-	data: OHLCV
-) => void;
-type AsyncStrategy = (
-	exchange: Exchange | BacktestingExchange,
+export interface BaseAndQuoteCurrencies {
+	[key: string]: number;
+}
+
+export type SingleInitialBalance = BaseAndQuoteCurrencies;
+export type MultiInitialBalance<
+	T extends ExchangeID[] = ExchangeID[]
+> = Partial<Record<T[number], BaseAndQuoteCurrencies>>;
+
+type SingleSyncStrategy = (exchange: BacktestingExchange, data: OHLCV) => void;
+type SingleAsyncStrategy = (
+	exchange: BacktestingExchange,
 	data: OHLCV
 ) => Promise<void>;
 
-type Strategy = SyncStrategy | AsyncStrategy;
+export type SingleStrategy = SingleSyncStrategy | SingleAsyncStrategy;
 
-interface BaseAndQuoteBalances {
-	base: number;
-	quote: number;
+export type MultiSyncStrategy = (
+	exchanges: ExchangeRecord<BacktestingExchange>,
+	data: ExchangeRecord<OHLCV>
+) => void;
+
+export type MultiAsyncStrategy = (
+	exchanges: ExchangeRecord<BacktestingExchange>,
+	data: ExchangeRecord<OHLCV>
+) => Promise<void>;
+
+export type MultiStrategy = MultiAsyncStrategy | MultiSyncStrategy;
+
+export interface SingleBacktestOptions extends SingleBackfillOptions {
+	initialBalance: SingleInitialBalance;
+	strategy: SingleStrategy;
 }
 
-export interface BacktestInput {
-	name?: string;
-	backfillName: string;
-	strategy: Strategy;
-	initialBalance: BaseAndQuoteBalances;
+export interface MultiBacktestOptions extends MultiBackfillOptions {
+	initialBalances: MultiInitialBalance<MultiBackfillOptions["exchanges"]>;
+	strategy: MultiStrategy;
 }
 
-export interface BaseAndQuoteCurrencies {
-	base: string;
-	quote: string;
-}
-
-export interface ProcessedBacktestOptions extends BacktestInput {
-	baseAndQuote: BaseAndQuoteCurrencies;
-	backfillId: ObjectId;
-	name: string;
-}
-
-export interface PrivateApi {
-	createOrder: CreateOrder;
-	fetchBalance: FetchBalance;
-	fetchOrders: FetchOrders;
-}
-
-export interface PublicApi {
-	fetchMarkets: typeof Exchange.prototype.fetchMarkets;
-	fetchCurrencies: typeof Exchange.prototype.fetchCurrencies;
-	fetchTradingLimits?: typeof Exchange.prototype.fetchTradingLimits;
-	fetchTradingFees?: typeof Exchange.prototype.fetchTradingFees;
-	fetchTicker: typeof Exchange.prototype.fetchTicker;
-	fetchOrderBook: typeof Exchange.prototype.fetchOrderBook;
-	fetchOHLCV: typeof Exchange.prototype.fetchOHLCV;
-	loadMarkets: typeof Exchange.prototype.loadMarkets;
-}
-
-export interface BacktestingExchange extends PrivateApi, PublicApi {}
-
-export interface MethodFactoryArgs {
-	mongoClient: MongoClient;
-	redisClient: Tedis;
-	exchange: Exchange;
-}
-
-export enum PrivateApiIds {
-	FetchBalance = "fetchBalance",
-	CreateOrder = "createOrder",
-	CancelOrder = "cancelOrder",
-	FetchOrders = "fetchOrders"
-}
-
-export type PartialOrder = Partial<Order>;
-
-export type FetchOrders = (
-	symbol?: string,
-	since?: number,
-	limit?: number,
-	params?: {}
-) => Promise<PartialOrder[]>;
-export type FetchBalance = () => Promise<Balances>;
-
-export type CreateOrder = (
-	symbol: string,
-	type: string,
-	side: "buy" | "sell",
-	amount: number,
-	price?: number,
-	params?: {
-		clientOrderId: string;
-	}
-) => Promise<PartialOrder>;
-
-export interface BacktestDocument {
-	name: string;
-	backfillId: ObjectId;
-	orders: Order[];
+export interface SingleBacktestResults {
+	options: SingleBacktestOptions;
 	balance: Balances;
+	openOrders: Order[];
+	closedOrders: Order[];
+	errors: string[];
 }
+
+export type MultiBackfillResults = ExchangeRecord<SingleBacktestResults>;
+
+type SupportedBackfillMethods =
+	| "id"
+	| "name"
+	| "OHLCVRecordLimit"
+	| "fees"
+	| "countries"
+	| "urls"
+	| "version"
+	| "has"
+	| "timeframes"
+	| "timeout"
+	| "rateLimit"
+	| "userAgent"
+	| "headers"
+	| "markets"
+	| "symbols"
+	| "currencies"
+	| "marketsById"
+	| "proxy"
+	| "apiKey"
+	| "secret"
+	| "password"
+	| "uid"
+	| "requiredCredentials"
+	| "options"
+	| "fetchMarkets"
+	| "fetchCurrencies"
+	| "fetchTicker"
+	| "fetchOrderBook"
+	| "fetchTrades"
+	| "fetchOHLCV"
+	| "fetchBalance"
+	| "createOrder"
+	| "cancelOrder"
+	| "editOrder"
+	| "fetchOrder"
+	| "fetchOpenOrders"
+	| "fetchOrders"
+	| "fetchMyTrades";
+
+export type BacktestingExchange = Pick<Exchange, SupportedBackfillMethods>;

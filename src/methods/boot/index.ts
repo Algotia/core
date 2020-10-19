@@ -1,33 +1,53 @@
-import { ConfigOptions, BootData } from "../../types/";
-import validateConfig from "./validateConfig";
-import connectExchange from "./connectExchange";
-import createClient from "./createClient";
-import createEventBus from "./createEventBus";
-import createRedisClient from "./createRedisClient";
+import { Config, Algotia } from "../../types/methods/boot";
+import bootDatabases from "./database";
+import bootExhanges from "./exchanges";
+import validateConfig from "./validate";
+import { debugLog } from "../../utils";
 
-const boot = async (configInput: ConfigOptions): Promise<BootData> => {
+const boot = async <Conf extends Config>(
+	config: Conf
+): Promise<Algotia<Conf>> => {
 	try {
-		const config = validateConfig(configInput);
-		const exchange = await connectExchange(configInput);
-		const mongoClient = await createClient(config);
-		const eventBus = createEventBus();
-		const redisClient = createRedisClient();
+		if (config.debug === true) {
+			process.env["ALGOTIA_DEBUG"] = "true";
+		}
+
+		debugLog("Starting boot");
+
+		validateConfig(config);
+
+		const { mongo, mongoClient, redis } = await bootDatabases();
+
+		const exchanges = bootExhanges(config);
 
 		const quit = () => {
-			mongoClient.close();
-			redisClient.close();
+			if (mongoClient.isConnected()) {
+				mongoClient.close();
+			}
+			redis.quit();
 		};
 
-		const bootData = {
+		debugLog(
+			{
+				label: "boot returned: ",
+				value: {
+					config,
+					mongo,
+					redis,
+					exchanges,
+					quit,
+				},
+			},
+			"return_value"
+		);
+
+		return {
 			config,
-			exchange,
-			mongoClient,
-			eventBus,
-			redisClient,
-			quit
+			mongo,
+			redis,
+			exchanges,
+			quit,
 		};
-
-		return bootData;
 	} catch (err) {
 		throw err;
 	}

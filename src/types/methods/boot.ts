@@ -1,49 +1,31 @@
-import { MongoClient, MongoClientOptions } from "mongodb";
-import { default as ccxtOriginal, Exchange as CcxtExchange } from "ccxt";
-import { EventEmitter } from "events";
-import { Tedis } from "tedis";
+import { ExchangeID, Exchange } from "../shared";
+import { Redis } from "ioredis";
+import { Db } from "mongodb";
 
-export type BinanceId = "binance";
-export type BitstampId = "bitstamp";
+type ExchangeConfig = {
+	[key in ExchangeID]?: ExchangeOptions | boolean;
+};
 
-export type Binance = typeof ccxtOriginal.binance.prototype;
-export type Bitstamp = typeof ccxtOriginal.binance.prototype;
-
-export type AnyExchange = Binance | Bitstamp;
-export type AllowedExchangeIds = BinanceId | BitstampId;
-
-export enum AllowedExchangeIdsEnum {
-	//Bitfinex = "bitfinex",
-	//Kraken = "kraken"
-	Binance = "binance",
-	Bitstamp = "bitstamp"
-}
-
-export interface ExchangeConfigOptions {
-	exchangeId: AllowedExchangeIds;
+export interface ExchangeOptions {
 	apiKey?: string;
-	apiSecret?: string;
+	secret?: string;
 	timeout?: number;
+	[key: string]: any;
 }
 
-export interface DbConfigOptions extends MongoClientOptions {
-	port?: number;
+export interface Config {
+	exchange: ExchangeConfig;
+	debug?: boolean;
 }
 
-export interface ConfigOptions {
-	exchange: ExchangeConfigOptions;
-	db?: DbConfigOptions;
-}
+export type ExchangeRecord<T> = Partial<Record<keyof Config["exchange"], T>>;
 
-export interface Exchange extends CcxtExchange {
-	historicalRecordLimit: number;
-}
-
-export interface BootData {
-	config: ConfigOptions;
-	exchange: AnyExchange;
-	mongoClient: MongoClient;
-	eventBus: EventEmitter;
-	redisClient: Tedis;
+export interface Algotia<Conf extends Config> {
+	config: Conf;
+	exchanges: ExchangeRecord<Exchange>;
+	mongo: Db;
+	redis: Redis;
 	quit: () => void;
 }
+
+export type AnyAlgotia = Algotia<Config>;
