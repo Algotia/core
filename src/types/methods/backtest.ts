@@ -51,7 +51,15 @@ export interface SingleBacktestResults {
 	errors: string[];
 }
 
-export type MultiBackfillResults = ExchangeRecord<SingleBacktestResults>;
+export type MultiBackfillResults<
+	Opts extends MultiBackfillOptions = MultiBackfillOptions
+> = {
+	options: Opts;
+	balances: Record<Opts["exchanges"][number], Balances>;
+	openOrders: Record<Opts["exchanges"][number], Order[]>;
+	closedOrders: Record<Opts["exchanges"][number], Order[]>;
+	errors: Record<Opts["exchanges"][number], string[]>;
+};
 
 type SupportedBackfillMethods =
 	| "id"

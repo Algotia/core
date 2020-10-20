@@ -136,7 +136,7 @@ const getSingleResults = async (
 async function backtest<Opts extends MultiBacktestOptions>(
 	algotia: AnyAlgotia,
 	options: Opts
-): Promise<MultiBackfillResults>;
+): Promise<MultiBackfillResults<Opts>>;
 
 async function backtest<Opts extends SingleBacktestOptions>(
 	algotia: AnyAlgotia,
@@ -191,21 +191,20 @@ async function backtest<
 				options,
 			};
 		} else if (isMultiBacktestingOptions(options)) {
-			const exchanges: ExchangeRecord<BacktestingExchange> = {
-				...options.exchanges
-					.map((id) => {
-						return {
-							[id]: backtestExchangeFactory(
-								algotia,
-								options,
-								algotia.exchanges[id]
-							),
-						};
-					})
-					.reduce((prev, next) => {
-						return Object.assign({}, prev, next);
-					}, {}),
-			};
+			//TODO: find a way not to cast here
+			const opts = options as MultiBacktestOptions;
+
+			let exchanges: Record<
+				typeof opts["exchanges"][number],
+				BacktestingExchange
+			>;
+
+			for (const id in opts.exchanges) {
+				exchanges = {
+					...exchanges,
+					[id]: backtestExchangeFactory(algotia, opts, algotia.exchanges[id]),
+				};
+			}
 
 			const data = await backfill(algotia, options);
 
@@ -238,7 +237,7 @@ async function backtest<
 				}
 			}
 
-			let results: MultiBackfillResults;
+			let results: MultiBackfillResults<typeof opts>;
 			for (const exchangeId in exchanges) {
 				const singleResult = await getSingleResults(
 					algotia,
