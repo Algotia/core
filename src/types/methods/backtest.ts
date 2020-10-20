@@ -9,9 +9,9 @@ export interface BaseAndQuoteCurrencies {
 }
 
 export type SingleInitialBalance = BaseAndQuoteCurrencies;
-export type MultiInitialBalance<
-	T extends ExchangeID[] = ExchangeID[]
-> = Partial<Record<T[number], BaseAndQuoteCurrencies>>;
+export type MultiInitialBalance<T extends ExchangeID[]> = Partial<
+	Record<T[number], BaseAndQuoteCurrencies>
+>;
 
 type SingleSyncStrategy = (exchange: BacktestingExchange, data: OHLCV) => void;
 type SingleAsyncStrategy = (

@@ -1,4 +1,9 @@
-import { AnyAlgotia, BackfillOptions, Exchange } from "../../../types";
+import {
+	AnyAlgotia,
+	BackfillOptions,
+	Exchange,
+	ExchangeError,
+} from "../../../types";
 import {
 	parseRedisFlatObj,
 	setOrderHash,
@@ -22,7 +27,10 @@ const createCancelOrder: CancelOrder = (algotia, options, exchange) => {
 
 			const rawOrder = await redis.hgetall(id);
 			if (!rawOrder) {
-				throw new Error("Could not find an open order with the id " + id);
+				throw new ExchangeError(
+					"Could not find an open order with the id " + id,
+					id
+				);
 			}
 			const order = parseRedisFlatObj<Order>(rawOrder);
 

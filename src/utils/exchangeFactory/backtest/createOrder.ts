@@ -1,4 +1,10 @@
-import { AnyAlgotia, BackfillOptions, Exchange } from "../../../types";
+import {
+	AnyAlgotia,
+	BackfillOptions,
+	Exchange,
+	ExchangeError,
+	InsufficentBalanceError,
+} from "../../../types";
 import { Exchange as CcxtExchange, Params, Order } from "ccxt";
 import { parsePair } from "../../general";
 import { v4 as uuid } from "uuid";
@@ -32,7 +38,10 @@ const createCreateOrder: CreateCreateOrder = (algotia, options, exchange) => {
 			const balance = await fetchBalance();
 
 			if (type === "limit" && !price) {
-				throw new Error("Cannot place limit order without price");
+				throw new ExchangeError(
+					"Cannot place limit order without price",
+					exchange.id
+				);
 			}
 
 			if (type === "market" && !price) {
@@ -43,15 +52,17 @@ const createCreateOrder: CreateCreateOrder = (algotia, options, exchange) => {
 
 			if (side === "buy") {
 				if (cost > balance[quote].free) {
-					throw new Error(
-						`Insufficent balance for order costing ${cost} -- ${balance[quote]}`
+					throw new InsufficentBalanceError(
+						`Insufficent balance for order costing ${cost} -- ${balance[quote]}`,
+						exchange.id
 					);
 				}
 			}
 			if (side === "sell") {
 				if (cost > balance[base].free) {
-					throw new Error(
-						`Insufficent balance for order costing ${price} -- ${balance[base]}`
+					throw new InsufficentBalanceError(
+						`Insufficent balance for order costing ${price} -- ${balance[base]}`,
+						exchange.id
 					);
 				}
 			}

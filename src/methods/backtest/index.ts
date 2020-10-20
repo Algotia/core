@@ -13,6 +13,7 @@ import {
 	isSingleBackfillOptions,
 	ExchangeRecord,
 	isExchangeID,
+	ExchangeError,
 } from "../../types";
 import {
 	getDefaultExchange,
@@ -81,7 +82,6 @@ const updateContext = async (
 	candle: OHLCV
 ): Promise<void> => {
 	try {
-		const { redis } = algotia;
 		await setCurrentTime(algotia, candle.timestamp);
 		await setCurrentPrice(algotia, exchangeId, options.pair, candle.close);
 	} catch (err) {
@@ -133,15 +133,16 @@ const getSingleResults = async (
 };
 
 // backtest overloads
-async function backtest<Opts extends MultiBacktestOptions>(
-	algotia: AnyAlgotia,
-	options: Opts
-): Promise<MultiBackfillResults<Opts>>;
 
 async function backtest<Opts extends SingleBacktestOptions>(
 	algotia: AnyAlgotia,
 	options: Opts
 ): Promise<SingleBacktestResults>;
+
+async function backtest<Opts extends MultiBacktestOptions>(
+	algotia: AnyAlgotia,
+	options: Opts
+): Promise<MultiBackfillResults<Opts>>;
 
 // backtest
 async function backtest<
@@ -168,7 +169,8 @@ async function backtest<
 
 			const data = await backfill(algotia, options);
 
-			let errors = [];
+			let strategyErrors: string[] = [];
+
 			for (let i = 0; i < data.length; i++) {
 				const candle = data[i];
 				await updateContext(algotia, options, exchange.id, candle);
@@ -179,7 +181,7 @@ async function backtest<
 						strategy(backtestingExchange, candle);
 					}
 				} catch (err) {
-					errors.push(err.message);
+					strategyErrors.push(err.message);
 				}
 				await fillOrder(algotia, backtestingExchange, candle);
 			}
@@ -187,7 +189,7 @@ async function backtest<
 			const results = await getSingleResults(algotia, backtestingExchange);
 			return {
 				...results,
-				errors,
+				errors: strategyErrors,
 				options,
 			};
 		} else if (isMultiBacktestingOptions(options)) {
@@ -199,7 +201,7 @@ async function backtest<
 				BacktestingExchange
 			>;
 
-			for (const id in opts.exchanges) {
+			for (const id of opts.exchanges) {
 				exchanges = {
 					...exchanges,
 					[id]: backtestExchangeFactory(algotia, opts, algotia.exchanges[id]),
@@ -208,7 +210,7 @@ async function backtest<
 
 			const data = await backfill(algotia, options);
 
-			let strategyErrors = [];
+			let strategyErrors: Record<typeof opts["exchanges"][number], string[]>;
 
 			const { strategy } = options;
 
@@ -229,7 +231,14 @@ async function backtest<
 						strategy(exchanges, candle);
 					}
 				} catch (err) {
-					strategyErrors.push(err);
+					if (err instanceof ExchangeError) {
+						const stratArr = strategyErrors[err.exchangeId];
+						if (stratArr && stratArr.length) {
+							strategyErrors[err.exchangeId].push(err.message);
+						} else {
+							strategyErrors[err.exchangeId] = [err.message];
+						}
+					}
 				}
 
 				for (const id in exchanges) {

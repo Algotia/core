@@ -13,18 +13,10 @@ type FetchBalance = (
 const createFetchBalance: FetchBalance = (algotia, options, exchange) => {
 	return async function fetchBalance(params?: Params) {
 		const splitPair = parsePair(options.pair);
-		const balanceKeys = ["total", "used", "free"];
 
 		let balance: Balances;
 
 		const paths = getBaseAndQuotePath(exchange.id, options.pair);
-		/* for (const path of paths) { */
-		/* 	const rawSingleCurrencyBalance = await algotia.redis.hgetall(path); */
-		/* 	const singleCurrencyBalance = parseRedisFlatObj<Balance>( */
-		/* 		rawSingleCurrencyBalance */
-		/* 	); */
-		/* 	balance = Object.assign({}, balance, { singleCurrencyBalance }); */
-		/* } */
 
 		for (let i = 0; i < splitPair.length; i++) {
 			const singleCurrency = splitPair[i];
@@ -38,22 +30,8 @@ const createFetchBalance: FetchBalance = (algotia, options, exchange) => {
 			});
 		}
 
-		/* for (const singleCurrency of splitPair) { */
-		/* 	const path = `${exchange.id}-balance:${singleCurrency}`; */
-		/* 	const balanceRaw = await algotia.redis.hgetall(path); */
-		/* 	let singleBalance: Balance; */
-		/* 	for (const key of balanceKeys) { */
-		/* 		singleBalance = { */
-		/* 			...singleBalance, */
-		/* 			[key]: Number(balanceRaw[key]), */
-		/* 		}; */
-		/* 	} */
-		/* 	balance = { */
-		/* 		...balance, */
-		/* 		[singleCurrency]: singleBalance, */
-		/* 	}; */
-		/* } */
 		balance.info = { ...balance };
+
 		return balance;
 	};
 };
