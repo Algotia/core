@@ -23,7 +23,7 @@ describe("Exchange Factory", () => {
 						OHLCVRecordLimit: exchange.OHLCVRecordLimit,
 					};
 				} catch (err) {
-					console.log(err);
+					throw err;
 				}
 			});
 
@@ -32,7 +32,7 @@ describe("Exchange Factory", () => {
 				expect(length).toStrictEqual(OHLCVRecordLimit);
 			});
 		} catch (err) {
-			console.log(err);
+			throw err;
 		}
 	});
 });

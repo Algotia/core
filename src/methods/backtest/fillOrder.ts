@@ -57,6 +57,34 @@ const createTrade = async (
 		throw err;
 	}
 };
+const closeOrder = async (
+	algotia: AnyAlgotia,
+	exchange: BacktestingExchange,
+	order: Order
+) => {
+	const { redis } = algotia;
+
+	const trade = await createTrade(algotia, order);
+
+	const currentTime = await getCurrentTime(algotia);
+
+	const orderModifications: Partial<Order> = {
+		trades: [trade],
+		average: order.price,
+		filled: order.amount,
+		remaining: 0,
+		lastTradeTimestamp: Number(currentTime),
+	};
+
+	const flatModifications: Record<string, any> = flatten(orderModifications, {
+		safe: true,
+	});
+
+	await redis.hmset(order.id, flatModifications);
+
+	await removeOpenOrderId(algotia, exchange.id, order.id);
+	await pushClosedOrderId(algotia, exchange.id, order.id);
+};
 
 const fillOpenOrder = async (
 	algotia: AnyAlgotia,
@@ -67,35 +95,10 @@ const fillOpenOrder = async (
 	try {
 		const { redis } = algotia;
 
+		// Balance before any orders are filled
 		const balance = await exchange.fetchBalance();
 
 		const [base, quote] = parsePair(order.symbol);
-
-		const closeOrder = async (order: Order) => {
-			const trade = await createTrade(algotia, order);
-
-			const currentTime = await getCurrentTime(algotia);
-
-			const orderModifications: Partial<Order> = {
-				trades: [trade],
-				average: order.price,
-				filled: order.amount,
-				remaining: 0,
-				lastTradeTimestamp: Number(currentTime),
-			};
-
-			const flatModifications: Record<string, any> = flatten(
-				orderModifications,
-				{
-					safe: true,
-				}
-			);
-
-			await redis.hmset(order.id, flatModifications);
-
-			await removeOpenOrderId(algotia, exchange.id, order.id);
-			await pushClosedOrderId(algotia, exchange.id, order.id);
-		};
 
 		const [basePath, quotePath] = getBaseAndQuotePath(
 			exchange.id,
@@ -103,35 +106,44 @@ const fillOpenOrder = async (
 		);
 
 		if (order.side === "buy") {
+			// Only fill if buy price is GTE lowest price of period
 			if (order.price >= candle.low) {
+				// Add base ammount to balance
 				await redis.hmset(basePath, {
 					free: balance[base].free + order.amount,
 					used: balance[base].used,
 					total: balance[base].total + order.amount,
 				});
 
+				// Subtract quote cost from used and total
+				// and fee cost from free and total
 				await redis.hmset(quotePath, {
 					free: balance[quote].free - order.fee.cost,
 					used: balance[quote].used - order.cost,
 					total: balance[quote].total - order.cost - order.fee.cost,
 				});
 
-				await closeOrder(order);
+				await closeOrder(algotia, exchange, order);
 			}
 		} else if (order.side === "sell") {
+			// Only fill if sell price is LTE highest price of period
 			if (order.price <= candle.high) {
+				// Subtract base ammount from used and total
 				await redis.hmset(basePath, {
 					free: balance[base].free,
 					used: balance[base].used - order.amount,
 					total: balance[base].total - order.amount,
 				});
 
+				// Add quote amount to free and total
+				// Subtract fee cost from free and total
 				await redis.hmset(quotePath, {
 					free: balance[quote].free + order.cost - order.fee.cost,
 					used: balance[quote].used,
 					total: balance[quote].total + order.cost - order.fee.cost,
 				});
-				await closeOrder(order);
+
+				await closeOrder(algotia, exchange, order);
 			}
 		}
 	} catch (err) {

@@ -2,22 +2,19 @@ import {
 	AnyAlgotia,
 	ExchangeID,
 	OHLCV,
-	BackfillOptions,
 	SingleBacktestOptions,
 	MultiBacktestOptions,
 	SingleInitialBalance,
 	BacktestingExchange,
 	SingleBacktestResults,
-	MultiBackfillResults,
+	MultiBacktestResults,
 	AsyncFunction,
 	isSingleBackfillOptions,
-	ExchangeRecord,
-	isExchangeID,
 	ExchangeError,
 } from "../../types";
 import {
 	getDefaultExchange,
-	backtestExchangeFactory,
+	simulatedExchangeFactory,
 	debugLog,
 	parseRedisFlatObj,
 	setCurrentTime,
@@ -30,7 +27,6 @@ import {
 	isMultiBacktestingOptions,
 	isSingleBacktestingOptions,
 } from "../../types/gaurds/isBacktestingOptions";
-import { inspect } from "util";
 
 const initializeBalances = async <
 	Opts extends SingleBacktestOptions | MultiBacktestOptions
@@ -77,13 +73,13 @@ const initializeBalances = async <
 
 const updateContext = async (
 	algotia: AnyAlgotia,
-	options: BackfillOptions,
+	options: SingleBacktestOptions | MultiBacktestOptions,
 	exchangeId: ExchangeID,
 	candle: OHLCV
 ): Promise<void> => {
 	try {
 		await setCurrentTime(algotia, candle.timestamp);
-		await setCurrentPrice(algotia, exchangeId, options.pair, candle.close);
+		await setCurrentPrice(algotia, exchangeId, options.pair, candle.open);
 	} catch (err) {
 		throw err;
 	}
@@ -132,36 +128,67 @@ const getSingleResults = async (
 	}
 };
 
-// backtest overloads
-
-async function backtest<Opts extends SingleBacktestOptions>(
+const getMultipleResults = async (
 	algotia: AnyAlgotia,
-	options: Opts
+	exchanges: Record<
+		MultiBacktestOptions["exchanges"][number],
+		BacktestingExchange
+	>
+): Promise<Omit<MultiBacktestResults, "errors" | "options">> => {
+	try {
+		let results: Omit<MultiBacktestResults, "errors" | "options">;
+		for (const exchangeId in exchanges) {
+			const singleResults = await getSingleResults(
+				algotia,
+				exchanges[exchangeId]
+			);
+			for (const resultKey in singleResults) {
+				results = {
+					...results,
+					[resultKey]: {
+						[exchangeId]: singleResults[resultKey],
+					},
+				};
+			}
+		}
+		return results;
+	} catch (err) {
+		throw err;
+	}
+};
+
+// backtest overloads
+async function backtest(
+	algotia: AnyAlgotia,
+	options: SingleBacktestOptions
 ): Promise<SingleBacktestResults>;
 
-async function backtest<Opts extends MultiBacktestOptions>(
+async function backtest<MultiOptions extends MultiBacktestOptions>(
 	algotia: AnyAlgotia,
-	options: Opts
-): Promise<MultiBackfillResults<Opts>>;
+	options: MultiOptions
+): Promise<MultiBacktestResults<MultiOptions>>;
 
 // backtest
-async function backtest<
-	Opts extends SingleBacktestOptions | MultiBacktestOptions
->(
+async function backtest<MultiOptions extends MultiBacktestOptions>(
 	algotia: AnyAlgotia,
-	options: Opts
-): Promise<SingleBacktestResults | MultiBackfillResults> {
+	options: SingleBacktestOptions | MultiOptions
+): Promise<SingleBacktestResults | MultiBacktestResults<MultiOptions>> {
 	try {
+		// TODO: Validate
+
+		// Store initial balances
 		await initializeBalances(algotia, options);
 
 		if (isSingleBacktestingOptions(options)) {
+			// Single backfill
 			const { strategy } = options;
 
+			// If no exchange given use default exchange
 			const exchange = options.exchange
 				? algotia.exchanges[options.exchange]
 				: getDefaultExchange(algotia);
 
-			const backtestingExchange = backtestExchangeFactory(
+			const backtestingExchange = simulatedExchangeFactory(
 				algotia,
 				options,
 				exchange
@@ -171,9 +198,7 @@ async function backtest<
 
 			let strategyErrors: string[] = [];
 
-			for (let i = 0; i < data.length; i++) {
-				const candle = data[i];
-				await updateContext(algotia, options, exchange.id, candle);
+			const executeStrategy = async (candle: typeof data[number]) => {
 				try {
 					if (strategy instanceof AsyncFunction) {
 						await strategy(backtestingExchange, candle);
@@ -181,88 +206,128 @@ async function backtest<
 						strategy(backtestingExchange, candle);
 					}
 				} catch (err) {
-					strategyErrors.push(err.message);
+					// Push errors to strategyErrors
+					if (err instanceof ExchangeError) {
+						strategyErrors.push(err.message);
+					}
 				}
-				await fillOrder(algotia, backtestingExchange, candle);
+			};
+
+			for (let i = 0; i < data.length; i++) {
+				const userCandle = data[i];
+				const aheadCandle = data[i + 1];
+
+				if (i === data.length - 1) {
+					await executeStrategy(userCandle);
+					break;
+				}
+
+				// Update time and current price
+				await updateContext(algotia, options, exchange.id, aheadCandle);
+
+				// Call strategy
+				await executeStrategy(userCandle);
+
+				// Attempt to fill any open orders
+				await fillOrder(algotia, backtestingExchange, aheadCandle);
 			}
 
+			// Get final balance and all orders
 			const results = await getSingleResults(algotia, backtestingExchange);
 			return {
 				...results,
-				errors: strategyErrors,
 				options,
+				errors: strategyErrors,
 			};
 		} else if (isMultiBacktestingOptions(options)) {
-			//TODO: find a way not to cast here
-			const opts = options as MultiBacktestOptions;
+			// Multi backfill
 
+			//TODO: find a way not to cast here
+
+			// Create object of backtestingExchanges from options.exchanges
 			let exchanges: Record<
-				typeof opts["exchanges"][number],
+				MultiOptions["exchanges"][number],
 				BacktestingExchange
 			>;
 
-			for (const id of opts.exchanges) {
+			for (const id of options.exchanges) {
 				exchanges = {
 					...exchanges,
-					[id]: backtestExchangeFactory(algotia, opts, algotia.exchanges[id]),
+					[id]: simulatedExchangeFactory(
+						algotia,
+						options,
+						algotia.exchanges[id]
+					),
 				};
 			}
 
 			const data = await backfill(algotia, options);
 
-			let strategyErrors: Record<typeof opts["exchanges"][number], string[]>;
-
 			const { strategy } = options;
 
+			let strategyErrors: Record<MultiOptions["exchanges"][number], string[]>;
+
+			const executeStrategy = async (userCandle: typeof data[number]) => {
+				try {
+					if (strategy instanceof AsyncFunction) {
+						await strategy(exchanges, userCandle);
+					} else {
+						strategy(exchanges, userCandle);
+					}
+				} catch (err) {
+					// Push errors to strategyErrors
+					if (err instanceof ExchangeError) {
+						const stratArr = strategyErrors[err.exchangeId];
+						if (stratArr && stratArr[err.exchangeId]) {
+							strategyErrors[err.exchangeId].push(err.message);
+						} else {
+							strategyErrors = Object.assign({}, strategyErrors, {
+								[err.exchangeId]: err.message,
+							});
+						}
+					}
+				}
+			};
+
 			for (let i = 0; i < data.length; i++) {
-				const candle = data[i];
-				for (const exchangeId in candle) {
+				const userCandle = data[i];
+				const aheadCandle = data[i + 1];
+
+				if (i === data.length - 1) {
+					await executeStrategy(userCandle);
+					break;
+				}
+
+				for (const exchangeId in aheadCandle) {
+					// Update time and current price
 					await updateContext(
 						algotia,
 						options,
 						exchanges[exchangeId].id,
-						candle[exchangeId]
+						aheadCandle[exchangeId]
 					);
 				}
-				try {
-					if (strategy instanceof AsyncFunction) {
-						await strategy(exchanges, candle);
-					} else {
-						strategy(exchanges, candle);
-					}
-				} catch (err) {
-					if (err instanceof ExchangeError) {
-						const stratArr = strategyErrors[err.exchangeId];
-						if (stratArr && stratArr.length) {
-							strategyErrors[err.exchangeId].push(err.message);
-						} else {
-							strategyErrors[err.exchangeId] = [err.message];
-						}
-					}
-				}
+				// Call strategy
+				await executeStrategy(userCandle);
 
+				// Attempt to fill any open orders
 				for (const id in exchanges) {
-					await fillOrder(algotia, exchanges[id], candle[id]);
+					await fillOrder(algotia, exchanges[id], aheadCandle[id]);
 				}
 			}
 
-			let results: MultiBackfillResults<typeof opts>;
-			for (const exchangeId in exchanges) {
-				const singleResult = await getSingleResults(
-					algotia,
-					exchanges[exchangeId]
-				);
-				results = {
-					...results,
-					[exchangeId]: singleResult,
-				};
-			}
-
-			return results;
+			// Get final balance and all orders
+			const results = await getMultipleResults(algotia, exchanges);
+			return {
+				...results,
+				options,
+				errors: strategyErrors,
+			};
 		}
 	} catch (err) {
 		throw err;
 	} finally {
+		// No longer need data in redis.
 		await algotia.redis.flushall();
 	}
 }

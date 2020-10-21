@@ -21,17 +21,21 @@ import { Collection } from "mongodb";
 const sleep = async (ms: number) =>
 	new Promise((resolve) => setTimeout(resolve, ms));
 
+/** Fetch OHLCV candles from exchange and insert them into database*/
 const fetchOHLCV = async (
+	backfillCollection: Collection,
 	options: ProcessedBackfillOptions,
-	exchange: Exchange,
 	chunks: number[][]
-): Promise<OHLCV[]> => {
+): Promise<void> => {
 	try {
+		const { exchange, pair, timeframe, periodMS } = options;
+
+		const timeframePath = buildRegexPath(exchange.id, pair, timeframe);
+
 		let candles: OHLCV[] = [];
 		for (const chunk of chunks) {
 			const since = chunk[0];
 
-			const { pair, timeframe, periodMS } = options;
 			const { OHLCVRecordLimit } = exchange;
 
 			let candleSet: OHLCV[] = [];
@@ -64,42 +68,21 @@ const fetchOHLCV = async (
 				page++;
 			}
 		}
-		return candles;
+
+		const candlesWithPath = candles.map((candle) => {
+			return {
+				...candle,
+				path: timeframePath,
+			};
+		});
+
+		await backfillCollection.insertMany(candlesWithPath);
 	} catch (err) {
 		throw err;
 	}
 };
 
-const getNewRecords = async (
-	backfillCollection: Collection,
-	options: ProcessedBackfillOptions,
-	chunks: number[][]
-): Promise<void> => {
-	try {
-		const { exchange, pair, timeframe } = options;
-
-		const timeframePath = buildRegexPath(exchange.id, pair, timeframe);
-
-		const candleSet = await fetchOHLCV(options, exchange, chunks);
-
-		debugLog(`CCXT fetchOHLCV response length: ${candleSet.length}`);
-		debugLog(`Saving records with path ${timeframePath}`);
-
-		if (candleSet.length) {
-			const candleSetWithPath = candleSet.map((ohlcv) => {
-				return {
-					...ohlcv,
-					path: timeframePath,
-				};
-			});
-			await backfillCollection.insertMany(candleSetWithPath);
-		}
-	} catch (err) {
-		debugLog(err.message, "error");
-		throw err;
-	}
-};
-
+/** Query database for records between since and until.*/
 const getRecordsFromDb = async (
 	backfillCollection: Collection,
 	options: BackfillOptions,
@@ -138,6 +121,7 @@ const getRecordsFromDb = async (
 	}
 };
 
+/** Convert options to friendy format for CCXT calls.*/
 const processFetchOptions = (
 	algotia: AnyAlgotia,
 	options: BackfillOptions,
@@ -145,6 +129,7 @@ const processFetchOptions = (
 ): ProcessedBackfillOptions => {
 	const { until, since, timeframe } = options;
 
+	// Convert since and until from Dates to unix timestamps (MS)
 	const sinceMs = parseDate(since);
 	const untilMs = parseDate(until);
 
@@ -168,6 +153,8 @@ const processFetchOptions = (
 	};
 };
 
+/** Determine which timestamps need to be fetched, and return chunks of continuous timestamps.
+ */
 const getTimestampsToFetch = async (
 	options: ProcessedBackfillOptions,
 	backfillCollection: Collection,
@@ -176,28 +163,36 @@ const getTimestampsToFetch = async (
 	try {
 		const { recordsBetween, since, periodMS } = options;
 
+		/** All records between since and until */
 		const dbRecords = await getRecordsFromDb(backfillCollection, options, id);
 
 		if (dbRecords.length === recordsBetween) {
+			// All records exist
 			return [];
 		} else {
+			/** All timestamps from db */
 			const dbTimestamps = dbRecords.map(({ timestamp }) => timestamp);
 
-			let tempTimestampArr: number[] = [];
+			/** An array of all timestamps between since and until */
+			let allTimestampsBetween: number[] = [];
 
 			for (let i = 0; i < recordsBetween; i++) {
 				const timestamp = since + periodMS * i;
-				tempTimestampArr.push(timestamp);
+				allTimestampsBetween.push(timestamp);
 			}
 
 			debugLog(`DB contains ${dbTimestamps.length} records`);
 
-			const needToFetch = tempTimestampArr.filter(
+			/** All timestamps that do not exist in database */
+			const needToFetch = allTimestampsBetween.filter(
 				(el) => !dbTimestamps.includes(el)
 			);
 
 			debugLog(`Need to fetch ${needToFetch.length} records`);
 
+			// Create chunks of continuous timestamps from timestamps
+			// that need to be fetched
+			// e.g.: [1, 2, 3, 8, 9, 10] --> [[1, 2, 3], [8, 9, 10]]
 			let chunks: number[][] = [];
 			let tempArr: number[] = [];
 
@@ -225,6 +220,7 @@ const getTimestampsToFetch = async (
 	}
 };
 
+/** Fetch and cache records for single exchange */
 const fetchRecords = async (
 	algotia: AnyAlgotia,
 	options: BackfillOptions,
@@ -234,6 +230,7 @@ const fetchRecords = async (
 		const backfillCollection = getBackfillCollection(algotia.mongo);
 
 		const processedOptions = processFetchOptions(algotia, options, exchangeId);
+
 		const id = processedOptions.exchange.id;
 
 		debugLog(
@@ -247,26 +244,30 @@ const fetchRecords = async (
 				new Date(processedOptions.until).toTimeString()
 			}`
 		);
+
 		// Get chunks of timestamps to fetch, less the
 		// records already saved in DB
+		// e.g.: [[t1, t2, t3], [t4, t5, t6]]
 		const chunksToFetch = await getTimestampsToFetch(
 			processedOptions,
 			backfillCollection,
 			id
 		);
 
+		// Get total number of records to fetch
 		const recordsToFetch = chunksToFetch
 			.map((arr) => {
 				return arr.length;
 			})
-			.reduce((a, b) => a + b, 0);
+			.reduce((prevLength, nextLength) => prevLength + nextLength, 0);
 
+		// If recordsToFetch !== 0
 		if (recordsToFetch) {
 			debugLog(
 				`Fetching ${recordsToFetch} records from ${id} in ${chunksToFetch.length} chunks.`
 			);
 
-			await getNewRecords(backfillCollection, processedOptions, chunksToFetch);
+			await fetchOHLCV(backfillCollection, processedOptions, chunksToFetch);
 		}
 
 		// fetch all requested candles from db

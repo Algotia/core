@@ -8,7 +8,7 @@ import createFetchBalance from "./fetchBalance";
 import createCreateOrder from "./createOrder";
 import createCancelOrder from "./cancelOrder";
 
-function backtestExchangeFactory(
+function simulatedExchangeFactory(
 	algotia: AnyAlgotia,
 	options: BackfillOptions,
 	exchange: Exchange
@@ -59,4 +59,4 @@ function backtestExchangeFactory(
 	return backtestingExchange;
 }
 
-export default backtestExchangeFactory;
+export default simulatedExchangeFactory;

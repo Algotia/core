@@ -1,2 +1,2 @@
 export { default as exchangeFactory } from "./default";
-export { default as backtestExchangeFactory } from "./backtest";
+export { default as simulatedExchangeFactory } from "./simulated";

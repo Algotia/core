@@ -51,7 +51,7 @@ export interface SingleBacktestResults {
 	errors: string[];
 }
 
-export type MultiBackfillResults<
+export type MultiBacktestResults<
 	Opts extends MultiBackfillOptions = MultiBackfillOptions
 > = {
 	options: Opts;

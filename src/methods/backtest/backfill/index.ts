@@ -15,35 +15,32 @@ import fetchRecords from "./fetchRecords";
 // Overload functions so that backfill can return multiple types
 // based on input (Opts)
 
-async function backfill<Opts extends SingleBackfillOptions>(
+async function backfill(
 	algotia: AnyAlgotia,
-	options: Opts
+	options: SingleBackfillOptions
 ): Promise<SingleBackfillSet>;
 
-async function backfill<Opts extends MultiBackfillOptions>(
+async function backfill<MultiOptions extends MultiBackfillOptions>(
 	algotia: AnyAlgotia,
-	options: Opts
-): Promise<MultiBackfillSet<Opts>>;
+	options: MultiOptions
+): Promise<MultiBackfillSet<MultiOptions>>;
 
 // Main backfill method
-async function backfill<
-	Opts extends SingleBackfillOptions | MultiBackfillOptions
->(
+async function backfill<MultiOptions extends MultiBackfillOptions>(
 	algotia: AnyAlgotia,
-	options: Opts
-): Promise<SingleBackfillSet | MultiBackfillSet> {
+	options: SingleBackfillOptions | MultiOptions
+): Promise<SingleBackfillSet | MultiBackfillSet<MultiOptions>> {
 	try {
 		debugLog("Backfilling records");
 
 		if (isSingleBackfillOptions(options)) {
 			// Single Backfill
-
 			return await fetchRecords(algotia, options);
-
-			//TODO: retrieve records
 		} else if (isMultiBackfillOptions(options)) {
 			const { exchanges } = options;
-			let allRecords: Record<ExchangeID, OHLCV[]>;
+
+			let allRecords: Record<typeof options["exchanges"][number], OHLCV[]>;
+
 			for (const exchangeId of exchanges) {
 				const singleSet = await fetchRecords(algotia, options, exchangeId);
 				allRecords = {
@@ -53,7 +50,7 @@ async function backfill<
 			}
 
 			let dataLen: number;
-			let multiSet: MultiBackfillSet = [];
+			let multiSet: MultiBackfillSet<MultiOptions> = [];
 
 			for (const exchangeId of exchanges) {
 				const set = allRecords[exchangeId];
@@ -63,7 +60,7 @@ async function backfill<
 				}
 				if (dataLen !== set.length) {
 					throw new Error(
-						`Database contains corrupted data: set should be length ${dataLen} but is ${set.length}`
+						`Database contains corrupted data: set should be length ${dataLen} but is ${set.length}. Use debug for more info.`
 					);
 				}
 				dataLen = set.length;

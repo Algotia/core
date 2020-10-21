@@ -4,7 +4,6 @@ import {
 	SingleBackfillOptions,
 	SingleBacktestOptions,
 } from "../../src/types";
-import tulind from "tulind";
 
 describe("Backtest method", () => {
 	let algotia: AnyAlgotia;
@@ -22,7 +21,6 @@ describe("Backtest method", () => {
 		algotia.quit();
 		done();
 	});
-
 	test("Multi backtest", async () => {
 		try {
 			const res = await backtest(algotia, {
@@ -63,8 +61,8 @@ describe("Backtest method", () => {
 				since: "1/08/2020",
 				until: "1/09/2020",
 				pair: "ETH/BTC",
-				timeframe: "1h",
-				type: "single",
+				timeframe: "1h" as const,
+				type: "single" as const,
 				initialBalance: {
 					BTC: 0.23,
 					ETH: 0,
@@ -75,7 +73,6 @@ describe("Backtest method", () => {
 					/* if (totalETH > 0) { */
 					/* } */
 					/* if (balance["BTC"].free > data.close * 50) { */
-
 					const order = await exchange.createOrder(
 						"ETH/BTC",
 						"limit",
@@ -103,6 +100,8 @@ describe("Backtest method", () => {
 			}
 			expect(res.openOrders).toHaveProperty("length");
 			expect(res.closedOrders).toHaveProperty("length");
+			expect(res.closedOrders.length).toStrictEqual(0);
+			expect(res.openOrders.length).toStrictEqual(24);
 			for (const openOrder of res.openOrders) {
 				expect(openOrder.trades).toHaveLength(0);
 			}
