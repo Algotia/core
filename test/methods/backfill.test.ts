@@ -4,7 +4,7 @@ import {
 	MultiBackfillOptions,
 	SingleBackfillOptions,
 } from "../../src/algotia";
-import backfill from "../../src/methods/backfill/index";
+import backfill from "../../src/methods/backtest/backfill";
 import { parseTimeframe } from "../../src/utils";
 import subtractTimestamps from "../testUtils/subtractTimestamps";
 

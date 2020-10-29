@@ -5,14 +5,13 @@ import {
 	ExchangeError,
 } from "../../../types";
 import {
-	parseRedisFlatObj,
 	setOrderHash,
 	removeOpenOrderId,
 	pushClosedOrderId,
-} from "../../db";
+} from "../../../methods/backtest/utils/";
 import { Order } from "ccxt";
 import createFetchBalance from "./fetchBalance";
-import { parsePair } from "../../general";
+import { parsePair, parseRedisFlatObj  } from "../../../utils";
 
 type CancelOrder = (
 	algotia: AnyAlgotia,

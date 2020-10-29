@@ -16,7 +16,7 @@ import {
 	isSingleBacktestingOptions,
 	isMultiBacktestingOptions,
 } from "../../types";
-import { setCurrentTime, setCurrentPrice } from "../../utils";
+import { setCurrentTime, setCurrentPrice } from "./utils";
 import fillOrder from "./fillOrder";
 
 const updateContext = async (

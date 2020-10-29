@@ -6,8 +6,7 @@ import {
 	InsufficentBalanceError,
 } from "../../../types";
 import { Exchange as CcxtExchange, Params, Order } from "ccxt";
-import { parsePair } from "../../general";
-import { v4 as uuid } from "uuid";
+import { parsePair, uuid } from "../../general";
 import createFetchBalance from "./fetchBalance";
 import {
 	getCurrentPrice,
@@ -15,13 +14,14 @@ import {
 	pushOpenOrderId,
 	setOrderHash,
 	getBaseAndQuotePath,
-} from "../../db";
+} from "../../../methods/backtest/utils/";
 
 type CreateCreateOrder = (
 	algotia: AnyAlgotia,
 	options: BackfillOptions,
 	exchange: Exchange
 ) => CcxtExchange["createOrder"];
+
 const createCreateOrder: CreateCreateOrder = (algotia, options, exchange) => {
 	return async function createOrder(
 		pair: string,

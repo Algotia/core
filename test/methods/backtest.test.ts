@@ -23,13 +23,16 @@ describe("Backtest method", () => {
 	});
 	test("Multi backtest", async () => {
 		try {
-			const res = await backtest(algotia, {
+			const options = {
 				startDate: "1/10/2020",
 				endDate: "1/11/2020",
 				asset: "ETH/BTC",
-				timeframe: "1h",
-				type: "multi",
-				exchanges: ["binance", "kucoin"],
+				timeframe: "1h" as const,
+				type: "multi" as const,
+				exchanges: [
+					"binance" as const,
+					"kucoin" as const,
+				],
 				initialBalances: {
 					kucoin: {
 						ETH: 0,
@@ -42,21 +45,33 @@ describe("Backtest method", () => {
 				},
 				strategy: async (exchange, data) => {
 					try {
-						await exchange.kucoin.createOrder("ETH/BTC", "market", "buy", 1);
-						await exchange.binance.createOrder("ETH/BTC", "market", "buy", 1);
+							console.log(exchange)
+						await exchange.kucoin.createOrder(
+							"ETH/BTC",
+							"market",
+							"buy",
+							1
+						);
+						await exchange.binance.createOrder(
+							"ETH/BTC",
+							"market",
+							"buy",
+							1
+						);
 						const Kbalance = await exchange.kucoin.fetchBalance();
 						const Bbalance = await exchange.binance.fetchBalance();
 					} catch (err) {
 						throw err;
 					}
 				},
-			});
+			};
+			const res = await backtest(algotia, options);
 		} catch (err) {
 			throw err;
 		}
 	}, 100000);
 	test("Single backtest", async () => {
-		try {
+	try {
 			const options = {
 				startDate: "1/08/2020",
 				endDate: "1/09/2020",
@@ -68,6 +83,7 @@ describe("Backtest method", () => {
 					ETH: 0,
 				},
 				strategy: async (exchange, data) => {
+						console.log(exchange)
 					const balance = await exchange.fetchBalance();
 					const totalETH = balance["ETH"].free;
 					/* if (totalETH > 0) { */
@@ -90,12 +106,23 @@ describe("Backtest method", () => {
 			expect(res.balance).toHaveProperty("BTC");
 			for (const currency in res.balance) {
 				if (currency !== "info") {
-					expect(res.balance[currency]).toHaveProperty("free");
-					expect(res.balance[currency]).toHaveProperty("total");
-					expect(res.balance[currency]).toHaveProperty("used");
+					expect(
+						res.balance[currency]
+					).toHaveProperty("free");
+					expect(
+						res.balance[currency]
+					).toHaveProperty("total");
+					expect(
+						res.balance[currency]
+					).toHaveProperty("used");
 				} else {
-					const { info, ...restOfBalance } = res.balance;
-					expect(info).toStrictEqual(restOfBalance);
+					const {
+						info,
+						...restOfBalance
+					} = res.balance;
+					expect(info).toStrictEqual(
+						restOfBalance
+					);
 				}
 			}
 			expect(res.openOrders).toHaveProperty("length");

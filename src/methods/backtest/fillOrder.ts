@@ -2,17 +2,17 @@ import {
 	parsePair,
 	debugLog,
 	parseRedisFlatObj,
+} from "../../utils";
+import {
 	getCurrentTime,
 	getBaseAndQuotePath,
-} from "../../utils";
-import { Order, Trade } from "ccxt";
-import { BacktestingExchange, AnyAlgotia, OHLCV } from "../../types";
-import flatten from "flat";
-import {
 	pushClosedOrderId,
 	removeOpenOrderId,
 	getOpenOrderIds,
-} from "../../utils/db/backtest/orders";
+} from "./utils";
+import { Order, Trade } from "ccxt";
+import { BacktestingExchange, AnyAlgotia, OHLCV } from "../../types";
+import flatten from "flat";
 
 const isMarketOrLimit = (type: any): type is "market" | "limit" => {
 	if (type === "market" || "limit") {

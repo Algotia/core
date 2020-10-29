@@ -1,4 +1,4 @@
-import { parsePair } from "../../general";
+import { parsePair } from "../../../utils";
 import { ExchangeID } from "../../../types";
 
 const getBaseAndQuotePath = (

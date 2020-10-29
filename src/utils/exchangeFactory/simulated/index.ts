@@ -21,7 +21,12 @@ function simulatedExchangeFactory(
 		countries: exchange.countries,
 		urls: exchange.urls,
 		version: exchange.version,
-		has: exchange.has,
+		has: {
+			...exchange.has,	
+			cancelOrder: "simulated",
+			createOrder: "simulated",
+			fetchBalance: "simulated"
+		},
 		timeframes: exchange.timeframes,
 		timeout: exchange.timeout,
 		rateLimit: exchange.rateLimit,

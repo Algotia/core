@@ -1,17 +1,15 @@
 import { SingleBackfillOptions, MultiBackfillOptions } from "./backfill";
-import { Exchange } from "../index";
-import { ExchangeRecord } from ".";
+import { Exchange, ExchangeRecord } from "../index";
 import { OHLCV, ExchangeID } from "../shared";
-import { Balances, Order } from "ccxt";
+import { Balances, Order, Dictionary } from "ccxt";
 
 export interface BaseAndQuoteCurrencies {
 	[key: string]: number;
 }
 
 export type SingleInitialBalance = BaseAndQuoteCurrencies;
-export type MultiInitialBalance<T extends ExchangeID[]> = Partial<
-	Record<T[number], BaseAndQuoteCurrencies>
->;
+
+export type MultiInitialBalance = ExchangeRecord<BaseAndQuoteCurrencies>;
 
 type SingleSyncStrategy = (exchange: BacktestingExchange, data: OHLCV) => void;
 type SingleAsyncStrategy = (
@@ -39,7 +37,7 @@ export interface SingleBacktestOptions extends SingleBackfillOptions {
 }
 
 export interface MultiBacktestOptions extends MultiBackfillOptions {
-	initialBalances: MultiInitialBalance<MultiBackfillOptions["exchanges"]>;
+	initialBalances: MultiInitialBalance;
 	strategy: MultiStrategy;
 }
 
@@ -101,4 +99,11 @@ type SupportedBackfillMethods =
 	| "fetchOrders"
 	| "fetchMyTrades";
 
-export type BacktestingExchange = Pick<Exchange, SupportedBackfillMethods>;
+type StrippedBacktestingExchange = Pick<Exchange, SupportedBackfillMethods>;
+
+//Omit is a hack to extend type of has
+export interface BacktestingExchange extends Omit<StrippedBacktestingExchange, "has"> {
+		has: Dictionary<boolean | "emulated" | "simulated">
+}
+
+
