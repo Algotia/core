@@ -14,7 +14,7 @@ import {
 	simulatedExchangeFactory,
 	debugLog,
 } from "../../utils";
-import backfill from "./backfill";
+import backfill from "../backfill";
 import getResults from "./getResults";
 import {
 	isMultiBacktestingOptions,

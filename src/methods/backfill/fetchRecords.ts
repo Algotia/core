@@ -6,7 +6,7 @@ import {
 	BackfillOptions,
 	ExchangeID,
 	Exchange,
-} from "../../../types";
+} from "../../types";
 import {
 	reshapeOHLCV,
 	getBackfillCollection,
@@ -15,7 +15,7 @@ import {
 	parseDate,
 	getDefaultExchange,
 	parseTimeframe,
-} from "../../../utils";
+} from "../../utils";
 import { Collection } from "mongodb";
 
 const sleep = async (ms: number) =>

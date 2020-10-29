@@ -8,8 +8,8 @@ import {
 	OHLCV,
 	isSingleBackfillOptions,
 	isMultiBackfillOptions,
-} from "../../../types";
-import { debugLog } from "../../../utils";
+} from "../../types";
+import { debugLog } from "../../utils";
 import fetchRecords from "./fetchRecords";
 
 // Overload functions so that backfill can return multiple types
