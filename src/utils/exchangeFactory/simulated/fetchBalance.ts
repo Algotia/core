@@ -2,7 +2,6 @@ import { parsePair } from "../../general";
 import { Exchange as CcxtExchange, Params, Balances, Balance } from "ccxt";
 import { AnyAlgotia, BackfillOptions, Exchange } from "../../../types";
 import { getBaseAndQuotePath, parseRedisFlatObj } from "../../db";
-import observe from "inquirer/lib/utils/events";
 
 type FetchBalance = (
 	algotia: AnyAlgotia,
@@ -12,11 +11,11 @@ type FetchBalance = (
 
 const createFetchBalance: FetchBalance = (algotia, options, exchange) => {
 	return async function fetchBalance(params?: Params) {
-		const splitPair = parsePair(options.pair);
+		const splitPair = parsePair(options.asset);
 
 		let balance: Balances;
 
-		const paths = getBaseAndQuotePath(exchange.id, options.pair);
+		const paths = getBaseAndQuotePath(exchange.id, options.asset);
 
 		for (let i = 0; i < splitPair.length; i++) {
 			const singleCurrency = splitPair[i];

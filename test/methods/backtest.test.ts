@@ -24,9 +24,9 @@ describe("Backtest method", () => {
 	test("Multi backtest", async () => {
 		try {
 			const res = await backtest(algotia, {
-				since: "1/10/2020",
-				until: "1/11/2020",
-				pair: "ETH/BTC",
+				startDate: "1/10/2020",
+				endDate: "1/11/2020",
+				asset: "ETH/BTC",
 				timeframe: "1h",
 				type: "multi",
 				exchanges: ["binance", "kucoin"],
@@ -58,9 +58,9 @@ describe("Backtest method", () => {
 	test("Single backtest", async () => {
 		try {
 			const options = {
-				since: "1/08/2020",
-				until: "1/09/2020",
-				pair: "ETH/BTC",
+				startDate: "1/08/2020",
+				endDate: "1/09/2020",
+				asset: "ETH/BTC",
 				timeframe: "1h" as const,
 				type: "single" as const,
 				initialBalance: {

@@ -28,9 +28,9 @@ const fetchOHLCV = async (
 	chunks: number[][]
 ): Promise<void> => {
 	try {
-		const { exchange, pair, timeframe, periodMS } = options;
+		const { exchange, asset, timeframe, periodMS } = options;
 
-		const timeframePath = buildRegexPath(exchange.id, pair, timeframe);
+		const timeframePath = buildRegexPath(exchange.id, asset, timeframe);
 
 		let candles: OHLCV[] = [];
 		for (const chunk of chunks) {
@@ -52,7 +52,7 @@ const fetchOHLCV = async (
 					recordsLeft > OHLCVRecordLimit ? OHLCVRecordLimit : recordsLeft;
 
 				const rawOHLCV = await exchange.fetchOHLCV(
-					pair,
+					asset,
 					timeframe,
 					sinceCursor,
 					limit
@@ -89,9 +89,9 @@ const getRecordsFromDb = async (
 	id: ExchangeID
 ): Promise<SingleBackfillSet> => {
 	try {
-		const { since, until, timeframe, pair } = options;
+		const { startDate, endDate, timeframe, asset } = options;
 
-		const path = buildRegexPath(id, pair, timeframe);
+		const path = buildRegexPath(id, asset, timeframe);
 
 		debugLog(`Querying DB for records with path \n \t ${path}`);
 
@@ -99,7 +99,7 @@ const getRecordsFromDb = async (
 			.find<OHLCV>(
 				{
 					path,
-					timestamp: { $gte: since, $lt: until },
+					timestamp: { $gte: startDate, $lt: endDate },
 				},
 				{
 					projection: {
@@ -127,11 +127,11 @@ const processFetchOptions = (
 	options: BackfillOptions,
 	exchangeId?: ExchangeID
 ): ProcessedBackfillOptions => {
-	const { until, since, timeframe } = options;
+	const { startDate: originalStartDate, endDate:  originalEndDate, timeframe } = options;
 
 	// Convert since and until from Dates to unix timestamps (MS)
-	const sinceMs = parseDate(since);
-	const untilMs = parseDate(until);
+	const startDate = parseDate(originalStartDate);
+	const endDate = parseDate(originalEndDate);
 
 	let exchange: Exchange;
 	if (!exchangeId) {
@@ -141,14 +141,14 @@ const processFetchOptions = (
 	}
 
 	const { periodMS } = parseTimeframe(timeframe);
-	const recordsBetween = Math.floor((untilMs - sinceMs) / periodMS);
+	const recordsBetween = Math.floor((endDate - startDate) / periodMS);
 
 	return {
 		...options,
+		startDate,
+		endDate,
 		periodMS,
 		recordsBetween,
-		since: sinceMs,
-		until: untilMs,
 		exchange,
 	};
 };
@@ -161,7 +161,7 @@ const getTimestampsToFetch = async (
 	id: ExchangeID
 ): Promise<number[][]> => {
 	try {
-		const { recordsBetween, since, periodMS } = options;
+		const { recordsBetween, startDate, periodMS } = options;
 
 		/** All records between since and until */
 		const dbRecords = await getRecordsFromDb(backfillCollection, options, id);
@@ -177,7 +177,7 @@ const getTimestampsToFetch = async (
 			let allTimestampsBetween: number[] = [];
 
 			for (let i = 0; i < recordsBetween; i++) {
-				const timestamp = since + periodMS * i;
+				const timestamp = startDate + periodMS * i;
 				allTimestampsBetween.push(timestamp);
 			}
 
@@ -235,13 +235,13 @@ const fetchRecords = async (
 
 		debugLog(
 			`${processedOptions.recordsBetween} records between \n \t ${
-				new Date(processedOptions.since).toDateString() +
+				new Date(processedOptions.startDate).toDateString() +
 				" " +
-				new Date(processedOptions.since).toTimeString()
+				new Date(processedOptions.startDate).toTimeString()
 			} \n \t ${
-				new Date(processedOptions.until).toDateString() +
+				new Date(processedOptions.endDate).toDateString() +
 				" " +
-				new Date(processedOptions.until).toTimeString()
+				new Date(processedOptions.endDate).toTimeString()
 			}`
 		);
 

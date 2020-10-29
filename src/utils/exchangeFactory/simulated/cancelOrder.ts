@@ -41,7 +41,7 @@ const createCancelOrder: CancelOrder = (algotia, options, exchange) => {
 
 			const fetchBalance = createFetchBalance(algotia, options, exchange);
 			const balance = await fetchBalance();
-			const [base, quote] = parsePair(options.pair);
+			const [base, quote] = parsePair(options.asset);
 
 			if (order.side === "buy") {
 				const quoteBalance = balance[quote];

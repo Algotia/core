@@ -1,15 +1,16 @@
 import { ExchangeID, Timeframe, OHLCV, Exchange } from "../shared";
 
 export interface BackfillOptions {
-	since: number | string | Date;
-	until: number | string | Date;
-	pair: string;
+	startDate: number | string | Date;
+	endDate: number | string | Date;
+	asset: string;
 	timeframe: Timeframe;
 }
 
 export interface ProcessedBackfillOptions extends BackfillOptions {
-	since: number;
-	until: number;
+	/** Raw, untouched input */
+	startDate: number;
+	endDate: number;
 	periodMS: number;
 	exchange: Exchange;
 	recordsBetween: number;

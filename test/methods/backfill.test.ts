@@ -24,9 +24,9 @@ describe("Backfill method", () => {
 	test("Single backfill works", async () => {
 		try {
 			const options: SingleBackfillOptions = {
-				since: "1/01/2020",
-				until: "1/02/2020 1:00 AM",
-				pair: "ETH/BTC",
+				startDate: "1/01/2020",
+				endDate: "1/02/2020 1:00 AM",
+				asset: "ETH/BTC",
 				timeframe: "15m",
 			};
 
@@ -39,7 +39,7 @@ describe("Backfill method", () => {
 				const lastCandle = res[i - 1];
 
 				if (i === 0) {
-					const sinceMs = new Date(options.since).getTime();
+					const sinceMs = new Date(options.startDate).getTime();
 					expect(candle.timestamp).toStrictEqual(sinceMs);
 					continue;
 				}
@@ -56,9 +56,9 @@ describe("Backfill method", () => {
 	test("Multi backfill works", async () => {
 		try {
 			const options: MultiBackfillOptions = {
-				since: "12/31/2019",
-				until: "1/05/2020",
-				pair: "ETH/BTC",
+				startDate: "12/31/2019",
+				endDate: "1/05/2020",
+				asset: "ETH/BTC",
 				timeframe: "1h",
 				type: "multi",
 				exchanges: ["kucoin", "binance"],
@@ -103,17 +103,17 @@ describe("Backfill method", () => {
 			const beforeDbLen = await getDbLen();
 
 			await backfill(algotia, {
-				since: "1/01/2020",
-				until: "1/02/2020",
-				pair: "ETH/BTC",
+				startDate: "1/01/2020",
+				endDate: "1/02/2020",
+				asset: "ETH/BTC",
 				timeframe: "1h",
 				exchange: "binance",
 			});
 
 			await backfill(algotia, {
-				since: "1/03/2020",
-				until: "1/04/2020",
-				pair: "ETH/BTC",
+				startDate: "1/03/2020",
+				endDate: "1/04/2020",
+				asset: "ETH/BTC",
 				timeframe: "1h",
 				exchange: "kucoin",
 			});

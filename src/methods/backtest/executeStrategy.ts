@@ -27,7 +27,7 @@ const updateContext = async (
 ): Promise<void> => {
 	try {
 		await setCurrentTime(algotia, candle.timestamp);
-		await setCurrentPrice(algotia, exchangeId, options.pair, candle.open);
+		await setCurrentPrice(algotia, exchangeId, options.asset, candle.open);
 	} catch (err) {
 		throw err;
 	}
