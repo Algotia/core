@@ -16,8 +16,7 @@ import {
 	isSingleBacktestingOptions,
 	isMultiBacktestingOptions,
 } from "../../types";
-import { setCurrentTime, setCurrentPrice } from "./utils";
-import fillOrder from "./fillOrder";
+import { setCurrentTime, setCurrentPrice, fillOrder } from "../../utils";
 
 const updateContext = async (
 	algotia: AnyAlgotia,

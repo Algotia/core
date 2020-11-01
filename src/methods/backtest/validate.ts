@@ -11,6 +11,7 @@ import { parsePair } from "../../utils";
 const validate = <Opts extends SingleBacktestOptions | MultiBacktestOptions>(
 	options: Opts,
 ) => {
+	
 	if (isSingleBacktestingOptions(options)) {
 		if (options.exchange) {
 			// If exchange was passed, make sure its valid

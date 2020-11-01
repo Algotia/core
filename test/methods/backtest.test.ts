@@ -1,8 +1,6 @@
 import { boot, backtest } from "../../src/methods";
 import {
 	AnyAlgotia,
-	SingleBackfillOptions,
-	SingleBacktestOptions,
 } from "../../src/types";
 
 describe("Backtest method", () => {
@@ -45,7 +43,6 @@ describe("Backtest method", () => {
 				},
 				strategy: async (exchange, data) => {
 					try {
-							console.log(exchange)
 						await exchange.kucoin.createOrder(
 							"ETH/BTC",
 							"market",
@@ -83,7 +80,6 @@ describe("Backtest method", () => {
 					ETH: 0,
 				},
 				strategy: async (exchange, data) => {
-						console.log(exchange)
 					const balance = await exchange.fetchBalance();
 					const totalETH = balance["ETH"].free;
 					/* if (totalETH > 0) { */

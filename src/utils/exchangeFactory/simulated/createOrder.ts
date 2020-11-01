@@ -6,15 +6,16 @@ import {
 	InsufficentBalanceError,
 } from "../../../types";
 import { Exchange as CcxtExchange, Params, Order } from "ccxt";
-import { parsePair, uuid } from "../../general";
-import createFetchBalance from "./fetchBalance";
 import {
+	parsePair,
+	uuid,
 	getCurrentPrice,
 	getCurrentTime,
 	pushOpenOrderId,
 	setOrderHash,
 	getBaseAndQuotePath,
-} from "../../../methods/backtest/utils/";
+} from "../../../utils";
+import createFetchBalance from "./fetchBalance";
 
 type CreateCreateOrder = (
 	algotia: AnyAlgotia,

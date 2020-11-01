@@ -1,4 +1,4 @@
-import { AnyAlgotia } from "../../../types";
+import { AnyAlgotia } from "../../types";
 
 const currentTimePath = "current-time";
 

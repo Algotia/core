@@ -1,7 +1,10 @@
-import { parsePair, parseRedisFlatObj } from "../../../utils";
+import {
+	parsePair,
+	parseRedisFlatObj,
+	getBaseAndQuotePath,
+} from "../../../utils";
 import { Exchange as CcxtExchange, Params, Balances, Balance } from "ccxt";
 import { AnyAlgotia, BackfillOptions, Exchange } from "../../../types";
-import { getBaseAndQuotePath } from "../../../methods/backtest/utils";
 
 type FetchBalance = (
 	algotia: AnyAlgotia,

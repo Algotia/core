@@ -21,6 +21,7 @@ import {
 	isSingleBacktestingOptions,
 } from "../../types/gaurds/isBacktestingOptions";
 import executeStrategy from "./executeStrategy";
+import validate from "./validate";
 
 const initializeBalances = async <
 	Opts extends SingleBacktestOptions | MultiBacktestOptions
@@ -83,6 +84,7 @@ async function backtest<MultiOptions extends MultiBacktestOptions>(
 ): Promise<SingleBacktestResults | MultiBacktestResults<MultiOptions>> {
 	try {
 		// TODO: Validate
+		validate(options)
 
 		// Store initial balances
 		await initializeBalances(algotia, options);

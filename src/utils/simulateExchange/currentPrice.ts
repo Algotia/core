@@ -1,4 +1,4 @@
-import { AnyAlgotia, ExchangeID } from "../../../types";
+import { AnyAlgotia, ExchangeID } from "../../types";
 
 const createPricePath = (exchangeId: ExchangeID, pair: string): string => {
 	return `${exchangeId}-current-price:${pair}`;

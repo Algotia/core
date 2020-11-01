@@ -1,15 +1,12 @@
 import {
-	parsePair,
-	debugLog,
-	parseRedisFlatObj,
-} from "../../utils";
-import {
 	getCurrentTime,
 	getBaseAndQuotePath,
 	pushClosedOrderId,
 	removeOpenOrderId,
 	getOpenOrderIds,
-} from "./utils";
+	parsePair,
+	parseRedisFlatObj,
+} from "../../utils";
 import { Order, Trade } from "ccxt";
 import { BacktestingExchange, AnyAlgotia, OHLCV } from "../../types";
 import flatten from "flat";

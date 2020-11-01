@@ -4,14 +4,15 @@ import {
 	Exchange,
 	ExchangeError,
 } from "../../../types";
+import { Order } from "ccxt";
+import createFetchBalance from "./fetchBalance";
 import {
+	parsePair,
+	parseRedisFlatObj,
 	setOrderHash,
 	removeOpenOrderId,
 	pushClosedOrderId,
-} from "../../../methods/backtest/utils/";
-import { Order } from "ccxt";
-import createFetchBalance from "./fetchBalance";
-import { parsePair, parseRedisFlatObj  } from "../../../utils";
+} from "../../../utils";
 
 type CancelOrder = (
 	algotia: AnyAlgotia,

@@ -1,4 +1,4 @@
-import { AnyAlgotia, ExchangeID } from "../../../types";
+import { AnyAlgotia, ExchangeID } from "../../types";
 import { Order } from "ccxt";
 import flatten from "flat";
 
