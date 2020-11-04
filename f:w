@@ -1,0 +1,14 @@
+import { ExchangeID } from "../../types";
+
+const initialize = async (
+    exchangeId: ExchangeID,
+    pair: string, 
+	initialBalance: Record<string, number>
+) => {
+		try {
+
+		} catch (err) {
+				throw err
+		}
+
+}
