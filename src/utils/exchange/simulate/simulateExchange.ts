@@ -1,18 +1,9 @@
-import { Balances, Order } from "ccxt"
-import { Exchange, ExchangeID } from "../../types/"
-import { createExchange } from "../exchange"
+import { Balances } from "ccxt"
+import { Exchange, ExchangeID, SimulatedExchangeStore } from "../../../types/"
+import { createExchange } from "../../exchange"
 import { createCreateOrder } from "./simulatedMethods"
 
 type InitialBalance = Record<string, number>
-
-export interface SimulatedExchangeStore {
-    currentTime: number;
-    currentPrice: number;
-    balance: Balances;
-    openOrders: Order[];
-    closedOrders: Order[]
-
-}
 
 interface SimulatedExchangeResult {
     store: SimulatedExchangeStore,
@@ -53,7 +44,7 @@ const simulateExchange = (
 
     let store: SimulatedExchangeStore = {
         currentTime: 0,
-        currentPrice: 0.2,
+        currentPrice: 0,
         openOrders: [],
         closedOrders: [],
 		balance: createInitalBalance(initialBalance)

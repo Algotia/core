@@ -14,7 +14,7 @@ const createExchange = (id: ExchangeID): Exchange => {
 
     const exchange = new ccxt[id]();
 
-	return Object.assign({}, exchange, modifications[id])
+    return Object.assign(exchange, { ...modifications[id] })
 
 }
 

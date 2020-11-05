@@ -1,7 +1,6 @@
-import { Exchange } from "../../../types"
+import { Exchange, SimulatedExchangeStore } from "../../../../types"
 import { Order } from "ccxt"
-import { parsePair } from "../../general"
-import { SimulatedExchangeStore } from "../index"
+import { parsePair } from "../../../../utils"
 
 type CreateOrder = Exchange["createOrder"]
 

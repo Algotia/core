@@ -1,30 +1,32 @@
-import {Exchange} from "ccxt"
+import {Exchange, ExchangeID, OHLCV} from "../../types"
+import { simulateExchange } from "../../utils/"
 
-interface BacktestOptions {
-    exchange: string;
-    from: Date | number | string;
-    to: Date | number | string;
-    pair: string;
-    period: string;
-    strategy: () => void;
-}
 
-interface ProcessedBacktestOptions extends BacktestOptions {
-	from: number;
-	to: number;
-}
-
-const backtest = async (options: BacktestOptions) => {
+const backtest = async (
+		data: OHLCV[], 
+		exchangeId: ExchangeID,
+		initalBalance: Record<string, number>,
+		strategy: (exchange: Exchange, candle: OHLCV) => void
+) => {
     try {
-        // VALIDATE		
-		// PROCESS
-		// CHECK CACHED RECORDS
-	    // GET NEW RECORDS	
-		// CACHE NEW RECORDS
-		// RUN STRATEGY
-		// COLLECT RESULTS
+		const { exchange, store } =  simulateExchange(exchangeId, initalBalance)
+
+		let errors = [];
+		for (const candle of data) {
+			store.currentTime = candle.timestamp;
+			store.currentPrice = candle.open;
+
+			try {
+				strategy(exchange, candle);
+			} catch (err) {
+				errors.push(err.message)
+			}
+		}
+
+
     } catch (err) {
         throw err
     }
 }
 
+export default backtest
