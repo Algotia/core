@@ -44,12 +44,11 @@ const simulateExchange = (
 		balance: createInitalBalance(initialBalance),
 	};
 
-	const simulatedExchange = Object.assign({}, exchange, {
-		createOrder: createCreateOrder(store, exchange),
-	});
+	// Override methods
+	exchange.createOrder = createCreateOrder(store, exchange)
 
 	return {
-		exchange: simulatedExchange,
+		exchange,
 		store,
 	};
 };

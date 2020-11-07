@@ -1,4 +1,4 @@
-import backtest from "../src/methods/backtest";
+import { backtest } from "../src/methods/";
 import { getCandles } from "../src/utils";
 
 describe("Backtest", () => {

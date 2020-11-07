@@ -1,6 +1,5 @@
 import { ExchangeID, OHLCV } from "../../types";
-import { createExchange, parsePeriod } from "../../utils/";
-import { OHLCV as CCXT_OHLCV } from "ccxt";
+import { createExchange, parsePeriod, reshapeOHLCV } from "../../utils/";
 
 const fillEmptyCandles = (candles: OHLCV[], periodMs: number): OHLCV[] => {
 	let fullRecordSet: OHLCV[] = [];
@@ -32,18 +31,6 @@ const fillEmptyCandles = (candles: OHLCV[], periodMs: number): OHLCV[] => {
 	return fullRecordSet;
 };
 
-const reshapeOHLCV = (rawCandles: CCXT_OHLCV[]): OHLCV[] => {
-	return rawCandles.map((ohlcv) => {
-		return {
-			timestamp: ohlcv[0],
-			open: ohlcv[1],
-			high: ohlcv[2],
-			low: ohlcv[3],
-			close: ohlcv[4],
-			volume: ohlcv[5],
-		};
-	});
-};
 
 const getCandles = async (
 	from: number,

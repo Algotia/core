@@ -3,38 +3,50 @@ interface ParsedPeriod {
 	unit: number;
 	unitLabel: string;
 	periodMs: number;
+	cronExpression: string;
 }
 
 const parsePeriod = (period: string): ParsedPeriod => {
 	const amountString = period.match(/\d+/g)[0];
 	const unitString = period.match(/[a-zA-Z]+/g)[0];
 
-	const oneMinuteMs = 60000;
+	const oneSecondMs = 1000;
+	const oneMinuteMs = oneSecondMs * 60;
 
 	const amount = Number(amountString);
 
-	let unit: number, unitLabel: string;
+	let unit: number, unitLabel: string, cronExpression: string;
 
 	switch (unitString) {
+		case "s":
+			unit = oneSecondMs;
+			unitLabel = "seconds"
+			cronExpression = `*/${amount} * * * * *`
+			break;
 		case "m":
 			unit = oneMinuteMs;
-			unitLabel = "minute";
+			unitLabel = "minutes";
+			cronExpression = `*/${amount} * * * *`
 			break;
 		case "h":
 			unit = oneMinuteMs * 60;
-			unitLabel = "hour";
+			unitLabel = "hours";
+			cronExpression = `0 */${amount} * * *`
 			break;
 		case "d":
 			unit = oneMinuteMs * 60 * 24;
-			unitLabel = "day";
+			unitLabel = "days";
+			cronExpression = `0 0 */${amount} * *`
 			break;
 		case "w":
 			unit = oneMinuteMs * 60 * 24 * 7;
-			unitLabel = "week";
+			unitLabel = "weeks";
+			cronExpression = `0 0 0 */${amount} *`
 			break;
 		case "M":
 			unit = oneMinuteMs * 60 * 24 * 7 * 4;
-			unitLabel = "month";
+			unitLabel = "months";
+			cronExpression = `0 0 0 0 */${amount}`
 			break;
 	}
 
@@ -45,6 +57,7 @@ const parsePeriod = (period: string): ParsedPeriod => {
 		unit,
 		unitLabel,
 		periodMs,
+		cronExpression
 	};
 };
 

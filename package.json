@@ -29,25 +29,17 @@
     }
   },
   "dependencies": {
-    "bull": "^3.18.1",
     "ccxt": "^1.37.20",
-    "flat": "^5.0.2",
-    "ioredis": "^4.19.2",
-    "mongodb": "^3.6.2"
+    "node-schedule": "^1.3.2"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^11.0.0",
     "@semantic-release/changelog": "^5.0.1",
     "@semantic-release/git": "^9.0.0",
-    "@shelf/jest-mongodb": "^1.2.3",
-    "@types/bull": "^3.14.4",
     "@types/fancy-log": "^1.3.1",
-    "@types/flat": "^5.0.1",
-    "@types/ioredis": "^4.17.7",
     "@types/jest": "^26.0.15",
-    "@types/mongodb": "^3.5.32",
     "@types/node": "^14.14.6",
-    "@types/redis": "^2.8.28",
+    "@types/node-schedule": "^1.3.1",
     "commitlint": "^11.0.0",
     "eslint": "^7.12.1",
     "eslint-config-airbnb": "^18.2.0",

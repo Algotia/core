@@ -33,3 +33,4 @@ export interface Order extends CCXTOrder {
 }
 
 export type Strategy = (exchange: Exchange, data: OHLCV) => Promise<any>;
+
