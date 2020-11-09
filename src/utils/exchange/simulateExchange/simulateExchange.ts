@@ -1,17 +1,10 @@
 import { Balances } from "ccxt";
-import { Exchange, ExchangeID, SimulatedExchangeStore } from "../../../types/";
+import { ExchangeID, SimulatedExchangeStore, SimulatedExchangeResult } from "../../../types/";
 import { createExchange } from "../../../utils";
 import { createCreateOrder } from "./methods";
 import { fillOrders } from "./helpers";
 
-type InitialBalance = Record<string, number>;
-
-interface SimulatedExchangeResult {
-	fillOrders: typeof fillOrders;
-	updateContext: (time: number, price: number) => void;
-	store: SimulatedExchangeStore;
-	exchange: Exchange;
-}
+type InitialBalance = Record<string, number>
 
 const createInitalBalance = (initialBalance: InitialBalance): Balances => {
 	let balance: Balances;
@@ -47,8 +40,19 @@ const simulateExchange = (
 		balance: createInitalBalance(initialBalance),
 	};
 
+	// Override 'has' with "simulated" for simulated method
+	
 	// Override methods
 	exchange.createOrder = createCreateOrder(store, exchange);
+	exchange.has.createOrder = "simulated"
+
+	//TODO: Simulate the following:
+	// fetchBalance
+	// fetchOrder
+	// fetchOrders
+	// fetchOpenOrers
+	// fetchClosedOrders
+	// fetchMyTrades
 
 	// Helper Methods
 	const updateContext = (time: number, price: number) => {

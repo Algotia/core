@@ -13,8 +13,8 @@ export interface OHLCV {
 	volume: number;
 }
 
-export  interface Order extends CCXT_Order {
-	type: "market" | "limit"
+export interface Order extends CCXT_Order {
+	type: "market" | "limit";
 }
 export interface SimulatedExchangeStore {
 	currentTime: number;
@@ -25,24 +25,31 @@ export interface SimulatedExchangeStore {
 	errors: string[];
 }
 
+export interface SimulatedExchangeResult {
+	fillOrders: (store: SimulatedExchangeStore, candle: OHLCV) => Promise<void>;
+	updateContext: (time: number, price: number) => void;
+	store: SimulatedExchangeStore;
+	exchange: Exchange;
+}
 
-export interface Exchange {
-	// inherited static properties
-	id: ExchangeID;
-	fees: CCXT_Exchange["fees"];
-	rateLimit: CCXT_Exchange["rateLimit"],
-	// custom static properties
-	OHLCVRecordLimit: number;
-	// public methods
+interface ExchangeMethods {
 	fetchOrderBook: CCXT_Exchange["fetchOrderBook"];
 	fetchOHLCV: CCXT_Exchange["fetchOHLCV"];
-	// private methods
 	fetchBalance: CCXT_Exchange["fetchBalance"];
 	createOrder: CCXT_Exchange["createOrder"];
 	fetchOrder: CCXT_Exchange["fetchOrder"];
 	fetchOrders: CCXT_Exchange["fetchOrders"];
-	fetchOpenOrers: CCXT_Exchange["fetchOpenOrders"];
+	fetchOpenOrders: CCXT_Exchange["fetchOpenOrders"];
 	fetchClosedOrders: CCXT_Exchange["fetchClosedOrders"];
 	fetchMyTrades: CCXT_Exchange["fetchMyTrades"];
+}
+
+
+export interface Exchange extends ExchangeMethods  {
 	ccxt: CCXT_Exchange;
+	id: ExchangeID;
+	OHLCVRecordLimit: number;
+	fees: CCXT_Exchange["fees"];
+	rateLimit: CCXT_Exchange["rateLimit"];
+	has: Record<keyof ExchangeMethods, boolean | "simulated" | "emulated">;
 }
