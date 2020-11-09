@@ -1,6 +1,6 @@
 import { Trade } from "ccxt";
-import { SimulatedExchangeStore, OHLCV, Order } from "../../types";
-import { parsePair } from "../general";
+import { SimulatedExchangeStore, OHLCV, Order } from "../../../../types";
+import { parsePair } from "../../../../utils";
 
 const fillOrders = async (store: SimulatedExchangeStore, candle: OHLCV) => {
 	try {

@@ -26,7 +26,7 @@ describe("Backtest", () => {
 			},
 			async (exchange, data) => {
 				try {
-					console.log(exchange.urls)
+					console.log(data)
 					await exchange.createOrder(
 						"ETH/BTC",
 						"market",
@@ -38,6 +38,6 @@ describe("Backtest", () => {
 				}
 			}
 		);
-		// console.log(result);
+		console.log(result);
 	});
 });

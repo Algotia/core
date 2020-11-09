@@ -1,5 +1,5 @@
-import { Exchange, SimulatedExchangeStore, Order } from "../../../types";
-import { parsePair, uuid } from "../../../utils";
+import { Exchange, SimulatedExchangeStore, Order } from "../../../../types";
+import { parsePair, uuid } from "../../../../utils";
 
 type CreateOrder = Exchange["createOrder"];
 
@@ -52,7 +52,7 @@ const createCreateOrder = (
 				side,
 				amount,
 				price,
-				id: uuid(), //TODO: CREATE UUID
+				id: uuid(), 
 				datetime: new Date(currentTime).toISOString(),
 				timestamp: currentTime,
 				lastTradeTimestamp: null,

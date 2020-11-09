@@ -1,5 +1,5 @@
-import { ExchangeID, OHLCV } from "../../types";
-import { createExchange, parsePeriod, reshapeOHLCV } from "../../utils/";
+import { ExchangeID, OHLCV } from "../../../../types";
+import { createExchange, parsePeriod, reshapeOHLCV } from "../../../../utils/";
 
 const fillEmptyCandles = (candles: OHLCV[], periodMs: number): OHLCV[] => {
 	let fullRecordSet: OHLCV[] = [];
@@ -31,7 +31,6 @@ const fillEmptyCandles = (candles: OHLCV[], periodMs: number): OHLCV[] => {
 	return fullRecordSet;
 };
 
-
 const getCandles = async (
 	from: number,
 	to: number,
@@ -50,7 +49,9 @@ const getCandles = async (
 
 		while (recordsToFetch) {
 			if (page) {
-				await new Promise((resolve) => setTimeout(resolve, 1000));
+				await new Promise((resolve) =>
+					setTimeout(resolve, exchange.rateLimit)
+				);
 			}
 
 			const limit =
@@ -70,7 +71,8 @@ const getCandles = async (
 			const completeOHLCV = fillEmptyCandles(ohlcv, periodMs);
 
 			recordsToFetch -= completeOHLCV.length;
-			timeCursor = completeOHLCV[completeOHLCV.length - 1].timestamp + periodMs;
+			timeCursor =
+				completeOHLCV[completeOHLCV.length - 1].timestamp + periodMs;
 			page++;
 
 			candles.push(...completeOHLCV);

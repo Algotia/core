@@ -4,7 +4,7 @@ import {
 	SimulatedExchangeStore,
 	Strategy,
 } from "../../types";
-import { fillOrders, simulateExchange } from "../../utils/";
+import { simulateExchange } from "../../utils/";
 
 const backtest = async (
 	data: OHLCV[],
@@ -12,7 +12,10 @@ const backtest = async (
 	initalBalance: Record<string, number>,
 	strategy: Strategy
 ): Promise<SimulatedExchangeStore> => {
-	const { exchange, store } = simulateExchange(exchangeId, initalBalance);
+	const { exchange, store, fillOrders, updateContext } = simulateExchange(
+		exchangeId,
+		initalBalance
+	);
 
 	for (let i = 0; i < data.length; i++) {
 		const candle = data[i];
@@ -24,8 +27,7 @@ const backtest = async (
 
 		const aheadCandle = data[i + 1];
 
-		store.currentTime = aheadCandle.timestamp;
-		store.currentPrice = aheadCandle.open;
+		updateContext(aheadCandle.timestamp, aheadCandle.open);
 
 		try {
 			await strategy(exchange, candle);

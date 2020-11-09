@@ -1,11 +1,14 @@
 import { Balances } from "ccxt";
-import { Exchange, ExchangeID, SimulatedExchangeStore } from "../../types/";
-import { createExchange } from "../../utils";
-import { createCreateOrder } from "./simulatedMethods";
+import { Exchange, ExchangeID, SimulatedExchangeStore } from "../../../types/";
+import { createExchange } from "../../../utils";
+import { createCreateOrder } from "./methods";
+import { fillOrders } from "./helpers";
 
 type InitialBalance = Record<string, number>;
 
 interface SimulatedExchangeResult {
+	fillOrders: typeof fillOrders;
+	updateContext: (time: number, price: number) => void;
 	store: SimulatedExchangeStore;
 	exchange: Exchange;
 }
@@ -45,11 +48,19 @@ const simulateExchange = (
 	};
 
 	// Override methods
-	exchange.createOrder = createCreateOrder(store, exchange)
+	exchange.createOrder = createCreateOrder(store, exchange);
+
+	// Helper Methods
+	const updateContext = (time: number, price: number) => {
+		store.currentTime = time;
+		store.currentPrice = price;
+	};
 
 	return {
 		exchange,
 		store,
+		updateContext,
+		fillOrders
 	};
 };
 

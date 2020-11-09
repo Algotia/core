@@ -1,5 +1,5 @@
-import { Exchange, OHLCV } from "../../types";
-import { parsePeriod, reshapeOHLCV, roundTime } from "../general";
+import { Exchange, OHLCV } from "../../../../types";
+import { parsePeriod, reshapeOHLCV, roundTime } from "../../../general";
 
 const getLiveCandle = async (
 	period: string,

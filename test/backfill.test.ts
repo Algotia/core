@@ -1,4 +1,4 @@
-import { getCandles, parsePeriod } from "../src/utils"
+import { backfill, parsePeriod } from "../src/utils"
 
 
 describe("Backfill", () => {
@@ -40,7 +40,7 @@ describe("Backfill", () => {
 
 		// 24 hours apart
 
-        const candles = await getCandles(fromMs, toMs, "ETH/BTC", "1h", "binance")
+        const candles = await backfill(fromMs, toMs, "ETH/BTC", "1h", "binance")
 
 		checkCandles(candles, "1h", 24)
     })
