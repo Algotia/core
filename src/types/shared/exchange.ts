@@ -16,27 +16,14 @@ export interface OHLCV {
 export interface Order extends CCXT_Order {
 	type: "market" | "limit";
 }
-export interface SimulatedExchangeStore {
-	currentTime: number;
-	currentPrice: number;
-	balance: Balances;
-	openOrders: Order[];
-	closedOrders: Order[];
-	errors: string[];
-}
-
-export interface SimulatedExchangeResult {
-	fillOrders: (store: SimulatedExchangeStore, candle: OHLCV) => Promise<void>;
-	updateContext: (time: number, price: number) => void;
-	store: SimulatedExchangeStore;
-	exchange: Exchange;
-}
 
 interface ExchangeMethods {
 	fetchOrderBook: CCXT_Exchange["fetchOrderBook"];
 	fetchOHLCV: CCXT_Exchange["fetchOHLCV"];
 	fetchBalance: CCXT_Exchange["fetchBalance"];
 	createOrder: CCXT_Exchange["createOrder"];
+	cancelOrder: CCXT_Exchange["cancelOrder"];
+	editOrder: CCXT_Exchange["editOrder"];
 	fetchOrder: CCXT_Exchange["fetchOrder"];
 	fetchOrders: CCXT_Exchange["fetchOrders"];
 	fetchOpenOrders: CCXT_Exchange["fetchOpenOrders"];
@@ -52,4 +39,24 @@ export interface Exchange extends ExchangeMethods  {
 	fees: CCXT_Exchange["fees"];
 	rateLimit: CCXT_Exchange["rateLimit"];
 	has: Record<keyof ExchangeMethods, boolean | "simulated" | "emulated">;
+}
+
+export interface SimulatedExchange extends Exchange  {
+	simulated: true
+}
+
+export interface SimulatedExchangeStore {
+	currentTime: number;
+	currentPrice: number;
+	balance: Balances;
+	openOrders: Order[];
+	closedOrders: Order[];
+	errors: string[];
+}
+
+export interface SimulatedExchangeResult {
+	fillOrders: (store: SimulatedExchangeStore, candle: OHLCV) => Promise<void>;
+	updateContext: (time: number, price: number) => void;
+	store: SimulatedExchangeStore;
+	exchange: SimulatedExchange;
 }

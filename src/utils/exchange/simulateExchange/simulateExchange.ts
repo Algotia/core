@@ -1,10 +1,25 @@
 import { Balances } from "ccxt";
-import { ExchangeID, SimulatedExchangeStore, SimulatedExchangeResult } from "../../../types/";
+import {
+	ExchangeID,
+	SimulatedExchangeStore,
+	SimulatedExchangeResult,
+	SimulatedExchange,
+} from "../../../types/";
+import {
+	createCancelOrder,
+	createCreateOrder,
+	createEditOrder,
+	createFetchBalance,
+	createFetchClosedOrders,
+	createFetchMyTrades,
+	createFetchOpenOrders,
+	createFetchOrder,
+	createFetchOrders,
+} from "./methods";
 import { createExchange } from "../../../utils";
-import { createCreateOrder } from "./methods";
 import { fillOrders } from "./helpers";
 
-type InitialBalance = Record<string, number>
+type InitialBalance = Record<string, number>;
 
 const createInitalBalance = (initialBalance: InitialBalance): Balances => {
 	let balance: Balances;
@@ -20,7 +35,9 @@ const createInitalBalance = (initialBalance: InitialBalance): Balances => {
 			},
 		});
 	}
-	balance.info = { ...balance };
+
+	balance = Object.assign({}, balance)
+	balance.info = {...balance}
 
 	return balance;
 };
@@ -29,7 +46,7 @@ const simulateExchange = (
 	exchangeId: ExchangeID,
 	initialBalance: InitialBalance
 ): SimulatedExchangeResult => {
-	const exchange = createExchange(exchangeId);
+	const originalExchange = createExchange(exchangeId);
 
 	let store: SimulatedExchangeStore = {
 		currentTime: 0,
@@ -40,21 +57,32 @@ const simulateExchange = (
 		balance: createInitalBalance(initialBalance),
 	};
 
-	// Override 'has' with "simulated" for simulated method
-	
-	// Override methods
-	exchange.createOrder = createCreateOrder(store, exchange);
-	exchange.has.createOrder = "simulated"
+	const exchange: SimulatedExchange = {
+		...originalExchange,
+		simulated: true,
+		has: {
+			...originalExchange["has"],
+			createOrder: "simulated",
+			editOrder: "simulated",
+			cancelOrder: "simulated",
+			fetchBalance: "simulated",
+			fetchOrder: "simulated",
+			fetchOrders: "simulated",
+			fetchOpenOrders: "simulated",
+			fetchClosedOrders: "simulated",
+			fetchMyTrades: "simulated",
+		},
+		createOrder: createCreateOrder(store, originalExchange),
+		editOrder: createEditOrder(store, originalExchange),
+		cancelOrder: createCancelOrder(store),
+		fetchBalance: createFetchBalance(store),
+		fetchOrder: createFetchOrder(store),
+		fetchOrders: createFetchOrders(store),
+		fetchOpenOrders: createFetchOpenOrders(store),
+		fetchClosedOrders: createFetchClosedOrders(store),
+		fetchMyTrades: createFetchMyTrades(store)
+	};
 
-	//TODO: Simulate the following:
-	// fetchBalance
-	// fetchOrder
-	// fetchOrders
-	// fetchOpenOrers
-	// fetchClosedOrders
-	// fetchMyTrades
-
-	// Helper Methods
 	const updateContext = (time: number, price: number) => {
 		store.currentTime = time;
 		store.currentPrice = price;
@@ -64,7 +92,7 @@ const simulateExchange = (
 		exchange,
 		store,
 		updateContext,
-		fillOrders
+		fillOrders,
 	};
 };
 

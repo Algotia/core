@@ -1,21 +1,17 @@
 import {
-	ExchangeID,
 	OHLCV,
+	SimulatedExchangeResult,
 	SimulatedExchangeStore,
 	Strategy,
 } from "../../types";
-import { simulateExchange } from "../../utils/";
 
 const backtest = async (
+	simulatedExchange: SimulatedExchangeResult,
 	data: OHLCV[],
-	exchangeId: ExchangeID,
-	initalBalance: Record<string, number>,
 	strategy: Strategy
 ): Promise<SimulatedExchangeStore> => {
-	const { exchange, store, fillOrders, updateContext } = simulateExchange(
-		exchangeId,
-		initalBalance
-	);
+
+	const { fillOrders, updateContext, store, exchange } = simulatedExchange;
 
 	for (let i = 0; i < data.length; i++) {
 		const candle = data[i];

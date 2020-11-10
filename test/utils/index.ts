@@ -1,1 +1,1 @@
-export { default as generateFakeCandles } from "./generateFakeCandles"
+export * from "./mockExchange";

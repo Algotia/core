@@ -1,5 +1,5 @@
 import { backtest } from "../src/methods/";
-import { getCandles } from "../src/utils";
+import { backfill, simulateExchange } from "../src/utils";
 
 describe("Backtest", () => {
 	test("backtest", async () => {
@@ -9,24 +9,24 @@ describe("Backtest", () => {
 		//  1/2/2020 12:00 AM (GMT)
 		const toMs = new Date("1/2/2020 12:00 AM GMT").getTime();
 
-		const candles = await getCandles(
+		const simulatedExchange = simulateExchange('binance', {
+			ETH: 0,
+			BTC: 10
+		})
+
+		const candles = await backfill(
 			fromMs,
 			toMs,
 			"ETH/BTC",
 			"1h",
-			"binance"
+			simulatedExchange.exchange
 		);
 
 		const result = await backtest(
+			simulatedExchange,
 			candles,
-			"binance",
-			{
-				ETH: 0,
-				BTC: 0,
-			},
 			async (exchange, data) => {
 				try {
-					console.log(data)
 					await exchange.createOrder(
 						"ETH/BTC",
 						"market",

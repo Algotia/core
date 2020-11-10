@@ -1,13 +1,19 @@
-import { Exchange, SimulatedExchangeStore, Order } from "../../../../types";
-import { parsePair, uuid } from "../../../../utils";
+import { Exchange as CCXT_Exchange } from "ccxt";
+import {
+	Exchange,
+	Order,
+	SimulatedExchangeStore,
+} from "../../../../types";
+import { parsePair } from "../../../general";
 
-type CreateOrder = Exchange["createOrder"];
+type EditOrder = CCXT_Exchange["editOrder"];
 
-const createCreateOrder = (
+const createEditOrder = (
 	store: SimulatedExchangeStore,
 	exchange: Exchange
-): CreateOrder => {
+): EditOrder => {
 	return async (
+		id: string,
 		symbol: string,
 		type: "market" | "limit",
 		side: "buy" | "sell",
@@ -15,6 +21,24 @@ const createCreateOrder = (
 		price?: number
 	): Promise<Order> => {
 		try {
+			const foundOrder = store.openOrders.find((order) => {
+				return order.id === id;
+			});
+
+			if (!foundOrder) {
+				const wasIdClosedOrder = store.closedOrders.find((order) => {
+					return order.id === id;
+				});
+				if (wasIdClosedOrder) {
+					throw new Error(
+						`Error editing order: Order with ID ${id} is already closed.`
+					);
+				}
+				throw new Error(
+					`Error editing order: No order with id ${id} was found.`
+				);
+			}
+
 			const { currentTime, balance } = store;
 
 			const [base, quote] = parsePair(symbol);
@@ -23,7 +47,9 @@ const createCreateOrder = (
 
 			if (type === "limit") {
 				if (!price) {
-					throw new Error("Order type is limit, but no price passed");
+					throw new Error(
+						"Error editing order: Order type is limit, but no price passed - order not edited"
+					);
 				}
 				cost = amount * price;
 			}
@@ -35,24 +61,29 @@ const createCreateOrder = (
 
 			if (side === "buy") {
 				if (cost > balance[quote]["free"]) {
-					throw new Error("Insufficient balance");
+					throw new Error(
+						`Error editing order: Insufficient balance - order not edited`
+					);
 				}
 			} else if ((side = "sell")) {
 				if (cost > balance[base]["free"]) {
-					throw new Error("Insufficient balance");
+					throw new Error(
+						`Error editing order: Insufficient balance - order not edited`
+					);
 				}
 			}
 
 			const makerFee = exchange.fees["trading"]["maker"];
 			const takerFee = exchange.fees["trading"]["taker"];
 
-			const order: Order = {
+			const editedOrder: Order = {
+				...foundOrder,
+				id,
 				symbol,
 				type,
 				side,
 				amount,
 				price,
-				id: uuid(),
 				datetime: new Date(currentTime).toISOString(),
 				timestamp: currentTime,
 				lastTradeTimestamp: null,
@@ -79,13 +110,15 @@ const createCreateOrder = (
 			if (side === "buy") {
 				store.balance = Object.assign(store.balance, {
 					[quote]: {
-						free: oldQuoteBalance.free - (cost + order.fee.cost),
-						used: oldQuoteBalance.used + (cost + order.fee.cost),
+						free:
+							oldQuoteBalance.free -
+							(cost + editedOrder.fee.cost),
+						used:
+							oldQuoteBalance.used +
+							(cost + editedOrder.fee.cost),
 						total: oldQuoteBalance.total,
 					},
 				});
-				store.balance.info = { ...store.balance };
-				delete store.balance.info.info
 			}
 
 			if (side === "sell") {
@@ -96,22 +129,23 @@ const createCreateOrder = (
 						total: oldBaseBalance.total,
 					},
 					[quote]: {
-						free: oldQuoteBalance.free - order.fee.cost,
-						used: oldQuoteBalance.used + order.fee.cost,
+						free: oldQuoteBalance.free - editedOrder.fee.cost,
+						used: oldQuoteBalance.used + editedOrder.fee.cost,
 						total: oldQuoteBalance.total,
 					},
 				});
-				store.balance.info = { ...store.balance };
-				delete store.balance.info.info
 			}
 
-			store.openOrders.push(order);
+			const index = store.openOrders.indexOf(foundOrder);
 
-			return order;
+			store.openOrders.splice(index, 1);
+			store.openOrders.push(editedOrder);
+
+			return editedOrder;
 		} catch (err) {
-			store.errors.push(err);
+			throw err;
 		}
 	};
 };
 
-export default createCreateOrder;
+export default createEditOrder

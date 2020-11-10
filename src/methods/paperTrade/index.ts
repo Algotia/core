@@ -1,11 +1,9 @@
-import { ExchangeID, Strategy } from "../../types";
 import {
-	fillOrders,
-	getLiveCandle,
-	parsePeriod,
-	roundTime,
-	simulateExchange,
-} from "../../utils";
+	SimulatedExchangeResult,
+	SimulatedExchangeStore,
+	Strategy,
+} from "../../types";
+import { getLiveCandle, parsePeriod, roundTime } from "../../utils";
 import { EventEmitter } from "events";
 import schedule from "node-schedule";
 import getDefaultOptions from "./getDefaultOptions";
@@ -15,103 +13,117 @@ export interface Options {
 }
 
 const paperTrade = async (
-	exchangeId: ExchangeID,
+	simulatedExchange: SimulatedExchangeResult,
 	period: string,
 	pair: string,
-	initalBalance: Record<string, number>,
 	strategy: Strategy,
 	options?: Options
-): Promise<EventEmitter> => {
+): Promise<{ start: () => void; stop: () => SimulatedExchangeStore }> => {
 	try {
-		//TODO: Validate
+		const { pollingPeriod } = getDefaultOptions(period, options);
+		const { periodMs: strategyPeriodMs } = parsePeriod(period);
+		const { periodMs: pollingPeriodMs } = parsePeriod(pollingPeriod);
 
-		//Setup
-		const { exchange, store, updateContext } = simulateExchange(
-			exchangeId,
-			initalBalance
-		);
+		let timeouts = [];
+		let intervals = [];
 
-		const {
-			periodMs: strategyPeriodMs,
-			cronExpression: strategyCronExpression,
-		} = parsePeriod(period);
-
-		const defaultOptions = getDefaultOptions(period);
-		const optionsWithDefaults = Object.assign({}, defaultOptions, options);
-
-		const {
-			periodMs: pollingPeriodMs,
-			cronExpression: pollingCronExpression,
-		} = parsePeriod(optionsWithDefaults.pollingPeriod);
-
-		const getNearestStrategyTimestamp = (): number => {
-			const now = new Date();
-			return roundTime(now, strategyPeriodMs, "ceil").getTime();
-		};
-
-		const schedulePolling = () => {
-			const nextTimestamp = getNearestStrategyTimestamp();
-
-			schedule.scheduleJob(
-				{
-					rule: pollingCronExpression,
-					end: nextTimestamp - pollingPeriodMs,
-				},
-				async () => {
-					const candle = await getLiveCandle(
-						period,
-						pair,
-						Date.now(),
-						exchange
-					);
-
-					updateContext(Date.now(), candle.close);
-
-					fillOrders(store, candle);
-				}
-			);
-		};
-
-		const executeStrategy = async function ({ exchange, store }) {
+		const pollExchange = async (exchange: SimulatedExchangeResult) => {
 			try {
 				const candle = await getLiveCandle(
 					period,
 					pair,
 					Date.now(),
+					exchange.exchange
+				);
+
+				exchange.updateContext(candle.timestamp, candle.close);
+
+				await exchange.fillOrders(exchange.store, candle);
+			} catch (err) {
+				throw err;
+			}
+		};
+		const executeStrategy = async (exchange: SimulatedExchangeResult) => {
+			try {
+				const candle = await getLiveCandle(
+					period,
+					pair,
+					Date.now(),
+					exchange.exchange
+				);
+
+				exchange.updateContext(candle.timestamp, candle.close);
+
+				try {
+					await strategy(exchange.exchange, candle);
+				} catch (err) {
+					exchange.store.errors.push(err.message);
+				}
+
+				await exchange.fillOrders(exchange.store, candle);
+
+				const pollingInterval = setInterval(
+					pollExchange,
+					pollingPeriodMs,
 					exchange
 				);
 
-				updateContext(Date.now(), candle.close);
+				intervals.push(pollingInterval);
 
-				await strategy(exchange, candle);
+				const stopPollingTimeout = setTimeout(() => {
+					clearInterval(pollingInterval);
+				}, strategyPeriodMs - pollingPeriodMs);
 
-				await fillOrders(store, candle);
-
-				schedulePolling();
+				timeouts.push(stopPollingTimeout);
 			} catch (err) {
-				store.errors.push(err.message);
+				throw err;
 			}
-		}.bind(null, { exchange, store });
+		};
 
 		const controller = new EventEmitter();
 
 		controller.on("start", () => {
-			const strategyScheduler = schedule.scheduleJob(
-				{ rule: strategyCronExpression },
-				executeStrategy
-			);
+			const now = new Date();
+			const msUntilNextCandle =
+				roundTime(now, strategyPeriodMs, "ceil").getTime() -
+				now.getTime();
 
-			controller.on("stop", () => {
-				strategyScheduler.cancel();
-				controller.emit("done");
-			});
+			const startStrategyTimeout = setTimeout(async () => {
+				const strategyInterval = setInterval(
+					executeStrategy,
+					strategyPeriodMs,
+					simulatedExchange
+				);
 
-			controller.on("done", () => {
-				controller.emit("result", store);
-			});
+				intervals.push(strategyInterval);
+
+				await executeStrategy(simulatedExchange);
+			}, msUntilNextCandle);
+
+			timeouts.push(startStrategyTimeout);
 		});
 
-		return controller;
+		controller.on("stop", () => {
+			for (const timeout of timeouts) {
+				clearTimeout(timeout);
+			}
+
+			for (const interval of intervals) {
+				clearInterval(interval);
+			}
+			controller.emit("done");
+		});
+
+		const start = () => {
+			controller.emit("start");
+		};
+
+		const stop = () => {
+			controller.emit("stop");
+			return simulatedExchange.store;
+		};
+
+		return { start, stop };
 	} catch (err) {
 		throw err;
 	}
