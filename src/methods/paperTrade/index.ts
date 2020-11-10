@@ -5,7 +5,6 @@ import {
 } from "../../types";
 import { getLiveCandle, parsePeriod, roundTime } from "../../utils";
 import { EventEmitter } from "events";
-import schedule from "node-schedule";
 import getDefaultOptions from "./getDefaultOptions";
 
 export interface Options {

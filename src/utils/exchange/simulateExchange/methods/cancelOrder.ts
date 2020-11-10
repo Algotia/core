@@ -50,12 +50,13 @@ const createCancelOrder = (store: SimulatedExchangeStore): CancelOrder => {
 		const index = store.openOrders.indexOf(order);
 
 		store.openOrders.splice(index, 1);
-		store.closedOrders.push(order);
 
 		const closedOrder: Order = {
 			...order,
 			status: "canceled",
 		};
+
+		store.closedOrders.push(closedOrder);
 
 		return closedOrder;
 	};
