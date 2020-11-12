@@ -1,2 +1,2 @@
-export * from "./ccxt";
-export * from "./algotia"
+
+export class InputError extends Error {}

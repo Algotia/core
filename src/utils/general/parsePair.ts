@@ -1,4 +1,4 @@
-const parsePair = (pair: string): [string, string] => {
+const parsePair = (pair: string): [base: string, quote: string] => {
 	const [base, quote] = pair.split("/");
 	return [base, quote];
 };

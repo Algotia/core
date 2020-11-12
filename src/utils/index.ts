@@ -1,5 +1,2 @@
-export * from "./exchangeFactory";
-export * from "./simulateExchange"
+export * from "./exchange";
 export * from "./general";
-export * from "./time";
-export * from "./db";
