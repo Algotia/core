@@ -3,7 +3,6 @@ interface ParsedPeriod {
 	unit: number;
 	unitLabel: string;
 	periodMs: number;
-	cronExpression: string;
 }
 
 const parsePeriod = (period: string): ParsedPeriod => {
@@ -15,38 +14,32 @@ const parsePeriod = (period: string): ParsedPeriod => {
 
 	const amount = Number(amountString);
 
-	let unit: number, unitLabel: string, cronExpression: string;
+	let unit: number, unitLabel: string;
 
 	switch (unitString) {
 		case "s":
 			unit = oneSecondMs;
 			unitLabel = "seconds"
-			cronExpression = `*/${amount} * * * * *`
 			break;
 		case "m":
 			unit = oneMinuteMs;
 			unitLabel = "minutes";
-			cronExpression = `*/${amount} * * * *`
 			break;
 		case "h":
 			unit = oneMinuteMs * 60;
 			unitLabel = "hours";
-			cronExpression = `0 */${amount} * * *`
 			break;
 		case "d":
 			unit = oneMinuteMs * 60 * 24;
 			unitLabel = "days";
-			cronExpression = `0 0 */${amount} * *`
 			break;
 		case "w":
 			unit = oneMinuteMs * 60 * 24 * 7;
 			unitLabel = "weeks";
-			cronExpression = `0 0 0 */${amount} *`
 			break;
 		case "M":
 			unit = oneMinuteMs * 60 * 24 * 7 * 4;
 			unitLabel = "months";
-			cronExpression = `0 0 0 0 */${amount}`
 			break;
 	}
 
@@ -57,7 +50,6 @@ const parsePeriod = (period: string): ParsedPeriod => {
 		unit,
 		unitLabel,
 		periodMs,
-		cronExpression
 	};
 };
 

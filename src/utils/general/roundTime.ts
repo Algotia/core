@@ -4,7 +4,7 @@ const roundTime = (
 	method: "ceil" | "floor"
 ) => {
 	const dateMs = date.getTime();
-	return new Date(Math[method](+dateMs / +intervalMs) * +intervalMs);
+	return new Date(Math[method](dateMs / intervalMs) * intervalMs);
 };
 
 export default roundTime;

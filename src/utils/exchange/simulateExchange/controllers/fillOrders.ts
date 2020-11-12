@@ -2,28 +2,31 @@ import { Trade } from "ccxt";
 import { SimulatedExchangeStore, OHLCV, Order } from "../../../../types";
 import { parsePair } from "../../../../utils";
 
-const fillOrders = async (store: SimulatedExchangeStore, candle: OHLCV) => {
-	try {
-		for (const order of store.openOrders) {
-			if (order.side === "buy") {
-				if (order.price >= candle.low) {
-					//fill order
-					closeOrder(store, order);
+const createFillOrders = (
+	store: SimulatedExchangeStore
+): ((candle: OHLCV) => void) => {
+	return (candle: OHLCV) => {
+		try {
+			for (const order of store.openOrders) {
+				if (order.side === "buy") {
+					if (order.price >= candle.low) {
+						//fill order
+						closeOrder(store, order);
+					}
 				}
-			}
 
-			if (order.side === "sell") {
-				if (order.price <= candle.high) {
-					//fill order
-					closeOrder(store, order);
+				if (order.side === "sell") {
+					if (order.price <= candle.high) {
+						//fill order
+						closeOrder(store, order);
+					}
 				}
 			}
+		} catch (err) {
+			throw err;
 		}
-	} catch (err) {
-		throw err;
-	}
+	};
 };
-
 
 const createTrade = (store: SimulatedExchangeStore, order: Order): Trade => {
 	const { currentTime } = store;
@@ -73,7 +76,7 @@ const closeOrder = (store: SimulatedExchangeStore, order: Order): Order => {
 	store.openOrders.splice(index, 1);
 	store.closedOrders.push(closedOrder);
 
-	updateBalance(store, closedOrder)
+	updateBalance(store, closedOrder);
 
 	return closedOrder;
 };
@@ -133,4 +136,4 @@ const updateBalance = (store: SimulatedExchangeStore, closedOrder: Order) => {
 	}
 };
 
-export default fillOrders;
+export default createFillOrders;

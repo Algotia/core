@@ -1,5 +1,5 @@
-import { Exchange, OHLCV } from "../../../../types";
-import { parsePeriod, reshapeOHLCV } from "../../../../utils/";
+import { Exchange, OHLCV } from "../../../types";
+import { parsePeriod, reshapeOHLCV } from "../../../utils/";
 
 const fillEmptyCandles = (candles: OHLCV[], periodMs: number): OHLCV[] => {
 	if (!candles) return [];

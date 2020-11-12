@@ -5,11 +5,13 @@ import {
 	Strategy,
 } from "../../types";
 
+type BacktestResults = Omit<SimulatedExchangeStore, "currentTime" | "currentPrice">
+
 const backtest = async (
 	simulatedExchange: SimulatedExchangeResult,
 	data: OHLCV[],
 	strategy: Strategy
-): Promise<SimulatedExchangeStore> => {
+): Promise<BacktestResults> => {
 
 	const { fillOrders, updateContext, store, exchange } = simulatedExchange;
 
@@ -17,7 +19,7 @@ const backtest = async (
 		const candle = data[i];
 
 		if (i === data.length - 1) {
-			fillOrders(store, candle);
+			fillOrders(candle);
 			break;
 		}
 
@@ -31,10 +33,18 @@ const backtest = async (
 			store.errors.push(err.message);
 		}
 
-		await fillOrders(store, aheadCandle);
+		fillOrders(aheadCandle);
 	}
 
-	return store;
+
+	const { balance, closedOrders, openOrders, errors } = store;
+
+	return {
+		balance,
+		closedOrders,
+		openOrders,
+		errors
+	}
 };
 
 export default backtest;

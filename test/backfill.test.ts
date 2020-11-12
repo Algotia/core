@@ -1,5 +1,6 @@
-import { backfill, parsePeriod, roundTime, simulateExchange } from "../src/utils";
+import { backfill, parsePeriod, roundTime } from "../src/utils";
 import {mockExchange} from "./utils";
+
 
 describe("Backfill", () => {
 	const checkCandles = (
@@ -21,8 +22,7 @@ describe("Backfill", () => {
 			expect(thisCandle).toHaveProperty("volume");
 
 			if (i === 0) {
-				const firstTimestamp = roundTime(new Date(thisCandle.timestamp), periodMs, "ceil") ;
-				expect(thisCandle.timestamp).toStrictEqual(firstTimestamp.getTime())
+				expect(thisCandle.timestamp).toStrictEqual(expectedSince)
 				continue;
 			}
 			const lastCandle = candles[i - 1];
@@ -35,7 +35,7 @@ describe("Backfill", () => {
 		expect(candles.length).toStrictEqual(expectedLength);
 	};
 
-	test("Short backfill", async () => {
+	test("Short backfill works as expected (no pagination)", async () => {
 		//  1/1/2020 12:00 AM (GMT)
 		const fromMs = new Date("1/1/2020 12:00 AM GMT").getTime();
 
@@ -50,7 +50,8 @@ describe("Backfill", () => {
 		checkCandles(candles, "1h", 24, fromMs);
 	});
 
-	test("Long backfill", async () => {
+	test("Long backfill works as expected (pagination)", async () => {
+
 		const fromMs = new Date("1/1/2020 12:00 PM GMT").getTime();
 
 		const toMs = new Date("1/4/2020 12:00 AM GMT").getTime();

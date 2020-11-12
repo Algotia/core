@@ -55,7 +55,7 @@ export interface SimulatedExchangeStore {
 }
 
 export interface SimulatedExchangeResult {
-	fillOrders: (store: SimulatedExchangeStore, candle: OHLCV) => Promise<void>;
+	fillOrders: (candle: OHLCV) => void;
 	updateContext: (time: number, price: number) => void;
 	store: SimulatedExchangeStore;
 	exchange: SimulatedExchange;

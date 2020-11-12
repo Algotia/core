@@ -17,7 +17,7 @@ import {
 	createFetchOrders,
 } from "./methods";
 import { createExchange } from "../../../utils";
-import { fillOrders } from "./helpers";
+import { createFillOrders, createUpdateContext } from "./controllers";
 
 type InitialBalance = Record<string, number>;
 
@@ -83,10 +83,9 @@ const simulateExchange = (
 		fetchMyTrades: createFetchMyTrades(store)
 	};
 
-	const updateContext = (time: number, price: number) => {
-		store.currentTime = time;
-		store.currentPrice = price;
-	};
+
+	const fillOrders = createFillOrders(store);
+	const updateContext = createUpdateContext(store);
 
 	return {
 		exchange,

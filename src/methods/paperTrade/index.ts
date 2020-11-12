@@ -3,23 +3,21 @@ import {
 	SimulatedExchangeStore,
 	Strategy,
 } from "../../types";
-import { getLiveCandle, parsePeriod, roundTime } from "../../utils";
+import { getLiveCandle, parsePeriod, roundTime, getDefaultOptions } from "../../utils";
 import { EventEmitter } from "events";
-import getDefaultOptions from "./getDefaultOptions";
 
-export interface Options {
-	pollingPeriod: string;
-}
 
 const paperTrade = async (
 	simulatedExchange: SimulatedExchangeResult,
 	period: string,
 	pair: string,
 	strategy: Strategy,
-	options?: Options
 ): Promise<{ start: () => void; stop: () => SimulatedExchangeStore }> => {
 	try {
-		const { pollingPeriod } = getDefaultOptions(period, options);
+
+		const { pollingPeriodTable } = getDefaultOptions();
+		const pollingPeriod = pollingPeriodTable[period]
+
 		const { periodMs: strategyPeriodMs } = parsePeriod(period);
 		const { periodMs: pollingPeriodMs } = parsePeriod(pollingPeriod);
 
@@ -37,11 +35,12 @@ const paperTrade = async (
 
 				exchange.updateContext(candle.timestamp, candle.close);
 
-				await exchange.fillOrders(exchange.store, candle);
+				exchange.fillOrders(candle);
 			} catch (err) {
 				throw err;
 			}
 		};
+
 		const executeStrategy = async (exchange: SimulatedExchangeResult) => {
 			try {
 				const candle = await getLiveCandle(
@@ -59,7 +58,7 @@ const paperTrade = async (
 					exchange.store.errors.push(err.message);
 				}
 
-				await exchange.fillOrders(exchange.store, candle);
+				exchange.fillOrders(candle);
 
 				const pollingInterval = setInterval(
 					pollExchange,
@@ -83,6 +82,7 @@ const paperTrade = async (
 
 		controller.on("start", () => {
 			const now = new Date();
+
 			const msUntilNextCandle =
 				roundTime(now, strategyPeriodMs, "ceil").getTime() -
 				now.getTime();
@@ -97,6 +97,7 @@ const paperTrade = async (
 				intervals.push(strategyInterval);
 
 				await executeStrategy(simulatedExchange);
+
 			}, msUntilNextCandle);
 
 			timeouts.push(startStrategyTimeout);

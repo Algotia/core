@@ -2,10 +2,11 @@ import { paperTrade } from "../src/methods";
 import { parsePeriod } from "../src/utils";
 import { mockExchange } from "./utils";
 import sinon from "sinon";
-import { Exchange } from "../src/types";
+import { Exchange, OHLCV } from "../src/types";
 
 describe("Paper trade", () => {
 	test("paper", async () => {
+
 		const clock = sinon.useFakeTimers();
 
 		const exchange = mockExchange(
@@ -14,8 +15,9 @@ describe("Paper trade", () => {
 			{ price: 0.1 }
 		);
 
-		const strategy = jest.fn(async (exchange: Exchange, data) => {
-			const order = await exchange.createOrder(
+		const strategy = jest.fn(async (exchange: Exchange, data: OHLCV)=> {
+
+			await exchange.createOrder(
 				"ETH/BTC",
 				"market",
 				"buy",
@@ -23,15 +25,14 @@ describe("Paper trade", () => {
 			);
 		});
 
-		const e = await paperTrade(exchange, "1m", "ETH/BTC", strategy, {
-			pollingPeriod: "5s",
-		});
+		const { start, stop } = await paperTrade(exchange, "1m", "ETH/BTC", strategy);
 
-		e.start();
+		start();
 
 		setTimeout(() => {
-			const res = e.stop();
+			const res = stop();
 			expect(res.balance.BTC.free).toBeCloseTo(0.0991);
+			expect(res.openOrders.length).toStrictEqual(0)
 		}, 120 * 60 * 1000);
 
 		await clock.tickAsync(120 * 60 * 1000);

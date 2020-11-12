@@ -1,9 +1,5 @@
 import { Exchange as CCXT_Exchange } from "ccxt";
-import {
-	Exchange,
-	Order,
-	SimulatedExchangeStore,
-} from "../../../../types";
+import { Exchange, Order, SimulatedExchangeStore } from "../../../../types";
 import { parsePair } from "../../../general";
 
 type EditOrder = CCXT_Exchange["editOrder"];
@@ -59,20 +55,6 @@ const createEditOrder = (
 				cost = amount * price;
 			}
 
-			if (side === "buy") {
-				if (cost > balance[quote]["free"]) {
-					throw new Error(
-						`Error editing order: Insufficient balance - order not edited`
-					);
-				}
-			} else if ((side = "sell")) {
-				if (cost > balance[base]["free"]) {
-					throw new Error(
-						`Error editing order: Insufficient balance - order not edited`
-					);
-				}
-			}
-
 			const makerFee = exchange.fees["trading"]["maker"];
 			const takerFee = exchange.fees["trading"]["taker"];
 
@@ -108,15 +90,42 @@ const createEditOrder = (
 			const oldQuoteBalance = store.balance[quote];
 
 			if (side === "buy") {
+				if (
+					editedOrder.cost >
+					oldQuoteBalance.free - (editedOrder.cost - foundOrder.cost)
+				) {
+					console.log(editedOrder.cost);
+
+					console.log(
+						oldQuoteBalance.free -
+							(editedOrder.cost - foundOrder.cost)
+					);
+					throw new Error(
+						`Error editing order: Insufficient balance - order not edited`
+					);
+				}
+			} else if ((side = "sell")) {
+				if (cost > balance[base]["free"]) {
+					throw new Error(
+						`Error editing order: Insufficient balance - order not edited`
+					);
+				}
+			}
+
+			if (side === "buy") {
 				store.balance = Object.assign(store.balance, {
 					[quote]: {
 						free:
 							oldQuoteBalance.free -
-							(cost + editedOrder.fee.cost),
+							(editedOrder.cost - foundOrder.cost) -
+							foundOrder.fee.cost,
 						used:
 							oldQuoteBalance.used +
-							(cost + editedOrder.fee.cost),
-						total: oldQuoteBalance.total,
+							(editedOrder.cost - foundOrder.cost),
+						total:
+							oldQuoteBalance.total -
+							(editedOrder.cost - foundOrder.cost) -
+							foundOrder.fee.cost,
 					},
 				});
 			}
@@ -148,4 +157,4 @@ const createEditOrder = (
 	};
 };
 
-export default createEditOrder
+export default createEditOrder;
