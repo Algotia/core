@@ -2,11 +2,14 @@ import {
 	SimulatedExchangeResult,
 	SimulatedExchangeStore,
 	Strategy,
-} from "../../types";
-import { getLiveCandle, parsePeriod, roundTime, getDefaultOptions } from "../../utils";
-import { EventEmitter } from "events";
+} from "../types";
+import { getLiveCandle, parsePeriod, roundTime, getDefaultOptions } from "../utils";
+import { EventEmitter } from "events"
 
 
+/** Paper trading is similar to live trading, but uses a simulated
+* exchange instead of a real one.
+*/
 const paperTrade = async (
 	simulatedExchange: SimulatedExchangeResult,
 	period: string,

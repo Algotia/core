@@ -7,8 +7,8 @@ type EditOrder = CCXT_Exchange["editOrder"];
 const createEditOrder = (
 	store: SimulatedExchangeStore,
 	exchange: Exchange
-): EditOrder => {
-	return async (
+): EditOrder => (
+	async (
 		id: string,
 		symbol: string,
 		type: "market" | "limit",
@@ -92,7 +92,7 @@ const createEditOrder = (
 			if (side === "buy") {
 				if (
 					editedOrder.cost >
-					oldQuoteBalance.free - (editedOrder.cost - foundOrder.cost)
+				oldQuoteBalance.free - (editedOrder.cost - foundOrder.cost)
 				) {
 					console.log(editedOrder.cost);
 
@@ -104,7 +104,7 @@ const createEditOrder = (
 						`Error editing order: Insufficient balance - order not edited`
 					);
 				}
-			} else if ((side = "sell")) {
+			} else if ((side === "sell")) {
 				if (cost > balance[base]["free"]) {
 					throw new Error(
 						`Error editing order: Insufficient balance - order not edited`
@@ -154,7 +154,7 @@ const createEditOrder = (
 		} catch (err) {
 			throw err;
 		}
-	};
-};
+	}
+);
 
 export default createEditOrder;
