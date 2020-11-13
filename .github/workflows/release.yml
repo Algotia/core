@@ -10,8 +10,8 @@ jobs:
     name: Publish
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
     - name: Setup Node.js environment
       uses: actions/setup-node@v1.4.2
     - name: Install dependencies
