@@ -7,6 +7,7 @@ import {
 
 type BacktestResults = Omit<SimulatedExchangeStore, "currentTime" | "currentPrice">
 
+/** Backtesting runs a strategy against historical data */
 const backtest = async (
 	simulatedExchange: SimulatedExchangeResult,
 	data: OHLCV[],
