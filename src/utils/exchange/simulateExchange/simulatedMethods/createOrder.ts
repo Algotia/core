@@ -37,7 +37,7 @@ const createCreateOrder = (
 				if (cost > balance[quote]["free"]) {
 					throw new Error("Insufficient balance");
 				}
-			} else if ((side = "sell")) {
+			} else if ((side === "sell")) {
 				if (cost > balance[base]["free"]) {
 					throw new Error("Insufficient balance");
 				}

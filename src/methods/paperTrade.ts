@@ -8,7 +8,7 @@ import { EventEmitter } from "events"
 
 
 /** Paper trading is similar to live trading, but uses a simulated
-* exchange instead of a real one. 
+* exchange instead of a real one.
 */
 const paperTrade = async (
 	simulatedExchange: SimulatedExchangeResult,
