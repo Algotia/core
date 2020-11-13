@@ -2,9 +2,9 @@ import {
 	SimulatedExchangeResult,
 	SimulatedExchangeStore,
 	Strategy,
-} from "../../types";
-import { getLiveCandle, parsePeriod, roundTime, getDefaultOptions } from "../../utils";
-import { EventEmitter } from "events";
+} from "../types";
+import { getLiveCandle, parsePeriod, roundTime, getDefaultOptions } from "../utils";
+import { EventEmitter } from "events"
 
 
 const paperTrade = async (

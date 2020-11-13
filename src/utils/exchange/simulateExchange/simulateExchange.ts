@@ -15,9 +15,9 @@ import {
 	createFetchOpenOrders,
 	createFetchOrder,
 	createFetchOrders,
-} from "./methods";
+} from "./simulatedMethods";
 import { createExchange } from "../../../utils";
-import { createFillOrders, createUpdateContext } from "./controllers";
+import { createFillOrders, createUpdateContext } from "./controlMethods";
 
 type InitialBalance = Record<string, number>;
 

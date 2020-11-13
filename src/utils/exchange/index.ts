@@ -1,4 +1,4 @@
 export * from "./simulateExchange"
 export * from "./createExchange";
-export * from "./helpers"
+export * from "./exchangeHelpers"
 

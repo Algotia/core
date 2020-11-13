@@ -3,7 +3,7 @@ import {
 	SimulatedExchangeResult,
 	SimulatedExchangeStore,
 	Strategy,
-} from "../../types";
+} from "../types";
 
 type BacktestResults = Omit<SimulatedExchangeStore, "currentTime" | "currentPrice">
 
