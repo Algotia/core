@@ -9,7 +9,7 @@ describe("Paper trade", () => {
 
 		const clock = sinon.useFakeTimers();
 
-		const exchange = mockExchange(
+		const exchange = await mockExchange(
 			"binance",
 			{ BTC: 1, ETH: 0 },
 			{ price: 0.1 }
@@ -63,7 +63,7 @@ describe("Paper trade", () => {
 	test("Paper trade cancel all orders", async () => {
 		const clock = sinon.useFakeTimers();
 
-		const exchange = mockExchange(
+		const exchange = await mockExchange(
 			"binance",
 			{ BTC: 1, ETH: 0 },
 			{ price: 0.1 }

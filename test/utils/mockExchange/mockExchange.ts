@@ -10,15 +10,15 @@ export interface MockOptions {
 	price?: number
 }
 
-const mockExchange = (
+const mockExchange = async (
 	id: ExchangeID,
 	initialBalance: Record<string, number>,
 	options?: MockOptions
-): SimulatedExchangeResult => {
+): Promise<SimulatedExchangeResult> => {
 	const {
 		exchange: simulatedExchange,
 		...storeAndHelpers
-	} = simulateExchange(id, initialBalance);
+	} = await simulateExchange(id, initialBalance);
 
 	const exchange: SimulatedExchange = {
 		...simulatedExchange,

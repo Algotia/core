@@ -1,5 +1,5 @@
-import { Exchange as CCXT_Exchange, Params } from "ccxt";
-import { Order, SimulatedExchangeStore } from "../../../../types";
+import { Exchange as CCXT_Exchange, Order, Params } from "ccxt";
+import { SimulatedExchangeStore } from "../../../../types";
 
 type FetchOrders = CCXT_Exchange["fetchOrders"];
 

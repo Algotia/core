@@ -29,7 +29,7 @@
     }
   },
   "dependencies": {
-    "ccxt": "^1.37.20"
+    "ccxt": "^1.37.68"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^11.0.0",

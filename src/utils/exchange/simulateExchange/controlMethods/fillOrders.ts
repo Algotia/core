@@ -1,5 +1,5 @@
-import { Trade } from "ccxt";
-import { SimulatedExchangeStore, OHLCV, Order } from "../../../../types";
+import { Trade, Order } from "ccxt";
+import { SimulatedExchangeStore, OHLCV } from "../../../../types";
 import { parsePair } from "../../../../utils";
 
 const createFillOrders = (
@@ -10,14 +10,12 @@ const createFillOrders = (
 			for (const order of store.openOrders) {
 				if (order.side === "buy") {
 					if (order.price >= candle.low) {
-						//fill order
 						closeOrder(store, order);
 					}
 				}
 
 				if (order.side === "sell") {
 					if (order.price <= candle.high) {
-						//fill order
 						closeOrder(store, order);
 					}
 				}
@@ -26,6 +24,31 @@ const createFillOrders = (
 			throw err;
 		}
 	};
+};
+
+const closeOrder = (store: SimulatedExchangeStore, order: Order): Order => {
+	const trade = createTrade(store, order);
+
+	const index = store.openOrders.indexOf(order);
+
+	const closedOrder: Order = {
+		...order,
+		status: "closed",
+		filled: order.amount,
+		average: order.price,
+		remaining: 0,
+		lastTradeTimestamp: trade.timestamp,
+		trades: [trade],
+	};
+
+	closedOrder.info = { ...closedOrder };
+
+	store.openOrders.splice(index, 1);
+	store.closedOrders.push(closedOrder);
+
+	updateBalance(store, closedOrder);
+
+	return closedOrder;
 };
 
 const createTrade = (store: SimulatedExchangeStore, order: Order): Trade => {
@@ -54,31 +77,6 @@ const createTrade = (store: SimulatedExchangeStore, order: Order): Trade => {
 		...trade,
 		info: trade,
 	};
-};
-
-const closeOrder = (store: SimulatedExchangeStore, order: Order): Order => {
-	const trade = createTrade(store, order);
-
-	const index = store.openOrders.indexOf(order);
-
-	const closedOrder: Order = {
-		...order,
-		status: "closed",
-		filled: order.amount,
-		average: order.price,
-		remaining: 0,
-		lastTradeTimestamp: trade.timestamp,
-		trades: [trade],
-	};
-
-	closedOrder.info = { ...closedOrder };
-
-	store.openOrders.splice(index, 1);
-	store.closedOrders.push(closedOrder);
-
-	updateBalance(store, closedOrder);
-
-	return closedOrder;
 };
 
 const updateBalance = (store: SimulatedExchangeStore, closedOrder: Order) => {

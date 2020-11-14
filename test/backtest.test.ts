@@ -19,7 +19,7 @@ describe("Backtest", () => {
 			price: 1,
 		};
 
-		const simulatedExchange = mockExchange(
+		const simulatedExchange = await mockExchange(
 			"binance",
 			initialBalance,
 			options

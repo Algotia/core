@@ -1,4 +1,4 @@
-import { Exchange as CCXT_Exchange, Order as CCXT_Order, Balances } from "ccxt";
+import { Exchange as CCXT_Exchange, Order, Balances } from "ccxt";
 
 export const AllowedExchangeIDs = ["binance", "kucoin"] as const;
 
@@ -11,10 +11,6 @@ export interface OHLCV {
 	low: number;
 	close: number;
 	volume: number;
-}
-
-export interface Order extends CCXT_Order {
-	type: "market" | "limit";
 }
 
 interface ExchangeMethods {
@@ -57,6 +53,7 @@ export interface SimulatedExchangeStore {
 export interface SimulatedExchangeResult {
 	fillOrders: (candle: OHLCV) => void;
 	updateContext: (time: number, price: number) => void;
+	flushStore: () => void;
 	store: SimulatedExchangeStore;
 	exchange: SimulatedExchange;
 }

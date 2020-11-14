@@ -13,7 +13,7 @@ const modifications: Record<ExchangeID, ExchangeModifications> = {
 	},
 };
 
-const createExchange = (id: ExchangeID): Exchange => {
+const createExchange = async (id: ExchangeID): Promise<Exchange> => {
 	const ccxt = new CCXT[id]();
 
 	const has: Exchange['has'] = {
@@ -49,6 +49,8 @@ const createExchange = (id: ExchangeID): Exchange => {
 		fetchMyTrades: ccxt.fetchMyTrades.bind(ccxt),
 		ccxt: ccxt,
 	};
+
+	await exchange.ccxt.loadMarkets()
 
 	return exchange;
 };

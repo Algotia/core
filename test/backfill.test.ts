@@ -43,7 +43,7 @@ describe("Backfill", () => {
 		const toMs = new Date("1/2/2020 12:00 AM GMT").getTime();
 
 		// 24 hours apart
-		const { exchange } = mockExchange("binance", {});
+		const { exchange } = await mockExchange("binance", {});
 
 		const candles = await backfill(fromMs, toMs, "ETH/BTC", "1h", exchange);
 
@@ -57,7 +57,7 @@ describe("Backfill", () => {
 		const toMs = new Date("1/4/2020 12:00 AM GMT").getTime();
 
 		// 3600 minutes apart
-		const { exchange } = mockExchange("binance", {});
+		const { exchange } = await mockExchange("binance", {});
 
 		const candles = await backfill(
 			fromMs,

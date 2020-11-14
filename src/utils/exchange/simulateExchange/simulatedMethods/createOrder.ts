@@ -1,4 +1,5 @@
-import { Exchange, SimulatedExchangeStore, Order } from "../../../../types";
+import { Order } from "ccxt";
+import { Exchange, SimulatedExchangeStore } from "../../../../types";
 import { parsePair, uuid } from "../../../../utils";
 
 type CreateOrder = Exchange["createOrder"];
@@ -9,7 +10,7 @@ const createCreateOrder = (
 ): CreateOrder => {
 	return async (
 		symbol: string,
-		type: "market" | "limit",
+		type: string,
 		side: "buy" | "sell",
 		amount: number,
 		price?: number
@@ -18,6 +19,12 @@ const createCreateOrder = (
 			const { currentTime, balance } = store;
 
 			const [base, quote] = parsePair(symbol);
+
+			const { symbols } = exchange.ccxt;
+
+			if (!symbols.includes(symbol)) {
+				throw new Error(`Symbol ${symbol} does not exist on exchange ${exchange.id}`)
+			}
 
 			let cost: number;
 

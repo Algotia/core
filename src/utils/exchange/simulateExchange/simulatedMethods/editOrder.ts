@@ -1,5 +1,5 @@
-import { Exchange as CCXT_Exchange } from "ccxt";
-import { Exchange, Order, SimulatedExchangeStore } from "../../../../types";
+import { Exchange as CCXT_Exchange, Order } from "ccxt";
+import { Exchange, SimulatedExchangeStore } from "../../../../types";
 import { parsePair } from "../../../general";
 
 type EditOrder = CCXT_Exchange["editOrder"];

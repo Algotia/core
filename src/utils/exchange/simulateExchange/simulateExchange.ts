@@ -17,7 +17,7 @@ import {
 	createFetchOrders,
 } from "./simulatedMethods";
 import { createExchange } from "../../../utils";
-import { createFillOrders, createUpdateContext } from "./controlMethods";
+import { createFillOrders, createFlushStore, createUpdateContext } from "./controlMethods";
 
 type InitialBalance = Record<string, number>;
 
@@ -42,11 +42,12 @@ const createInitalBalance = (initialBalance: InitialBalance): Balances => {
 	return balance;
 };
 
-const simulateExchange = (
+const simulateExchange = async (
 	exchangeId: ExchangeID,
 	initialBalance: InitialBalance
-): SimulatedExchangeResult => {
-	const originalExchange = createExchange(exchangeId);
+): Promise<SimulatedExchangeResult> => {
+
+	const originalExchange = await createExchange(exchangeId);
 
 	let store: SimulatedExchangeStore = {
 		currentTime: 0,
@@ -86,12 +87,14 @@ const simulateExchange = (
 
 	const fillOrders = createFillOrders(store);
 	const updateContext = createUpdateContext(store);
+	const flushStore = createFlushStore(store, initialBalance)
 
 	return {
 		exchange,
 		store,
 		updateContext,
 		fillOrders,
+		flushStore
 	};
 };
 
