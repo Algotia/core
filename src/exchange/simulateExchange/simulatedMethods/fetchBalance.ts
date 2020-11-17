@@ -1,5 +1,5 @@
 import { Exchange as CCXT_Exchange } from "ccxt";
-import { SimulatedExchangeStore } from "../../../../types";
+import { SimulatedExchangeStore } from "../../../types";
 
 type FetchBalance = CCXT_Exchange["fetchBalance"];
 

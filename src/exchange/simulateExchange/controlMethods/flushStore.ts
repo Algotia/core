@@ -1,5 +1,5 @@
 import {Balances} from "ccxt";
-import {SimulatedExchangeStore} from "../../../../types";
+import {SimulatedExchangeStore} from "../../../types";
 
 //TODO: THIS METHOD IS A DUP OF simulateExchange:createInitalBalance
 const createInitalBalance = (initialBalance: Record<string, number>): Balances => {

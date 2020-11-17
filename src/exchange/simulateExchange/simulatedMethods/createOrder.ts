@@ -1,6 +1,6 @@
 import { Order } from "ccxt";
-import { Exchange, SimulatedExchangeStore } from "../../../../types";
-import { parsePair, uuid } from "../../../../utils";
+import { Exchange, SimulatedExchangeStore } from "../../../types";
+import { parsePair, uuid } from "../../../utils";
 
 type CreateOrder = Exchange["createOrder"];
 
@@ -18,6 +18,9 @@ const createCreateOrder = (
 		try {
 			const { currentTime, balance } = store;
 
+			const makerFee = exchange.fees["trading"]["maker"];
+			const takerFee = exchange.fees["trading"]["taker"];
+
 			const [base, quote] = parsePair(symbol);
 
 			const { symbols } = exchange.ccxt;
@@ -26,23 +29,28 @@ const createCreateOrder = (
 				throw new Error(`Symbol ${symbol} does not exist on exchange ${exchange.id}`)
 			}
 
-			let cost: number;
+			let costNoFee: number;
 
 			if (type === "limit") {
 				if (!price) {
 					throw new Error("Order type is limit, but no price passed");
 				}
-				cost = amount * price;
+				costNoFee = amount * price;
 			}
 
 			if (type === "market") {
 				price = store.currentPrice;
-				cost = amount * price;
+				costNoFee = amount * price;
 			}
+
+			const feeCost = costNoFee * (type === "market" ? takerFee : makerFee)
+			const cost = side === "buy" ? costNoFee + feeCost : costNoFee - feeCost
 
 			if (side === "buy") {
 				if (cost > balance[quote]["free"]) {
-					throw new Error("Insufficient balance");
+					throw new Error(
+						`Insufficient balance for order costing ${cost} ${symbol}`
+					);
 				}
 			} else if ((side === "sell")) {
 				if (cost > balance[base]["free"]) {
@@ -50,15 +58,13 @@ const createCreateOrder = (
 				}
 			}
 
-			const makerFee = exchange.fees["trading"]["maker"];
-			const takerFee = exchange.fees["trading"]["taker"];
-
 			const order: Order = {
 				symbol,
 				type,
 				side,
 				amount,
 				price,
+				cost,
 				id: uuid(),
 				datetime: new Date(currentTime).toISOString(),
 				timestamp: currentTime,
@@ -67,16 +73,13 @@ const createCreateOrder = (
 				average: null,
 				filled: 0,
 				remaining: amount,
-				cost:
-					cost +
-					(type === "market" ? takerFee * cost : makerFee * cost),
 				trades: [],
 				info: {},
 				fee: {
 					currency: quote,
 					type: type === "market" ? "taker" : "maker",
 					rate: type === "market" ? takerFee : makerFee,
-					cost: type === "market" ? takerFee * cost : makerFee * cost,
+					cost: feeCost,
 				},
 			};
 
@@ -86,8 +89,8 @@ const createCreateOrder = (
 			if (side === "buy") {
 				store.balance = Object.assign(store.balance, {
 					[quote]: {
-						free: oldQuoteBalance.free - (cost + order.fee.cost),
-						used: oldQuoteBalance.used + (cost + order.fee.cost),
+						free: oldQuoteBalance.free - cost,
+						used: oldQuoteBalance.used + cost,
 						total: oldQuoteBalance.total,
 					},
 				});
@@ -103,8 +106,8 @@ const createCreateOrder = (
 						total: oldBaseBalance.total,
 					},
 					[quote]: {
-						free: oldQuoteBalance.free - order.fee.cost,
-						used: oldQuoteBalance.used + order.fee.cost,
+						free: oldQuoteBalance.free,
+						used: oldQuoteBalance.used,
 						total: oldQuoteBalance.total,
 					},
 				});

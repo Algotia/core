@@ -4,7 +4,7 @@ import {
 	SimulatedExchangeStore,
 	SimulatedExchangeResult,
 	SimulatedExchange,
-} from "../../../types/";
+} from "../../types/";
 import {
 	createCancelOrder,
 	createCreateOrder,
@@ -16,7 +16,7 @@ import {
 	createFetchOrder,
 	createFetchOrders,
 } from "./simulatedMethods";
-import { createExchange } from "../../../utils";
+import { createExchange } from "../../exchange"
 import { createFillOrders, createFlushStore, createUpdateContext } from "./controlMethods";
 
 type InitialBalance = Record<string, number>;

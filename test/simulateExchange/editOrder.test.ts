@@ -1,5 +1,5 @@
 import { AllowedExchangeIDs } from "../../src/types";
-import { simulateExchange } from "../../src/utils";
+import { simulateExchange } from "../../src/exchange";
 
 describe("simulateExchange", () => {
 	test("Edit order works as expected", async () => {
@@ -49,7 +49,6 @@ describe("simulateExchange", () => {
 
 				expect(exchange.store.balance.ETH.free).toStrictEqual(0.5)
 				expect(exchange.store.balance.BTC.used).toStrictEqual(0)
-
 			}
 		} catch (err) {
 			throw err;

@@ -1,4 +1,4 @@
-import { simulateExchange } from "../../src/utils"
+import { simulateExchange } from "../../src/exchange"
 
 describe("Control methods work properly", () => {
 

@@ -1,6 +1,6 @@
 import { Exchange as CCXT_Exchange, Order, Balances } from "ccxt";
 
-export const AllowedExchangeIDs = ["binance", "kucoin"] as const;
+export const AllowedExchangeIDs = ["binance", "kucoin", "bitfinex"] as const;
 
 export type ExchangeID = typeof AllowedExchangeIDs[number];
 

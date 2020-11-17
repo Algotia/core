@@ -1,10 +1,13 @@
 import CCXT from "ccxt";
-import { Exchange, ExchangeID } from "../../../types";
+import { Exchange, ExchangeID } from "../../types";
 
 interface ExchangeModifications {
 	OHLCVRecordLimit: number;
 }
 const modifications: Record<ExchangeID, ExchangeModifications> = {
+	bitfinex: {
+		OHLCVRecordLimit: 1000
+	},
 	binance: {
 		OHLCVRecordLimit: 1000,
 	},

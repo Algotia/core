@@ -3,7 +3,8 @@ import {
 	SimulatedExchangeStore,
 	Strategy,
 } from "../types";
-import { getLiveCandle, parsePeriod, roundTime, getDefaultOptions } from "../utils";
+import { parsePeriod, roundTime, getDefaultOptions } from "../utils";
+import { getLiveCandle } from "../exchange"
 import { EventEmitter } from "events"
 
 

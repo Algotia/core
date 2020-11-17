@@ -3,7 +3,7 @@ import {
 	SimulatedExchange,
 	SimulatedExchangeResult,
 } from "../../../src/types";
-import { simulateExchange } from "../../../src/utils";
+import { simulateExchange } from "../../../src/exchange";
 import { createFetchOHLCV } from "./methods";
 
 export interface MockOptions {

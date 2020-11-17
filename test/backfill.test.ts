@@ -1,72 +1,88 @@
-import { backfill, parsePeriod, roundTime } from "../src/utils";
-import {mockExchange} from "./utils";
+import { AllowedExchangeIDs, SimulatedExchangeResult } from "../src/types";
+import { parsePeriod } from "../src/utils";
+import { backfill } from "../src/exchange"
+import { mockExchange } from "./utils";
 
+const checkCandlesAreContinuous = (
+	candles: any[],
+	period: string,
+	expectedSince: number
+) => {
+	const { periodMs } = parsePeriod(period);
 
-describe("Backfill", () => {
-	const checkCandles = (
-		candles: any[],
-		period: string,
-		expectedLength: number,
-		expectedSince: number
-	) => {
-		const { periodMs } = parsePeriod(period);
+	for (let i = 0; i < candles.length; i++) {
+		const thisCandle = candles[i];
 
-		for (let i = 0; i < candles.length; i++) {
-			const thisCandle = candles[i];
-
-			expect(thisCandle).toHaveProperty("timestamp");
-			expect(thisCandle).toHaveProperty("open");
-			expect(thisCandle).toHaveProperty("high");
-			expect(thisCandle).toHaveProperty("low");
-			expect(thisCandle).toHaveProperty("close");
-			expect(thisCandle).toHaveProperty("volume");
-
-			if (i === 0) {
-				expect(thisCandle.timestamp).toStrictEqual(expectedSince)
-				continue;
-			}
-			const lastCandle = candles[i - 1];
-
-			expect(lastCandle.timestamp).toStrictEqual(
-				thisCandle.timestamp - periodMs
-			);
+		if (i === 0) {
+			expect(thisCandle.timestamp).toStrictEqual(expectedSince);
+			continue;
 		}
 
-		expect(candles.length).toStrictEqual(expectedLength);
-	};
+		const lastCandle = candles[i - 1];
+
+		expect(lastCandle.timestamp).toStrictEqual(
+			thisCandle.timestamp - periodMs
+		);
+	}
+};
+
+describe("Backfill", () => {
+	let exchanges: SimulatedExchangeResult[] = [];
+	beforeAll(async () => {
+		for (const exchangeId of AllowedExchangeIDs) {
+			const exchange = await mockExchange(exchangeId, {}, { price: 1 });
+			exchanges.push(exchange);
+		}
+	});
 
 	test("Short backfill works as expected (no pagination)", async () => {
-		//  1/1/2020 12:00 AM (GMT)
-		const fromMs = new Date("1/1/2020 12:00 AM GMT").getTime();
+		for (const { exchange } of exchanges) {
+			try {
+				//  1/1/2020 12:00 AM (GMT)
+				const fromMs = new Date("1/1/2020 12:00 AM GMT").getTime();
 
-		//  1/2/2020 12:00 AM (GMT)
-		const toMs = new Date("1/2/2020 12:00 AM GMT").getTime();
+				//  1/2/2020 12:00 AM (GMT)
+				const toMs = new Date("1/2/2020 12:00 AM GMT").getTime();
 
-		// 24 hours apart
-		const { exchange } = await mockExchange("binance", {});
+				const candles = await backfill(
+					fromMs,
+					toMs,
+					"ETH/BTC",
+					"1h",
+					exchange
+				);
 
-		const candles = await backfill(fromMs, toMs, "ETH/BTC", "1h", exchange);
+				checkCandlesAreContinuous(candles, "1h", fromMs);
 
-		checkCandles(candles, "1h", 24, fromMs);
+			} catch (err) {
+				throw err;
+			}
+		}
 	});
 
 	test("Long backfill works as expected (pagination)", async () => {
+		for (const { exchange } of exchanges) {
+			try {
+				const fromMs = new Date("1/1/2020 12:00 PM GMT").getTime();
 
-		const fromMs = new Date("1/1/2020 12:00 PM GMT").getTime();
+				const toMs = new Date("1/4/2020 12:00 AM GMT").getTime();
 
-		const toMs = new Date("1/4/2020 12:00 AM GMT").getTime();
+				// 3600 minutes apart
 
-		// 3600 minutes apart
-		const { exchange } = await mockExchange("binance", {});
+				const candles = await backfill(
+					fromMs,
+					toMs,
+					"ETH/BTC",
+					"1m",
+					exchange
+				);
 
-		const candles = await backfill(
-			fromMs,
-			toMs,
-			"ETH/BTC",
-			"1m",
-			exchange
-		);
+				expect(candles.length).toStrictEqual(3600)
 
-		checkCandles(candles, "1m", 3600, fromMs);
+				checkCandlesAreContinuous(candles, "1m", fromMs);
+			} catch (err) {
+				throw err;
+			}
+		}
 	}, 100000);
 });

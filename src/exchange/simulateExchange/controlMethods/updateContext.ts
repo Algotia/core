@@ -1,4 +1,4 @@
-import {SimulatedExchangeStore} from "../../../../types";
+import {SimulatedExchangeStore} from "../../../types";
 
 const createUpdateContext = (store: SimulatedExchangeStore) => {
 	return (time: number, price: number) => {

@@ -1,5 +1,5 @@
 import { backtest } from "../src/methods/";
-import { backfill } from "../src/utils";
+import { backfill } from "../src/exchange";
 import { mockExchange } from "./utils";
 
 describe("Backtest", () => {

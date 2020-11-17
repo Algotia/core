@@ -1,6 +1,6 @@
 import { Exchange as CCXT_Exchange, Order } from "ccxt";
-import { Exchange, SimulatedExchangeStore } from "../../../../types";
-import { parsePair } from "../../../general";
+import { Exchange, SimulatedExchangeStore } from "../../../types";
+import { parsePair } from "../../../utils";
 
 type EditOrder = CCXT_Exchange["editOrder"];
 
@@ -94,12 +94,6 @@ const createEditOrder = (
 					editedOrder.cost >
 				oldQuoteBalance.free - (editedOrder.cost - foundOrder.cost)
 				) {
-					console.log(editedOrder.cost);
-
-					console.log(
-						oldQuoteBalance.free -
-							(editedOrder.cost - foundOrder.cost)
-					);
 					throw new Error(
 						`Error editing order: Insufficient balance - order not edited`
 					);

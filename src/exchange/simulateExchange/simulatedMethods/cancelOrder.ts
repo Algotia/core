@@ -1,6 +1,6 @@
 import { Exchange as CCXT_Exchange, Params, Order } from "ccxt";
-import { SimulatedExchangeStore } from "../../../../types";
-import { parsePair } from "../../../general";
+import { SimulatedExchangeStore } from "../../../types";
+import { parsePair } from "../../../utils";
 
 type CancelOrder = CCXT_Exchange["cancelOrder"];
 
