@@ -1,9 +1,12 @@
 import CCXT from "ccxt";
 import { Exchange, ExchangeID } from "../../types";
 
+
+// Add custom properties to exchange
 interface ExchangeModifications {
 	OHLCVRecordLimit: number;
 }
+
 const modifications: Record<ExchangeID, ExchangeModifications> = {
 	bitfinex: {
 		OHLCVRecordLimit: 1000
@@ -16,6 +19,7 @@ const modifications: Record<ExchangeID, ExchangeModifications> = {
 	},
 };
 
+/** Create an exchange instance. */
 const createExchange = async (id: ExchangeID): Promise<Exchange> => {
 	const ccxt = new CCXT[id]();
 
@@ -54,7 +58,6 @@ const createExchange = async (id: ExchangeID): Promise<Exchange> => {
 	};
 
 	await exchange.ccxt.loadMarkets()
-	console.log("HI")
 
 	return exchange;
 };

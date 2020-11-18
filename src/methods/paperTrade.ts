@@ -4,23 +4,20 @@ import {
 	Strategy,
 } from "../types";
 import { parsePeriod, roundTime, getDefaultOptions } from "../utils";
-import { getLiveCandle } from "../exchange"
-import { EventEmitter } from "events"
+import { getLiveCandle } from "../exchange";
+import { EventEmitter } from "events";
 
-
-/** Paper trading is similar to live trading, but uses a simulated
-* exchange instead of a real one.
-*/
+/** Paper trading is like live trading, but uses a simulated
+* exchange instead of a real one. */
 const paperTrade = async (
 	simulatedExchange: SimulatedExchangeResult,
 	period: string,
 	pair: string,
-	strategy: Strategy,
+	strategy: Strategy
 ): Promise<{ start: () => void; stop: () => SimulatedExchangeStore }> => {
 	try {
-
 		const { pollingPeriodTable } = getDefaultOptions();
-		const pollingPeriod = pollingPeriodTable[period]
+		const pollingPeriod = pollingPeriodTable[period];
 
 		const { periodMs: strategyPeriodMs } = parsePeriod(period);
 		const { periodMs: pollingPeriodMs } = parsePeriod(pollingPeriod);
@@ -28,46 +25,59 @@ const paperTrade = async (
 		let timeouts = [];
 		let intervals = [];
 
-		const pollExchange = async (exchange: SimulatedExchangeResult) => {
+		// Get fresh data from exchange and try to fill any open orders
+		const pollExchange = async ({
+			exchange,
+			updateContext,
+			fillOrders,
+		}: SimulatedExchangeResult) => {
 			try {
 				const candle = await getLiveCandle(
 					period,
 					pair,
 					Date.now(),
-					exchange.exchange
+					exchange
 				);
 
-				exchange.updateContext(candle.timestamp, candle.close);
-
-				exchange.fillOrders(candle);
+				updateContext(candle.timestamp, candle.close);
+				fillOrders(candle);
 			} catch (err) {
 				throw err;
 			}
 		};
 
-		const executeStrategy = async (exchange: SimulatedExchangeResult) => {
+		// Call strategy, immediately try to fill any orders, and schedule polling.
+		// Polling begins 1 unit of the defined polling period after the strategy is called,
+		// it will stop 1 unit before the next strategy call.
+		const executeStrategy = async (simulatedExchange: SimulatedExchangeResult) => {
 			try {
+				const {
+					exchange,
+					store,
+					updateContext,
+					fillOrders,
+				} = simulatedExchange;
 				const candle = await getLiveCandle(
 					period,
 					pair,
 					Date.now(),
-					exchange.exchange
+					exchange
 				);
 
-				exchange.updateContext(candle.timestamp, candle.close);
+				updateContext(candle.timestamp, candle.close);
 
 				try {
-					await strategy(exchange.exchange, candle);
+					await strategy(exchange, candle);
 				} catch (err) {
-					exchange.store.errors.push(err.message);
+					store.errors.push(err.message);
 				}
 
-				exchange.fillOrders(candle);
+				fillOrders(candle);
 
 				const pollingInterval = setInterval(
 					pollExchange,
 					pollingPeriodMs,
-					exchange
+					simulatedExchange
 				);
 
 				intervals.push(pollingInterval);
@@ -91,17 +101,18 @@ const paperTrade = async (
 				roundTime(now, strategyPeriodMs, "ceil").getTime() -
 				now.getTime();
 
+			// Start calling strategy on the next strategy period.
 			const startStrategyTimeout = setTimeout(async () => {
+				// Call strategy every period
 				const strategyInterval = setInterval(
 					executeStrategy,
 					strategyPeriodMs,
 					simulatedExchange
 				);
-
 				intervals.push(strategyInterval);
 
+				// Call strategy once on the first strategy period.
 				await executeStrategy(simulatedExchange);
-
 			}, msUntilNextCandle);
 
 			timeouts.push(startStrategyTimeout);

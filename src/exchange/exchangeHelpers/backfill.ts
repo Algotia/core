@@ -1,6 +1,7 @@
 import { Exchange, OHLCV } from "../../types";
 import { parsePeriod, reshapeOHLCV } from "../../utils/";
 
+/** If no candles were returned (e.g.: downtime, no volume), fill period with last known candle prices, with timestamp value incremented to create continuous time series */
 const fillEmptyCandles = (candles: OHLCV[], periodMs: number): OHLCV[] => {
 	if (!candles) return [];
 
@@ -8,6 +9,7 @@ const fillEmptyCandles = (candles: OHLCV[], periodMs: number): OHLCV[] => {
 
 	let timeCursor = candles[0].timestamp;
 
+	// Recursively add candles for empty periods
 	const addCandle = (candle1: OHLCV, candle2: OHLCV) => {
 		fullCandleSet.push(candle1);
 		timeCursor += periodMs;
@@ -36,6 +38,7 @@ const fillEmptyCandles = (candles: OHLCV[], periodMs: number): OHLCV[] => {
 	return fullCandleSet;
 };
 
+/** This helper function is a wrapper around the CCXT method fetchOHLCV. It handles pagination and filling periods where no candles were returned with dummy candles. */
 const backfill = async (
 	from: number,
 	to: number,
@@ -53,6 +56,7 @@ const backfill = async (
 
 		while (recordsToFetch > 0) {
 			if (page) {
+				// Sleep to avoid getting rate limited
 				await new Promise((resolve) =>
 					setTimeout(resolve, exchange.rateLimit)
 				);
@@ -63,6 +67,7 @@ const backfill = async (
 					? exchange.OHLCVRecordLimit
 					: recordsToFetch;
 
+			// Fetch records from exchange
 			const rawOHLCV = await exchange.fetchOHLCV(
 				pair,
 				period,
@@ -76,8 +81,11 @@ const backfill = async (
 
 			recordsToFetch -= completeOHLCV.length;
 
-			timeCursor =
-				completeOHLCV[completeOHLCV.length - 1].timestamp + periodMs;
+			const lastTimestamp =
+				completeOHLCV[completeOHLCV.length - 1].timestamp;
+
+			timeCursor = lastTimestamp + periodMs;
+
 			page++;
 
 			candles.push(...completeOHLCV);

@@ -1,6 +1,8 @@
 import { Exchange, OHLCV } from "../../types";
 import { parsePeriod, reshapeOHLCV, roundTime } from "../../utils";
 
+/** Get the last full live candle from the exchange. 
+ */
 const getLiveCandle = async (
 	period: string,
 	pair: string,
