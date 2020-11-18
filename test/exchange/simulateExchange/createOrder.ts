@@ -1,29 +1,10 @@
-import { AllowedExchangeIDs, SimulatedExchangeResult } from "../../src/types";
-import { simulateExchange } from "../../src/exchange";
+import { SimulatedExchangeResult } from "../../../src/types";
 
-describe("simulateExchange", () => {
-	const initialBalance = {
-		ETH: 10,
-		BTC: 10,
-	};
-
-	let exchanges: SimulatedExchangeResult[] = [];
-
-	beforeAll(async () => {
-		for (const exchangeID of AllowedExchangeIDs) {
-			const exchange = await simulateExchange(exchangeID, initialBalance);
-			exchanges.push(exchange);
-		}
-	});
-
-	afterEach((done) => {
-		for (const exchange of exchanges) {
-			exchange.flushStore();
-		}
-		done();
-	});
-
-test("Market buy order fills after 1 candle", async () => {
+const createOrderTests = (
+	exchanges: SimulatedExchangeResult[],
+	initialBalance: Record<string, number>
+) => {
+	test("Market buy order fills after 1 candle", async () => {
 		try {
 			for (const singleExchange of exchanges) {
 				const {
@@ -59,7 +40,7 @@ test("Market buy order fills after 1 candle", async () => {
 					volume: 10,
 				});
 
-				expect(store.closedOrders[0].trades.length).toStrictEqual(1)
+				expect(store.closedOrders[0].trades.length).toStrictEqual(1);
 
 				expect(store.openOrders.length).toStrictEqual(0);
 				expect(store.closedOrders.length).toStrictEqual(1);
@@ -117,7 +98,7 @@ test("Market buy order fills after 1 candle", async () => {
 				expect(store.openOrders.length).toStrictEqual(0);
 				expect(store.closedOrders.length).toStrictEqual(1);
 
-				expect(store.closedOrders[0].trades.length).toStrictEqual(1)
+				expect(store.closedOrders[0].trades.length).toStrictEqual(1);
 
 				expect(store.balance["ETH"].free).toStrictEqual(
 					initialBalance.ETH - order.amount
@@ -131,9 +112,9 @@ test("Market buy order fills after 1 candle", async () => {
 				expect(store.balance["BTC"].used).toStrictEqual(0);
 			}
 		} catch (err) {
-			throw err
+			throw err;
 		}
-	})
+	});
 
 	test("Limit order buy fills on second candle", async () => {
 		try {
@@ -227,5 +208,6 @@ test("Market buy order fills after 1 candle", async () => {
 			throw err;
 		}
 	});
+};
 
-});
+export default createOrderTests

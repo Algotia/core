@@ -54,6 +54,7 @@ const createExchange = async (id: ExchangeID): Promise<Exchange> => {
 	};
 
 	await exchange.ccxt.loadMarkets()
+	console.log("HI")
 
 	return exchange;
 };

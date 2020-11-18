@@ -1,7 +1,8 @@
-import { AllowedExchangeIDs, SimulatedExchangeResult } from "../src/types";
-import { parsePeriod } from "../src/utils";
-import { backfill } from "../src/exchange"
-import { mockExchange } from "./utils";
+import {
+	SimulatedExchangeResult,
+} from "../../../src/types";
+import { parsePeriod } from "../../../src/utils";
+import { backfill } from "../../../src/exchange";
 
 const checkCandlesAreContinuous = (
 	candles: any[],
@@ -26,15 +27,7 @@ const checkCandlesAreContinuous = (
 	}
 };
 
-describe("Backfill", () => {
-	let exchanges: SimulatedExchangeResult[] = [];
-	beforeAll(async () => {
-		for (const exchangeId of AllowedExchangeIDs) {
-			const exchange = await mockExchange(exchangeId, {}, { price: 1 });
-			exchanges.push(exchange);
-		}
-	});
-
+const backfillTests = (exchanges: SimulatedExchangeResult[]) => {
 	test("Short backfill works as expected (no pagination)", async () => {
 		for (const { exchange } of exchanges) {
 			try {
@@ -53,7 +46,6 @@ describe("Backfill", () => {
 				);
 
 				checkCandlesAreContinuous(candles, "1h", fromMs);
-
 			} catch (err) {
 				throw err;
 			}
@@ -77,7 +69,7 @@ describe("Backfill", () => {
 					exchange
 				);
 
-				expect(candles.length).toStrictEqual(3600)
+				expect(candles.length).toStrictEqual(3600);
 
 				checkCandlesAreContinuous(candles, "1m", fromMs);
 			} catch (err) {
@@ -85,4 +77,7 @@ describe("Backfill", () => {
 			}
 		}
 	}, 100000);
-});
+};
+
+export default backfillTests;
+

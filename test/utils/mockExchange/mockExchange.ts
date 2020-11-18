@@ -6,14 +6,10 @@ import {
 import { simulateExchange } from "../../../src/exchange";
 import { createFetchOHLCV } from "./methods";
 
-export interface MockOptions {
-	price?: number
-}
 
 const mockExchange = async (
 	id: ExchangeID,
 	initialBalance: Record<string, number>,
-	options?: MockOptions
 ): Promise<SimulatedExchangeResult> => {
 	const {
 		exchange: simulatedExchange,
@@ -27,7 +23,7 @@ const mockExchange = async (
 			...simulatedExchange.has,
 			fetchOHLCV: "simulated",
 		},
-		fetchOHLCV: createFetchOHLCV(options),
+		fetchOHLCV: createFetchOHLCV(),
 	};
 
 	return {

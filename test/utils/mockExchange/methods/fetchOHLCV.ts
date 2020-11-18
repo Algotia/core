@@ -1,10 +1,9 @@
 import { parsePeriod, roundTime } from "../../../../src/utils";
 import { Exchange as CCXT_Exchange, OHLCV } from "ccxt";
-import { MockOptions } from "../mockExchange";
 
 type FetchOHLCV = CCXT_Exchange["fetchOHLCV"];
 
-const createFetchOHLCV = (options?: MockOptions): FetchOHLCV => {
+const createFetchOHLCV = (): FetchOHLCV => {
 	return async (
 		symbol: string,
 		timeframe: string,
@@ -22,16 +21,14 @@ const createFetchOHLCV = (options?: MockOptions): FetchOHLCV => {
 			let candles: OHLCV[] = [];
 			let timeCursor = nearestCandleToSince;
 
-			const price: number =
-				options && options.price ? options.price : Math.random();
 			for (let i = 0; i < limit; i++) {
 				const candle: OHLCV = [
 					timeCursor,
-					price,
-					price,
-					price,
-					price,
-					price,
+					1,
+					1,
+					1,
+					1,
+					1,
 				];
 				candles.push(candle);
 				timeCursor += periodMs;
