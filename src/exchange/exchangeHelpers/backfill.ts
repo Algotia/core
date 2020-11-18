@@ -46,55 +46,51 @@ const backfill = async (
 	period: string,
 	exchange: Exchange
 ): Promise<OHLCV[]> => {
-	try {
-		const { periodMs } = parsePeriod(period);
+	const { periodMs } = parsePeriod(period);
 
-		let recordsToFetch = Math.ceil((to - from) / periodMs);
-		let candles: OHLCV[] = [];
-		let timeCursor = from;
-		let page = 0;
+	let recordsToFetch = Math.ceil((to - from) / periodMs);
+	let candles: OHLCV[] = [];
+	let timeCursor = from;
+	let page = 0;
 
-		while (recordsToFetch > 0) {
-			if (page) {
-				// Sleep to avoid getting rate limited
-				await new Promise((resolve) =>
-					setTimeout(resolve, exchange.rateLimit)
-				);
-			}
-
-			const limit =
-				recordsToFetch > exchange.OHLCVRecordLimit
-					? exchange.OHLCVRecordLimit
-					: recordsToFetch;
-
-			// Fetch records from exchange
-			const rawOHLCV = await exchange.fetchOHLCV(
-				pair,
-				period,
-				timeCursor,
-				limit
-			);
-
-			const ohlcv = reshapeOHLCV(rawOHLCV);
-
-			const completeOHLCV = fillEmptyCandles(ohlcv, periodMs);
-
-			recordsToFetch -= completeOHLCV.length;
-
-			const lastTimestamp =
-				completeOHLCV[completeOHLCV.length - 1].timestamp;
-
-			timeCursor = lastTimestamp + periodMs;
-
-			page++;
-
-			candles.push(...completeOHLCV);
+	while (recordsToFetch > 0) {
+		if (page) {
+			// Sleep to avoid getting rate limited
+			await new Promise((resolve) =>
+							  setTimeout(resolve, exchange.rateLimit)
+							 );
 		}
 
-		return candles;
-	} catch (err) {
-		throw err;
+		const limit =
+			recordsToFetch > exchange.OHLCVRecordLimit
+				? exchange.OHLCVRecordLimit
+				: recordsToFetch;
+
+				// Fetch records from exchange
+				const rawOHLCV = await exchange.fetchOHLCV(
+					pair,
+					period,
+					timeCursor,
+					limit
+				);
+
+				const ohlcv = reshapeOHLCV(rawOHLCV);
+
+				const completeOHLCV = fillEmptyCandles(ohlcv, periodMs);
+
+				recordsToFetch -= completeOHLCV.length;
+
+				const lastTimestamp =
+					completeOHLCV[completeOHLCV.length - 1].timestamp;
+
+				timeCursor = lastTimestamp + periodMs;
+
+				page++;
+
+				candles.push(...completeOHLCV);
 	}
+
+	return candles;
 };
 
 export default backfill;

@@ -189,20 +189,18 @@ const createOrderTests = (
 	test("Create order throws on non-existent pair", async () => {
 		try {
 			for (const singleExchange of exchanges) {
-				const { updateContext, exchange, store } = singleExchange;
+				const { updateContext, exchange } = singleExchange;
 
 				updateContext(1000, 10);
 
-				const order = await exchange.createOrder(
+				const order = exchange.createOrder(
 					"DOESNT/EXIST",
 					"market",
 					"buy",
 					1
 				);
 
-				expect(order).toStrictEqual(undefined);
-
-				expect(store.errors.length).toStrictEqual(1);
+				expect(order).rejects.toThrow()
 			}
 		} catch (err) {
 			throw err;

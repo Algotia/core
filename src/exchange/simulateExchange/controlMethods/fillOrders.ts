@@ -6,27 +6,23 @@ const createFillOrders = (
 	store: SimulatedExchangeStore
 ): ((candle: OHLCV) => void) => {
 	return (candle: OHLCV) => {
-		try {
-			for (const order of store.openOrders) {
-				if (order.type === "market") {
-					closeOrder(store, order)
-				} else if (order.type === "limit") {
-					if (order.side === "buy") {
-						if (order.price >= candle.low) {
-							closeOrder(store, order);
-						}
+		for (const order of store.openOrders) {
+			if (order.type === "market") {
+				closeOrder(store, order)
+			} else if (order.type === "limit") {
+				if (order.side === "buy") {
+					if (order.price >= candle.low) {
+						closeOrder(store, order);
 					}
-
-					if (order.side === "sell") {
-						if (order.price <= candle.high) {
-							closeOrder(store, order);
-						}
-					}
-
 				}
+
+				if (order.side === "sell") {
+					if (order.price <= candle.high) {
+						closeOrder(store, order);
+					}
+				}
+
 			}
-		} catch (err) {
-			throw err;
 		}
 	};
 };
@@ -35,7 +31,6 @@ const closeOrder = (
 	store: SimulatedExchangeStore,
 	order: Order,
 ): Order => {
-
 
 	const index = store.openOrders.indexOf(order);
 
