@@ -6,7 +6,7 @@ const paperTradeTests = (
 	exchanges: SimulatedExchangeResult[],
 	initialBalance: Record<string, number>
 ) => {
-	test("paper", async () => {
+	test("Paper trade market order buy", async () => {
 		for (const singleExchange of exchanges) {
 			const { exchange } = singleExchange;
 

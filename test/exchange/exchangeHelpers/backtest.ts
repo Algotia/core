@@ -54,13 +54,6 @@ const backtestTests = (
 				0
 			);
 
-			const takerFee = exchange.fees["trading"].maker;
-
-			/* expect(totalCost).toBeCloseTo( */
-			/* 	(options.price + takerFee * options.price) * */
-			/* 		result.closedOrders.length */
-			/* ); */
-
 			expect(result.balance.BTC.free).toBeCloseTo(
 				initialBalance.BTC - totalCost
 			);

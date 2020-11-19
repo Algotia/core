@@ -1,3 +1,4 @@
+import {InsufficientFunds} from "ccxt";
 import { SimulatedExchangeResult } from "../../../src/types";
 
 const createOrderTests = (
@@ -5,55 +6,54 @@ const createOrderTests = (
 	initialBalance: Record<string, number>
 ) => {
 	test("Market buy order fills after 1 candle", async () => {
-		try {
-			for (const singleExchange of exchanges) {
-				const {
-					exchange,
-					store,
-					updateContext,
-					fillOrders,
-				} = singleExchange;
+		try { for (const singleExchange of exchanges) {
+			const {
+				exchange,
+				store,
+				updateContext,
+				fillOrders,
+			} = singleExchange;
 
-				updateContext(1000, 9);
+			updateContext(1000, 9);
 
-				const order = await exchange.createOrder(
-					"ETH/BTC",
-					"market",
-					"buy",
-					1
-				);
+			const order = await exchange.createOrder(
+				"ETH/BTC",
+				"market",
+				"buy",
+				1
+			);
 
-				expect(store.closedOrders.length).toStrictEqual(0);
-				expect(store.openOrders.length).toStrictEqual(1);
+			expect(store.closedOrders.length).toStrictEqual(0);
+			expect(store.openOrders.length).toStrictEqual(1);
 
-				expect(store.balance["BTC"].free).toStrictEqual(
-					initialBalance.BTC - order.cost
-				);
-				expect(store.balance["BTC"].used).toStrictEqual(order.cost);
+			expect(store.balance["BTC"].free).toStrictEqual(
+				initialBalance.BTC - order.cost
+			);
+			expect(store.balance["BTC"].used).toStrictEqual(order.cost);
 
-				fillOrders({
-					timestamp: 1000,
-					open: 10,
-					high: 10,
-					low: 10,
-					close: 10,
-					volume: 10,
-				});
+			fillOrders({
+				timestamp: 1000,
+				open: 10,
+				high: 10,
+				low: 10,
+				close: 10,
+				volume: 10,
+			});
 
-				expect(store.closedOrders[0].trades.length).toStrictEqual(1);
+			expect(store.closedOrders[0].trades.length).toStrictEqual(1);
 
-				expect(store.openOrders.length).toStrictEqual(0);
-				expect(store.closedOrders.length).toStrictEqual(1);
-				expect(store.balance["BTC"].free).toStrictEqual(
-					initialBalance.BTC - order.cost
-				);
+			expect(store.openOrders.length).toStrictEqual(0);
+			expect(store.closedOrders.length).toStrictEqual(1);
+			expect(store.balance["BTC"].free).toStrictEqual(
+				initialBalance.BTC - order.cost
+			);
 
-				expect(store.balance["BTC"].used).toStrictEqual(0);
-				expect(store.balance["ETH"].free).toStrictEqual(
-					initialBalance.ETH + order.amount
-				);
-				expect(store.balance["ETH"].used).toStrictEqual(0);
-			}
+			expect(store.balance["BTC"].used).toStrictEqual(0);
+			expect(store.balance["ETH"].free).toStrictEqual(
+				initialBalance.ETH + order.amount
+			);
+			expect(store.balance["ETH"].used).toStrictEqual(0);
+		}
 		} catch (err) {
 			throw err;
 		}
@@ -186,26 +186,47 @@ const createOrderTests = (
 		}
 	});
 
-	test("Create order throws on non-existent pair", async () => {
-		try {
+	describe("Error handling", () => {
+
+		test("Throws when order costs more than available fund", async () => {
 			for (const singleExchange of exchanges) {
 				const { updateContext, exchange } = singleExchange;
 
-				updateContext(1000, 10);
+				updateContext(1000, 100);
 
 				const order = exchange.createOrder(
-					"DOESNT/EXIST",
+					"ETH/BTC",
 					"market",
 					"buy",
-					1
-				);
+					2
+				)
 
-				expect(order).rejects.toThrow()
+				expect(order).rejects.toThrow(InsufficientFunds)
+
 			}
-		} catch (err) {
-			throw err;
-		}
-	});
+		})
+
+		test("Throws on non-existent pair", async () => {
+			try {
+				for (const singleExchange of exchanges) {
+					const { updateContext, exchange } = singleExchange;
+
+					updateContext(1000, 10);
+
+					const order = exchange.createOrder(
+						"DOESNT/EXIST",
+						"market",
+						"buy",
+						1
+					);
+
+					expect(order).rejects.toThrow()
+				}
+			} catch (err) {
+				throw err;
+			}
+		});
+	})
 };
 
 export default createOrderTests

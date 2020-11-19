@@ -1,4 +1,4 @@
-import { Order } from "ccxt";
+import { InsufficientFunds, Order } from "ccxt";
 import { Exchange, SimulatedExchangeStore } from "../../../types";
 import { parsePair, uuid } from "../../../utils";
 
@@ -47,13 +47,15 @@ const createCreateOrder = (
 
 		if (side === "buy") {
 			if (cost > balance[quote]["free"]) {
-				throw new Error(
+				throw new InsufficientFunds(
 					`Insufficient balance for order costing ${cost} ${symbol}`
 				);
 			}
 		} else if ((side === "sell")) {
 			if (cost > balance[base]["free"]) {
-				throw new Error("Insufficient balance");
+				throw new InsufficientFunds(
+					`Insufficient balance for order costing ${cost} ${symbol}`
+				);
 			}
 		}
 
