@@ -30,33 +30,25 @@ const paperTrade = async (
 		updateContext,
 		fillOrders,
 	}: SimulatedExchangeResult) => {
-		const candle = await getLiveCandle(
-			period,
-			pair,
-			Date.now(),
-			exchange
-		);
+		const candle = await getLiveCandle(period, pair, exchange);
 
 		updateContext(candle.timestamp, candle.close);
 		fillOrders(candle);
 	};
 
 	// Call strategy, immediately try to fill any orders, and schedule polling.
-	// Polling begins 1 unit of the defined polling period after the strategy is called,
-	// it will stop 1 unit before the next strategy call.
-	const executeStrategy = async (simulatedExchange: SimulatedExchangeResult) => {
+	// Polling begins after 1 unit of the defined polling period (e.g. 1m, 4h, 1d)
+	// will stop 1 unit before the next strategy call.
+	const executeStrategy = async (
+		simulatedExchange: SimulatedExchangeResult
+	) => {
 		const {
 			exchange,
 			store,
 			updateContext,
 			fillOrders,
 		} = simulatedExchange;
-		const candle = await getLiveCandle(
-			period,
-			pair,
-			Date.now(),
-			exchange
-		);
+		const candle = await getLiveCandle(period, pair, exchange);
 
 		updateContext(candle.timestamp, candle.close);
 
@@ -89,8 +81,7 @@ const paperTrade = async (
 		const now = new Date();
 
 		const msUntilNextCandle =
-			roundTime(now, strategyPeriodMs, "ceil").getTime() -
-			now.getTime();
+			roundTime(now, strategyPeriodMs, "ceil").getTime() - now.getTime();
 
 		// Start calling strategy on the next strategy period.
 		const startStrategyTimeout = setTimeout(async () => {

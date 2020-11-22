@@ -6,12 +6,11 @@ import { parsePeriod, reshapeOHLCV, roundTime } from "../../utils";
 const getLiveCandle = async (
 	period: string,
 	pair: string,
-	currentTimeMs: number,
 	exchange: Exchange
 ): Promise<OHLCV> => {
 	const { periodMs } = parsePeriod(period);
 
-	const lastCandleTimestampApprox = new Date(currentTimeMs - periodMs);
+	const lastCandleTimestampApprox = new Date(Date.now() - periodMs);
 	const lastCandleTimestamp = roundTime(
 		lastCandleTimestampApprox,
 		periodMs,

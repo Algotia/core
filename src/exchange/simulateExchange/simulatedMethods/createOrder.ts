@@ -22,11 +22,11 @@ const createCreateOrder = (
 
 		const [base, quote] = parsePair(symbol);
 
-		const { symbols } = exchange.ccxt;
+/* 		const { symbols } = exchange.ccxt; */
 
-		if (!symbols.includes(symbol)) {
-			throw new Error(`Symbol ${symbol} does not exist on exchange ${exchange.id}`)
-		}
+/* 		if (!symbols.includes(symbol)) { */
+/* 			throw new Error(`Symbol ${symbol} does not exist on exchange ${exchange.id}`) */
+/* 		} */
 
 		let costNoFee: number;
 

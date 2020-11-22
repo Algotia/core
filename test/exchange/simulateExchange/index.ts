@@ -1,29 +1,13 @@
-import {
-	SimulatedExchangeResult,
-} from "../../../src/types";
-import cancelOrderTests from "./cancelOrder";
-import createOrderTests from "./createOrder";
-import editOrderTests from "./editOrder";
+import { SimulatedExchangeResult } from "../../../src/types";
 import controlMethodTests from "./controlMethods";
+import simulatedExchangeMethodTests from "./simulatedMethods";
 
-const simulateExchangeTests = (
-	exchanges: SimulatedExchangeResult[],
+const simulateExchangeTests = async (
+	exchange: SimulatedExchangeResult,
 	initialBalance: Record<string, number>
 ) => {
-	describe("Control methods", () => {
-		controlMethodTests(exchanges);
-	});
-	describe("Cancel order", () => {
-		cancelOrderTests(exchanges, initialBalance);
-	});
-
-	describe("Create order", () => {
-		createOrderTests(exchanges, initialBalance);
-	});
-
-	describe("Edit order", () => {
-		editOrderTests(exchanges, initialBalance);
-	});
+	await simulatedExchangeMethodTests(exchange, initialBalance);
+	await controlMethodTests(exchange, initialBalance);
 };
 
-export default simulateExchangeTests
+export default simulateExchangeTests;
