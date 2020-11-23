@@ -8,7 +8,7 @@ const backtestTests = async (
 	singleExchange: SimulatedExchangeResult,
 	initialBalance: Record<string, number>
 ) => {
-	await test(`${singleExchange.exchange.id}: Backtest`, async () => {
+	await test(`Backtest`, async () => {
 		const { exchange } = singleExchange;
 		//  1/1/2020 12:00 AM (GMT)
 		const fromMs = new Date("1/1/2020 12:00 AM GMT").getTime();

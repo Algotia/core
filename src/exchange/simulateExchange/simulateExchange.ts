@@ -1,6 +1,5 @@
 import { Balances } from "ccxt";
 import {
-	ExchangeID,
 	SimulatedExchangeStore,
 	SimulatedExchangeResult,
 	SimulatedExchange,
@@ -16,8 +15,13 @@ import {
 	createFetchOrder,
 	createFetchOrders,
 } from "./simulatedMethods";
-import { createExchange } from "../../exchange"
-import { createFillOrders, createFlushStore, createUpdateContext } from "./controlMethods";
+import {
+	createFillOrders,
+	createFlushStore,
+	createUpdateContext,
+} from "./controlMethods";
+import createFetchOHLCV from "./simulatedMethods/fetchOHLCV";
+import createFetchOrderBook from "./simulatedMethods/fetchOrderBook";
 
 type InitialBalance = Record<string, number>;
 
@@ -36,18 +40,35 @@ const createInitalBalance = (initialBalance: InitialBalance): Balances => {
 		});
 	}
 
-	balance = Object.assign({}, balance)
-	balance.info = {...balance}
+	balance = Object.assign({}, balance);
+	balance.info = { ...balance };
 
 	return balance;
 };
 
-const simulateExchange = async (
-	exchangeId: ExchangeID,
-	initialBalance: InitialBalance
-): Promise<SimulatedExchangeResult> => {
+interface SimulatedExchangeOptions {
+	initialBalance: InitialBalance;
+	fees?: SimulatedExchange["fees"];
+}
 
-	const originalExchange = await createExchange(exchangeId);
+const simulateExchange = async (
+	options: SimulatedExchangeOptions
+): Promise<SimulatedExchangeResult> => {
+	const { initialBalance } = options;
+
+	const defaultOptions: SimulatedExchangeOptions = {
+		initialBalance,
+		fees: {
+			trading: {
+				tierBased: false,
+				percentage: true,
+				taker: 0.001,
+				maker: 0.001,
+			},
+		},
+	};
+
+	const optionsWithDefauls = Object.assign({}, options, defaultOptions);
 
 	let store: SimulatedExchangeStore = {
 		currentTime: 0,
@@ -59,10 +80,14 @@ const simulateExchange = async (
 	};
 
 	const exchange: SimulatedExchange = {
-		...originalExchange,
+		id: "simulated",
+		rateLimit: 0,
+		OHLCVRecordLimit: 1000,
 		simulated: true,
+		fees: optionsWithDefauls.fees,
 		has: {
-			...originalExchange["has"],
+			fetchOHLCV: "simulated",
+			fetchOrderBook: "simulated",
 			createOrder: "simulated",
 			editOrder: "simulated",
 			cancelOrder: "simulated",
@@ -73,28 +98,29 @@ const simulateExchange = async (
 			fetchClosedOrders: "simulated",
 			fetchMyTrades: "simulated",
 		},
-		createOrder: createCreateOrder(store, originalExchange),
-		editOrder: createEditOrder(store, originalExchange),
+		fetchOHLCV: createFetchOHLCV(),
+		fetchOrderBook: createFetchOrderBook(store),
+		createOrder: createCreateOrder(store, optionsWithDefauls.fees),
+		editOrder: createEditOrder(store, optionsWithDefauls.fees),
 		cancelOrder: createCancelOrder(store),
 		fetchBalance: createFetchBalance(store),
 		fetchOrder: createFetchOrder(store),
 		fetchOrders: createFetchOrders(store),
 		fetchOpenOrders: createFetchOpenOrders(store),
 		fetchClosedOrders: createFetchClosedOrders(store),
-		fetchMyTrades: createFetchMyTrades(store)
+		fetchMyTrades: createFetchMyTrades(store),
 	};
-
 
 	const fillOrders = createFillOrders(store);
 	const updateContext = createUpdateContext(store);
-	const flushStore = createFlushStore(store, initialBalance)
+	const flushStore = createFlushStore(store, initialBalance);
 
 	return {
 		exchange,
 		store,
 		updateContext,
 		fillOrders,
-		flushStore
+		flushStore,
 	};
 };
 

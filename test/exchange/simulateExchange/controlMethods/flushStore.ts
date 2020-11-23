@@ -3,7 +3,7 @@ import { test } from "../../../testUtils";
 import assert from "assert";
 
 const flushStoreTests = async (singleExchange: SimulatedExchangeResult) => {
-	await test("flushStore works", async () => {
+	await test("flushStore: flush store with 1 open order", async () => {
 		const { exchange, store, updateContext, flushStore } = singleExchange;
 		updateContext(1, 1);
 

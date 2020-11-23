@@ -6,7 +6,7 @@ const cancelOrderTests = async (
 	singleExchange: SimulatedExchangeResult,
 	initialBalance: Record<string, number>
 ) => {
-	await test(`${singleExchange.exchange.id}: simulatedMethod - cancelOrder`, async () => {
+	await test(`cancelOrder: limit`, async () => {
 		const { exchange, updateContext, store } = singleExchange;
 
 		updateContext(1000, 5);

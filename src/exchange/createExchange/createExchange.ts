@@ -1,7 +1,6 @@
 import CCXT from "ccxt";
 import { Exchange, ExchangeID } from "../../types";
 
-
 // Add custom properties to exchange
 interface ExchangeModifications {
 	OHLCVRecordLimit: number;
@@ -9,7 +8,7 @@ interface ExchangeModifications {
 
 const modifications: Record<ExchangeID, ExchangeModifications> = {
 	bitfinex: {
-		OHLCVRecordLimit: 1000
+		OHLCVRecordLimit: 1000,
 	},
 	binance: {
 		OHLCVRecordLimit: 1000,
@@ -23,7 +22,7 @@ const modifications: Record<ExchangeID, ExchangeModifications> = {
 const createExchange = async (id: ExchangeID): Promise<Exchange> => {
 	const ccxt = new CCXT[id]();
 
-	const has: Exchange['has'] = {
+	const has: Exchange["has"] = {
 		fetchOrderBook: ccxt.has["fetchOrderBook"],
 		fetchOHLCV: ccxt.has["fetchOHLCV"],
 		fetchBalance: ccxt.has["fetchBalance"],
@@ -34,7 +33,7 @@ const createExchange = async (id: ExchangeID): Promise<Exchange> => {
 		fetchOrders: ccxt.has["fetchOrders"],
 		fetchOpenOrders: ccxt.has["fetchOpenOrders"],
 		fetchClosedOrders: ccxt.has["fetchClosedOrders"],
-		fetchMyTrades: ccxt.has["fetchMyTrades"]
+		fetchMyTrades: ccxt.has["fetchMyTrades"],
 	};
 
 	const exchange: Exchange = {
@@ -54,7 +53,6 @@ const createExchange = async (id: ExchangeID): Promise<Exchange> => {
 		fetchOpenOrders: ccxt.fetchOpenOrders.bind(ccxt),
 		fetchClosedOrders: ccxt.fetchClosedOrders.bind(ccxt),
 		fetchMyTrades: ccxt.fetchMyTrades.bind(ccxt),
-		ccxt: ccxt,
 	};
 
 	/* await exchange.ccxt.loadMarkets() */

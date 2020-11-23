@@ -1,4 +1,4 @@
-import { parsePeriod, roundTime } from "../../../../src/utils";
+import { parsePeriod, roundTime } from "../../../utils";
 import { Exchange as CCXT_Exchange, OHLCV } from "ccxt";
 
 type FetchOHLCV = CCXT_Exchange["fetchOHLCV"];
@@ -22,14 +22,7 @@ const createFetchOHLCV = (): FetchOHLCV => {
 			let timeCursor = nearestCandleToSince;
 
 			for (let i = 0; i < limit; i++) {
-				const candle: OHLCV = [
-					timeCursor,
-					1,
-					1,
-					1,
-					1,
-					1,
-				];
+				const candle: OHLCV = [timeCursor, 1, 1, 1, 1, 1];
 				candles.push(candle);
 				timeCursor += periodMs;
 			}

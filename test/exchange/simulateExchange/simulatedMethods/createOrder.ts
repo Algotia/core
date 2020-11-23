@@ -1,4 +1,3 @@
-import { InsufficientFunds } from "ccxt";
 import { SimulatedExchangeResult } from "../../../../src/types";
 import { test } from "../../../testUtils";
 import assert from "assert";
@@ -7,7 +6,7 @@ const createOrderTests = async (
 	singleExchange: SimulatedExchangeResult,
 	initialBalance: Record<string, number>
 ) => {
-	await test(`${singleExchange.exchange.id}: createOrder - market`, async () => {
+	await test(`createOrder: market`, async () => {
 		const { exchange, store, updateContext, fillOrders } = singleExchange;
 
 		updateContext(1000, 9);
@@ -50,7 +49,7 @@ const createOrderTests = async (
 		assert.strictEqual(store.balance["ETH"].used, 0);
 	});
 
-	await test(`${singleExchange.exchange.id}: createOrder - limit`, async () => {
+	await test(`createOrder: limit`, async () => {
 		const { exchange, store, updateContext, fillOrders } = singleExchange;
 
 		updateContext(1000, 9);
@@ -99,7 +98,7 @@ const createOrderTests = async (
 		assert.strictEqual(store.balance["BTC"].used, 0);
 	});
 
-	await test(`${singleExchange.exchange.id}: createOrder - limit fills after 2 candles`, async () => {
+	await test(`createOrder: limit fills after 2 candles`, async () => {
 		const { exchange, store, updateContext, fillOrders } = singleExchange;
 
 		updateContext(1000, 10);

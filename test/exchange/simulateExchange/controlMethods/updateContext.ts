@@ -3,7 +3,7 @@ import { test } from "../../../testUtils";
 import assert from "assert";
 
 const updateContextTests = async (singleExchange: SimulatedExchangeResult) => {
-	await test("Time and price update as expected", async () => {
+	await test("updateContext: Time and price update as expected", async () => {
 		const { store, updateContext } = singleExchange;
 		assert.strictEqual(store.currentTime, 0);
 		assert.strictEqual(store.currentPrice, 0);

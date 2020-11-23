@@ -29,7 +29,7 @@ const checkCandlesAreContinuous = (
 };
 
 const backfillTests = async ({ exchange }: SimulatedExchangeResult) => {
-	await test(`${exchange.id}: Short backfill (no pagination)`, async () => {
+	await test(`backfill: Short backfill (no pagination)`, async () => {
 		//  1/1/2020 12:00 AM (GMT)
 		const fromMs = new Date("1/1/2020 12:00 AM GMT").getTime();
 
@@ -41,7 +41,7 @@ const backfillTests = async ({ exchange }: SimulatedExchangeResult) => {
 		checkCandlesAreContinuous(candles, "1h", fromMs);
 	});
 
-	await test(`${exchange.id}: Long backfill (pagination)`, async () => {
+	await test(`backfill: Long backfill (pagination)`, async () => {
 		const fromMs = new Date("1/1/2020 12:00 PM GMT").getTime();
 
 		const toMs = new Date("1/4/2020 12:00 AM GMT").getTime();

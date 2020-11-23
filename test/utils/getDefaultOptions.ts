@@ -4,7 +4,7 @@ import { test } from "../testUtils";
 import assert from "assert";
 
 const getDefaultOptionsTests = async () => {
-	await test("getDefaultOptions: works as expected", async () => {
+	await test("Utils: getDefaultOptions - works as expected", async () => {
 		const options = getDefaultOptions();
 
 		assert.deepStrictEqual(options, defaultOptions);
@@ -20,7 +20,7 @@ const getDefaultOptionsTests = async () => {
 		assert.strictEqual(newOptions.pollingPeriodTable["1m"], "1s");
 	});
 
-	await test("getDefaultOptions: Fails on invalid environment variable", async () => {
+	await test("Utils: getDefaultOptions - Fails on invalid environment variable", async () => {
 		process.env["ALGOTIA_POLLING_PERIOD_TABLE"] = JSON.stringify({
 			notValid: "input",
 		});

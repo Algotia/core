@@ -3,7 +3,7 @@ import { test } from "../testUtils";
 import assert from "assert";
 
 const roundTimeTests = async () => {
-	await test("roundTime: Works as expected", async () => {
+	await test("Utils: roundTime - Works as expected", async () => {
 		// Naming
 		// t(n) = Target timestamp
 		// c(n) = ceiling timestamp

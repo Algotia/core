@@ -6,8 +6,8 @@ const exchangeTests = async (
 	exchange: SimulatedExchangeResult,
 	initalBalance: Record<string, number>
 ) => {
-	await simulateExchangeTests(exchange, initalBalance);
 	await exchangeHelperTests(exchange, initalBalance);
+	await simulateExchangeTests(exchange, initalBalance);
 };
 
 export default exchangeTests;

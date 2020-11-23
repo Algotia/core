@@ -3,7 +3,7 @@ import { test } from "../../../testUtils";
 import assert from "assert";
 
 const fillOrdersTests = async (singleExchange: SimulatedExchangeResult) => {
-	await test("Market order filled after 1 candle", async () => {
+	await test("fillOrders: market", async () => {
 		const { exchange, updateContext, store, fillOrders } = singleExchange;
 		const candle = {
 			timestamp: 100,

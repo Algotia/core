@@ -6,7 +6,7 @@ const editOrderTests = async (
 	singleExchange: SimulatedExchangeResult,
 	initialBalance: Record<string, number>
 ) => {
-	await test(`${singleExchange.exchange.id}: editOrder `, async () => {
+	await test(`editOrder: market`, async () => {
 		const { exchange, store, updateContext, fillOrders } = singleExchange;
 		updateContext(1000, 9);
 

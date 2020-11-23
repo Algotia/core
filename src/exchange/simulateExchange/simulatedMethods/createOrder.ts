@@ -3,10 +3,11 @@ import { Exchange, SimulatedExchangeStore } from "../../../types";
 import { parsePair, uuid } from "../../../utils";
 
 type CreateOrder = Exchange["createOrder"];
+type Fees = Exchange["fees"];
 
 const createCreateOrder = (
 	store: SimulatedExchangeStore,
-	exchange: Exchange
+	fees: Fees
 ): CreateOrder => {
 	return async (
 		symbol: string,
@@ -17,16 +18,16 @@ const createCreateOrder = (
 	): Promise<Order> => {
 		const { currentTime, balance } = store;
 
-		const makerFee = exchange.fees["trading"]["maker"];
-		const takerFee = exchange.fees["trading"]["taker"];
+		const makerFee = fees["trading"]["maker"];
+		const takerFee = fees["trading"]["taker"];
 
 		const [base, quote] = parsePair(symbol);
 
-/* 		const { symbols } = exchange.ccxt; */
+		/* 		const { symbols } = exchange.ccxt; */
 
-/* 		if (!symbols.includes(symbol)) { */
-/* 			throw new Error(`Symbol ${symbol} does not exist on exchange ${exchange.id}`) */
-/* 		} */
+		/* 		if (!symbols.includes(symbol)) { */
+		/* 			throw new Error(`Symbol ${symbol} does not exist on exchange ${exchange.id}`) */
+		/* 		} */
 
 		let costNoFee: number;
 
@@ -42,8 +43,8 @@ const createCreateOrder = (
 			costNoFee = amount * price;
 		}
 
-		const feeCost = costNoFee * (type === "market" ? takerFee : makerFee)
-		const cost = side === "buy" ? costNoFee + feeCost : costNoFee - feeCost
+		const feeCost = costNoFee * (type === "market" ? takerFee : makerFee);
+		const cost = side === "buy" ? costNoFee + feeCost : costNoFee - feeCost;
 
 		if (side === "buy") {
 			if (cost > balance[quote]["free"]) {
@@ -51,7 +52,7 @@ const createCreateOrder = (
 					`Insufficient balance for order costing ${cost} ${symbol}`
 				);
 			}
-		} else if ((side === "sell")) {
+		} else if (side === "sell") {
 			if (cost > balance[base]["free"]) {
 				throw new InsufficientFunds(
 					`Insufficient balance for order costing ${cost} ${symbol}`
@@ -96,7 +97,7 @@ const createCreateOrder = (
 				},
 			});
 			store.balance.info = { ...store.balance };
-			delete store.balance.info.info
+			delete store.balance.info.info;
 		}
 
 		if (side === "sell") {
@@ -113,7 +114,7 @@ const createCreateOrder = (
 				},
 			});
 			store.balance.info = { ...store.balance };
-			delete store.balance.info.info
+			delete store.balance.info.info;
 		}
 
 		store.openOrders.push(order);

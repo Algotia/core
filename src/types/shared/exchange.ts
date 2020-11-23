@@ -27,18 +27,28 @@ interface ExchangeMethods {
 	fetchMyTrades: CCXT_Exchange["fetchMyTrades"];
 }
 
+interface Fees {
+	trading: {
+		tierBased: boolean;
+		percentage: boolean;
+		taker: number;
+		maker: number;
+	};
+}
 
-export interface Exchange extends ExchangeMethods  {
-	ccxt: CCXT_Exchange;
-	id: ExchangeID;
+export interface Exchange extends ExchangeMethods {
+	/* ccxt: CCXT_Exchange; */
+	id: ExchangeID | "simulated";
 	OHLCVRecordLimit: number;
 	fees: CCXT_Exchange["fees"];
 	rateLimit: CCXT_Exchange["rateLimit"];
 	has: Record<keyof ExchangeMethods, boolean | "simulated" | "emulated">;
 }
 
-export interface SimulatedExchange extends Exchange  {
-	simulated: true
+export interface SimulatedExchange extends Exchange {
+	id: "simulated";
+	simulated: true;
+	fees: Fees;
 }
 
 export interface SimulatedExchangeStore {

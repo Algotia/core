@@ -3,12 +3,12 @@ import { Exchange, SimulatedExchangeStore } from "../../../types";
 import { parsePair } from "../../../utils";
 
 type EditOrder = CCXT_Exchange["editOrder"];
+type Fees = Exchange["fees"];
 
 const createEditOrder = (
 	store: SimulatedExchangeStore,
-	exchange: Exchange
-): EditOrder => (
-async (
+	fees: Fees
+): EditOrder => async (
 	id: string,
 	symbol: string,
 	type: "market" | "limit",
@@ -54,8 +54,8 @@ async (
 		cost = amount * price;
 	}
 
-	const makerFee = exchange.fees["trading"]["maker"];
-	const takerFee = exchange.fees["trading"]["taker"];
+	const makerFee = fees["trading"]["maker"];
+	const takerFee = fees["trading"]["taker"];
 
 	const editedOrder: Order = {
 		...foundOrder,
@@ -72,9 +72,7 @@ async (
 		average: null,
 		filled: 0,
 		remaining: amount,
-		cost:
-			cost +
-			(type === "market" ? takerFee * cost : makerFee * cost),
+		cost: cost + (type === "market" ? takerFee * cost : makerFee * cost),
 		trades: [],
 		info: {},
 		fee: {
@@ -91,13 +89,13 @@ async (
 	if (side === "buy") {
 		if (
 			editedOrder.cost >
-		oldQuoteBalance.free - (editedOrder.cost - foundOrder.cost)
+			oldQuoteBalance.free - (editedOrder.cost - foundOrder.cost)
 		) {
 			throw new Error(
 				`Error editing order: Insufficient balance - order not edited`
 			);
 		}
-	} else if ((side === "sell")) {
+	} else if (side === "sell") {
 		if (cost > balance[base]["free"]) {
 			throw new Error(
 				`Error editing order: Insufficient balance - order not edited`
@@ -113,8 +111,7 @@ async (
 					(editedOrder.cost - foundOrder.cost) -
 					foundOrder.fee.cost,
 				used:
-					oldQuoteBalance.used +
-					(editedOrder.cost - foundOrder.cost),
+					oldQuoteBalance.used + (editedOrder.cost - foundOrder.cost),
 				total:
 					oldQuoteBalance.total -
 					(editedOrder.cost - foundOrder.cost) -
@@ -144,7 +141,6 @@ async (
 	store.openOrders.push(editedOrder);
 
 	return editedOrder;
-}
-);
+};
 
 export default createEditOrder;

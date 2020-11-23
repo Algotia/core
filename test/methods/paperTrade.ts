@@ -8,7 +8,7 @@ const paperTradeTests = async (
 	singleExchange: SimulatedExchangeResult,
 	initialBalance: Record<string, number>
 ) => {
-	await test(`${singleExchange.exchange.id}: Paper trade market order buy`, async () => {
+	await test(`Paper trade: market order buy`, async () => {
 		const clock = sinon.useFakeTimers();
 
 		// If paperTrade is started exactly on a strategy period (1m in this case)
@@ -42,7 +42,7 @@ const paperTradeTests = async (
 		clock.restore();
 	});
 
-	await test(`${singleExchange.exchange.id}: Paper trade cancel all orders`, async () => {
+	await test(`Paper trade: cancel all orders`, async () => {
 
 		const clock = sinon.useFakeTimers();
 
