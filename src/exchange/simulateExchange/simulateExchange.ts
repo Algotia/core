@@ -40,7 +40,6 @@ const createInitalBalance = (initialBalance: InitialBalance): Balances => {
 		});
 	}
 
-	balance = Object.assign({}, balance);
 	balance.info = { ...balance };
 
 	return balance;

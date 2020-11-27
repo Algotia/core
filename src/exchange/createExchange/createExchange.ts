@@ -19,7 +19,9 @@ const modifications: Record<ExchangeID, ExchangeModifications> = {
 };
 
 /** Create an exchange instance. */
-const createExchange = async (id: ExchangeID): Promise<Exchange> => {
+const createExchange = async (
+	id: ExchangeID
+): Promise<Exchange> => {
 	const ccxt = new CCXT[id]();
 
 	const has: Exchange["has"] = {

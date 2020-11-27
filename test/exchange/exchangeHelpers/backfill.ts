@@ -1,7 +1,7 @@
 import { SimulatedExchangeResult } from "../../../src/types";
 import { parsePeriod } from "../../../src/utils";
 import { backfill } from "../../../src/exchange";
-import { test } from "../../testUtils";
+import { it, describe } from "petzl";
 import assert from "assert";
 
 const checkCandlesAreContinuous = (
@@ -29,30 +29,44 @@ const checkCandlesAreContinuous = (
 };
 
 const backfillTests = async ({ exchange }: SimulatedExchangeResult) => {
-	await test(`backfill: Short backfill (no pagination)`, async () => {
-		//  1/1/2020 12:00 AM (GMT)
-		const fromMs = new Date("1/1/2020 12:00 AM GMT").getTime();
+	await describe("backfill", async () => {
+		await it(`backfill: Short backfill (no pagination)`, async () => {
+			//  1/1/2020 12:00 AM (GMT)
+			const fromMs = new Date("1/1/2020 12:00 AM GMT").getTime();
 
-		//  1/2/2020 12:00 AM (GMT)
-		const toMs = new Date("1/2/2020 12:00 AM GMT").getTime();
+			//  1/2/2020 12:00 AM (GMT)
+			const toMs = new Date("1/2/2020 12:00 AM GMT").getTime();
 
-		const candles = await backfill(fromMs, toMs, "ETH/BTC", "1h", exchange);
+			const candles = await backfill(
+				fromMs,
+				toMs,
+				"ETH/BTC",
+				"1h",
+				exchange
+			);
 
-		checkCandlesAreContinuous(candles, "1h", fromMs);
-	});
+			checkCandlesAreContinuous(candles, "1h", fromMs);
+		});
 
-	await test(`backfill: Long backfill (pagination)`, async () => {
-		const fromMs = new Date("1/1/2020 12:00 PM GMT").getTime();
+		await it(`backfill: Long backfill (pagination)`, async () => {
+			const fromMs = new Date("1/1/2020 12:00 PM GMT").getTime();
 
-		const toMs = new Date("1/4/2020 12:00 AM GMT").getTime();
+			const toMs = new Date("1/4/2020 12:00 AM GMT").getTime();
 
-		// 3600 minutes apart
+			// 3600 minutes apart
 
-		const candles = await backfill(fromMs, toMs, "ETH/BTC", "1m", exchange);
+			const candles = await backfill(
+				fromMs,
+				toMs,
+				"ETH/BTC",
+				"1m",
+				exchange
+			);
 
-		assert.strictEqual(candles.length, 3600);
+			assert.strictEqual(candles.length, 3600);
 
-		checkCandlesAreContinuous(candles, "1m", fromMs);
+			checkCandlesAreContinuous(candles, "1m", fromMs);
+		});
 	});
 };
 

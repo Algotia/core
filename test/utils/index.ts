@@ -1,9 +1,12 @@
 import getDefaultOptionsTests from "./getDefaultOptions";
 import roundTimeTests from "./roundTime";
+import { describe } from "petzl";
 
-const utilsTests = async () => {
-	await getDefaultOptionsTests();
-	await roundTimeTests();
+const utilsTests = () => {
+	describe("Utils", () => {
+		getDefaultOptionsTests();
+		roundTimeTests();
+	});
 };
 
 export default utilsTests;
