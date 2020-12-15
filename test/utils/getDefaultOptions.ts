@@ -1,34 +1,29 @@
 import { defaultOptions } from "../../src/types";
 import { getDefaultOptions } from "../../src/utils";
-import { it, describe } from "petzl";
-import assert from "assert";
+import { it, describe, assert } from "quyz";
 
-const getDefaultOptionsTests = () => {
-	describe("getDefaultOptions", () => {
-		it("should be able to set environment variables", () => {
-			const options = getDefaultOptions();
+describe("getDefaultOptions", () => {
+	it("should be able to set environment variables", () => {
+		const options = getDefaultOptions();
 
-			assert.deepStrictEqual(options, defaultOptions);
+		assert.deepStrictEqual(options, defaultOptions);
 
-			process.env["ALGOTIA_POLLING_PERIOD_TABLE"] = JSON.stringify({
-				"1m": "1s",
-			});
-
-			assert.deepStrictEqual(options, defaultOptions);
-
-			const newOptions = getDefaultOptions();
-
-			assert.strictEqual(newOptions.pollingPeriodTable["1m"], "1s");
+		process.env["ALGOTIA_POLLING_PERIOD_TABLE"] = JSON.stringify({
+			"1m": "1s",
 		});
 
-		it("should fail on invalid environment variable", () => {
-			process.env["ALGOTIA_POLLING_PERIOD_TABLE"] = JSON.stringify({
-				notValid: "input",
-			});
+		assert.deepStrictEqual(options, defaultOptions);
 
-			assert.throws(getDefaultOptions);
-		});
+		const newOptions = getDefaultOptions();
+
+		assert.strictEqual(newOptions.pollingPeriodTable["1m"], "1s");
 	});
-};
 
-export default getDefaultOptionsTests;
+	it("should fail on invalid environment variable", () => {
+		process.env["ALGOTIA_POLLING_PERIOD_TABLE"] = JSON.stringify({
+			notValid: "input",
+		});
+
+		assert.throws(getDefaultOptions);
+	});
+});

@@ -4,7 +4,7 @@ import {
 	Strategy,
 } from "../types";
 import { parsePeriod, roundTime, getDefaultOptions } from "../utils";
-import { getLiveCandle } from "../exchange";
+import { getLiveCandle } from "../exchangeHelpers";
 import { EventEmitter } from "events";
 
 /** Paper trading is like live trading, but uses a simulated
