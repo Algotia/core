@@ -5,6 +5,11 @@ type BacktestResults = Omit<
 	"currentTime" | "currentPrice"
 >;
 
+interface BacktestOptions {
+	simulatedExchange: SimulatedExchangeResult;
+	data: OHLCV[];
+	strategy: Strategy;
+}
 /** Backtesting runs a strategy against historical data */
 const backtest = async (options: BacktestOptions): Promise<BacktestResults> => {
 	const { simulatedExchange, data, strategy } = options;
