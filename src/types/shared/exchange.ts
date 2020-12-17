@@ -1,6 +1,6 @@
-import { Exchange as CCXT_Exchange, Order as CCXT_Order, Balances } from "ccxt";
+import { Exchange as CCXT_Exchange, Order, Balances } from "ccxt";
 
-export const AllowedExchangeIDs = ["binance", "kucoin"] as const;
+export const AllowedExchangeIDs = ["binance", "kucoin", "bitfinex"] as const;
 
 export type ExchangeID = typeof AllowedExchangeIDs[number];
 
@@ -11,10 +11,6 @@ export interface OHLCV {
 	low: number;
 	close: number;
 	volume: number;
-}
-
-export interface Order extends CCXT_Order {
-	type: "market" | "limit";
 }
 
 interface ExchangeMethods {
@@ -29,20 +25,32 @@ interface ExchangeMethods {
 	fetchOpenOrders: CCXT_Exchange["fetchOpenOrders"];
 	fetchClosedOrders: CCXT_Exchange["fetchClosedOrders"];
 	fetchMyTrades: CCXT_Exchange["fetchMyTrades"];
+	loadMarkets: CCXT_Exchange["loadMarkets"];
 }
 
+export interface Fees {
+	trading: {
+		tierBased: boolean;
+		percentage: boolean;
+		taker: number;
+		maker: number;
+	};
+}
 
-export interface Exchange extends ExchangeMethods  {
-	ccxt: CCXT_Exchange;
-	id: ExchangeID;
+export interface Exchange extends ExchangeMethods {
+	/* ccxt: CCXT_Exchange; */
+	id: ExchangeID | "simulated";
 	OHLCVRecordLimit: number;
 	fees: CCXT_Exchange["fees"];
 	rateLimit: CCXT_Exchange["rateLimit"];
 	has: Record<keyof ExchangeMethods, boolean | "simulated" | "emulated">;
 }
 
-export interface SimulatedExchange extends Exchange  {
-	simulated: true
+export interface SimulatedExchange extends Exchange {
+	id: "simulated";
+	simulated: true;
+	fees: Fees;
+	derviesFrom?: ExchangeID;
 }
 
 export interface SimulatedExchangeStore {
@@ -57,6 +65,7 @@ export interface SimulatedExchangeStore {
 export interface SimulatedExchangeResult {
 	fillOrders: (candle: OHLCV) => void;
 	updateContext: (time: number, price: number) => void;
+	flushStore: () => void;
 	store: SimulatedExchangeStore;
 	exchange: SimulatedExchange;
 }
