@@ -2,21 +2,40 @@ import {
 	SimulatedExchangeResult,
 	SimulatedExchangeStore,
 	Strategy,
+	pollingPeriodTable,
 } from "../types";
-import { parsePeriod, roundTime, getDefaultOptions } from "../utils";
+import { parsePeriod, roundTime } from "../utils";
 import { getLiveCandle } from "../exchangeHelpers";
 import { EventEmitter } from "events";
+
+interface PaperTradeOptions {
+	simulatedExchange: SimulatedExchangeResult;
+	period: string;
+	pair: string;
+	pollingPeriod?: string;
+	strategy: Strategy;
+}
 
 /** Paper trading is like live trading, but uses a simulated
  * exchange instead of a real one. */
 const paperTrade = async (
-	simulatedExchange: SimulatedExchangeResult,
-	period: string,
-	pair: string,
-	strategy: Strategy
+	options: PaperTradeOptions
 ): Promise<{ start: () => void; stop: () => SimulatedExchangeStore }> => {
-	const { pollingPeriodTable } = getDefaultOptions();
-	const pollingPeriod = pollingPeriodTable[period];
+	const {
+		simulatedExchange,
+		period,
+		pair,
+		strategy,
+		pollingPeriod: userPollingPeriod,
+	} = options;
+
+	let pollingPeriod: string;
+
+	if (userPollingPeriod) {
+		pollingPeriod = userPollingPeriod;
+	} else {
+		pollingPeriod = pollingPeriodTable[period];
+	}
 
 	const { periodMs: strategyPeriodMs } = parsePeriod(period);
 	const { periodMs: pollingPeriodMs } = parsePeriod(pollingPeriod);

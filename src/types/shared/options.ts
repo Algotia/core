@@ -1,8 +1,8 @@
 export interface DefaultOptions {
-	pollingPeriodTable: typeof pollingPeriodTable
+	pollingPeriodTable: typeof pollingPeriodTable;
 }
 
-const pollingPeriodTable = {
+export const pollingPeriodTable = {
 	"1m": "10s",
 	"3m": "1m",
 	"5m": "1m",
