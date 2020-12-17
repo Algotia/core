@@ -1,5 +1,0 @@
-# View examples and documentation at https://deliverybot.dev/docs/
-production:
-  environment: production
-  production_environment: true
-  required_contexts: [CI]
