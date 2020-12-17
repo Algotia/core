@@ -1,9 +1,8 @@
-name: Release
+name: Publish
 
 on:
-  push:
-    branches:
-      - master
+  release:
+    types: [published]
 
 jobs:
   publish:
@@ -27,7 +26,7 @@ jobs:
     - name: Push bump artifacts
       run: git push --follow-tags
     - name: Setup Node.js with NPM
-      uses: actions/setup-node@v1.4.2
+      uses: actions/setup-node@v2
       with:
         registry-url: 'https://registry.npmjs.org'
         scope: 'algotia'
