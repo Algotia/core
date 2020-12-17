@@ -5,7 +5,10 @@ import {
 	Strategy,
 } from "../types";
 
-type BacktestResults = Omit<SimulatedExchangeStore, "currentTime" | "currentPrice">
+type BacktestResults = Omit<
+	SimulatedExchangeStore,
+	"currentTime" | "currentPrice"
+>;
 
 /** Backtesting runs a strategy against historical data */
 const backtest = async (
@@ -13,7 +16,6 @@ const backtest = async (
 	data: OHLCV[],
 	strategy: Strategy
 ): Promise<BacktestResults> => {
-
 	const { fillOrders, updateContext, store, exchange } = simulatedExchange;
 
 	for (let i = 0; i < data.length; i++) {
@@ -37,15 +39,14 @@ const backtest = async (
 		fillOrders(aheadCandle);
 	}
 
-
 	const { balance, closedOrders, openOrders, errors } = store;
 
 	return {
 		balance,
 		closedOrders,
 		openOrders,
-		errors
-	}
+		errors,
+	};
 };
 
 export default backtest;
