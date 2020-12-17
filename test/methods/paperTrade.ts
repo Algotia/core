@@ -1,50 +1,85 @@
 import { paperTrade } from "../../src/algotia";
-import { Exchange, OHLCV } from "../../src/types";
-import { simulatedExchange, reset } from "../../test-utils";
+import { Exchange, OHLCV, Strategy, PaperTradeOptions } from "../../src/types";
+import {
+	simulatedExchange,
+	reset,
+	initialBalance,
+	isCloseTo,
+} from "../../test-utils";
 import sinon from "sinon";
 import { describe, it, assert, afterEach } from "quyz";
+import { EventEmitter } from "events";
 
 describe("paperTrade", async () => {
 	afterEach(() => {
 		reset();
 	});
-	it(`should create market order each candle`, async () => {
-		const clock = sinon.useFakeTimers();
 
-		// If paperTrade is started exactly on a strategy period (1m in this case)
-		// Then the strategy will be called immediately
-		// See the opposite of this behavior in the next test
-		const startDate = new Date("1/1/2020 12:00:00 AM GMT").getTime();
-
-		clock.tick(startDate);
-
-		const strategy = sinon.fake(async (exchange: Exchange, data: OHLCV) => {
-			await exchange.createOrder("ETH/BTC", "market", "buy", 1);
-		});
-
-		const { start, stop } = await paperTrade({
+	const createArgs = (strategy: Strategy): PaperTradeOptions => {
+		return {
 			simulatedExchange,
 			period: "1m",
 			pair: "ETH/BTC",
 			strategy,
-		});
+		};
+	};
 
-		start();
-
-		await clock.tickAsync(120 * 60 * 1000);
-
-		const res = stop();
-
-		assert.strictEqual(res.openOrders.length, 0);
-
-		assert.strictEqual(strategy.getCalls().length, 121);
-
-		clock.restore();
+	it("should return an EventEmitter", async () => {
+		const strategy = () => {};
+		const controller = await paperTrade(createArgs(strategy));
+		assert(controller instanceof EventEmitter);
 	});
 
-	it(`Paper trade: cancel all orders`, async () => {
-		const clock = sinon.useFakeTimers();
+	const startTimeData: [string, string, number][] = [
+		[
+			"should start immediately if 'start' event on strategy period",
+			"1/1/2020 12:00:00 AM GMT",
+			121,
+		],
+		[
+			"should start on next strategy candle if 'start' event not on strategy period",
+			"1/1/2020 12:00:01 AM GMT",
+			120,
+		],
+	];
 
+	for (const [title, date, expected] of startTimeData) {
+		it(title, async () => {
+			const clock = sinon.useFakeTimers();
+			const startDate = new Date(date).getTime();
+
+			clock.tick(startDate);
+
+			const strategy = sinon.fake(async (exchange: Exchange) => {
+				await exchange.createOrder("ETH/BTC", "market", "buy", 1);
+			});
+
+			const controller = await paperTrade(createArgs(strategy));
+
+			const candleSpy = sinon.spy(() => {});
+
+			controller.on("candle", candleSpy);
+
+			controller.emit("start");
+
+			await clock.tickAsync(120 * 60 * 1000);
+
+			assert.strictEqual(candleSpy.getCalls().length, expected);
+
+			const doneSpy = sinon.spy(() => {});
+
+			controller.on("done", doneSpy);
+
+			controller.emit("stop");
+
+			assert(doneSpy.calledOnce);
+
+			clock.restore();
+		});
+	}
+
+	it(`should create and cancel an order each candle`, async () => {
+		const clock = sinon.useFakeTimers();
 		const startDate = new Date("1/1/2020 12:00:01 AM GMT").getTime();
 
 		clock.tick(startDate);
@@ -59,25 +94,42 @@ describe("paperTrade", async () => {
 			await exchange.cancelOrder(order.id);
 		});
 
-		const { start, stop } = await paperTrade({
+		const controller = await paperTrade({
 			simulatedExchange,
 			period: "1m",
 			pair: "ETH/BTC",
 			strategy,
 		});
 
-		start();
+		controller.emit("start");
 
 		await clock.tickAsync(120 * 60 * 1000);
 
-		const res = stop();
-		// expect(res.balance.BTC.free).toBeCloseTo(0.0991);
-		assert.strictEqual(res.closedOrders.length, 120);
+		const doneSpy = sinon.spy((res) => {});
 
-		for (const closedOrder of res.closedOrders) {
-			assert.strictEqual(closedOrder.status, "canceled");
-		}
+		controller.on("done", doneSpy);
 
+		controller.emit("stop");
+
+		assert(doneSpy.calledOnce);
+
+		const result = doneSpy.getCall(0).args[0];
+
+		const strategyCalls = strategy.getCalls().length;
+		const exchangeFees = simulatedExchange.exchange.fees.trading.taker;
+		// Multiplying by 1 is obviously redundant here, but in general
+		// should multiply by order cost
+		const totalCost = exchangeFees * 1 * strategyCalls;
+
+		assert(
+			isCloseTo(
+				result["balance"]["BTC"]["free"],
+				initialBalance.ETH - totalCost,
+				0.00001
+			)
+		);
+
+		assert.strictEqual(doneSpy.getCalls().length, 1);
 		clock.restore();
 	});
 });

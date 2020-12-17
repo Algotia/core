@@ -131,6 +131,9 @@ const simulateExchange = (
 		exchange.has["loadMarkets"] = derviedExchange.has["loadMarkets"];
 		exchange.has["fetchOHLCV"] = derviedExchange.has["fetchOHLCV"];
 		exchange.has["fetchOrderBook"] = derviedExchange.has["fetchOrderBook"];
+		exchange["loadMarkets"] = derviedExchange.loadMarkets.bind(
+			derviedExchange
+		);
 	}
 
 	const fillOrders = createFillOrders(store);

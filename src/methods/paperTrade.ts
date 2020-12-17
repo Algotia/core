@@ -1,26 +1,17 @@
 import {
 	SimulatedExchangeResult,
-	SimulatedExchangeStore,
-	Strategy,
 	pollingPeriodTable,
+	PaperTradeOptions,
 } from "../types";
 import { parsePeriod, roundTime } from "../utils";
 import { getLiveCandle } from "../exchangeHelpers";
 import { EventEmitter } from "events";
 
-interface PaperTradeOptions {
-	simulatedExchange: SimulatedExchangeResult;
-	period: string;
-	pair: string;
-	pollingPeriod?: string;
-	strategy: Strategy;
-}
-
 /** Paper trading is like live trading, but uses a simulated
  * exchange instead of a real one. */
 const paperTrade = async (
 	options: PaperTradeOptions
-): Promise<{ start: () => void; stop: () => SimulatedExchangeStore }> => {
+): Promise<EventEmitter> => {
 	const {
 		simulatedExchange,
 		period,
@@ -69,6 +60,7 @@ const paperTrade = async (
 		} = simulatedExchange;
 		const candle = await getLiveCandle(period, pair, exchange);
 
+		controller.emit("candle", candle);
 		updateContext(candle.timestamp, candle.close);
 
 		try {
@@ -77,6 +69,7 @@ const paperTrade = async (
 			store.errors.push(err.message);
 		}
 
+		controller.emit("strategy", simulatedExchange.store);
 		fillOrders(candle);
 
 		const pollingInterval = setInterval(
@@ -127,19 +120,10 @@ const paperTrade = async (
 		for (const interval of intervals) {
 			clearInterval(interval);
 		}
-		controller.emit("done");
+		controller.emit("done", simulatedExchange.store);
 	});
 
-	const start = () => {
-		controller.emit("start");
-	};
-
-	const stop = () => {
-		controller.emit("stop");
-		return simulatedExchange.store;
-	};
-
-	return { start, stop };
+	return controller;
 };
 
 export default paperTrade;
