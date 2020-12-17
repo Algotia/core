@@ -22,12 +22,12 @@ describe("paperTrade", async () => {
 			await exchange.createOrder("ETH/BTC", "market", "buy", 1);
 		});
 
-		const { start, stop } = await paperTrade(
+		const { start, stop } = await paperTrade({
 			simulatedExchange,
-			"1m",
-			"ETH/BTC",
-			strategy
-		);
+			period: "1m",
+			pair: "ETH/BTC",
+			strategy,
+		});
 
 		start();
 
@@ -59,12 +59,12 @@ describe("paperTrade", async () => {
 			await exchange.cancelOrder(order.id);
 		});
 
-		const { start, stop } = await paperTrade(
+		const { start, stop } = await paperTrade({
 			simulatedExchange,
-			"1m",
-			"ETH/BTC",
-			strategy
-		);
+			period: "1m",
+			pair: "ETH/BTC",
+			strategy,
+		});
 
 		start();
 

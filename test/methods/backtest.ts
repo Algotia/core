@@ -22,17 +22,17 @@ describe("backtest", () => {
 
 		const candles = await backfill(fromMs, toMs, "ETH/BTC", "1h", exchange);
 
-		const result = await backtest(
+		const result = await backtest({
 			simulatedExchange,
-			candles,
-			async (exchange) => {
+			data: candles,
+			strategy: async (exchange) => {
 				try {
 					await exchange.createOrder("ETH/BTC", "market", "buy", 1);
 				} catch (err) {
 					throw err;
 				}
-			}
-		);
+			},
+		});
 
 		assert.strictEqual(result.openOrders.length, 0);
 		assert.strictEqual(result.closedOrders.length, 23);
