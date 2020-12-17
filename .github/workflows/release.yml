@@ -32,7 +32,7 @@ jobs:
     - name: Push bump artifacts
       run: |
         git checkout -b release
-        git push --follow-tags
+        git push -u origin release --follow-tags
 
     - name: Setup Node.js with NPM
       uses: actions/setup-node@v2
