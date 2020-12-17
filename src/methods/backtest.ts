@@ -1,9 +1,4 @@
-import {
-	OHLCV,
-	SimulatedExchangeResult,
-	SimulatedExchangeStore,
-	Strategy,
-} from "../types";
+import { SimulatedExchangeStore, BacktestOptions } from "../types";
 
 type BacktestResults = Omit<
 	SimulatedExchangeStore,

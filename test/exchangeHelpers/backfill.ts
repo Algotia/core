@@ -2,6 +2,7 @@ import { parsePeriod } from "../../src/utils";
 import { backfill } from "../../src/exchangeHelpers";
 import { simulatedExchange } from "../../test-utils";
 import { it, describe, assert } from "quyz";
+import { createExchange } from "../../src/algotia";
 
 const checkCandlesAreContinuous = (
 	candles: any[],
