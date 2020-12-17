@@ -7,14 +7,6 @@ import { parsePeriod, roundTime } from "../utils";
 import { getLiveCandle } from "../exchangeHelpers";
 import { EventEmitter } from "events";
 
-interface PaperTradeOptions {
-	simulatedExchange: SimulatedExchangeResult;
-	period: string;
-	pair: string;
-	pollingPeriod?: string;
-	strategy: Strategy;
-}
-
 /** Paper trading is like live trading, but uses a simulated
  * exchange instead of a real one. */
 const paperTrade = async (
