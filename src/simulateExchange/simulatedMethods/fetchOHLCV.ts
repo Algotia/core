@@ -1,9 +1,10 @@
 import { parsePeriod, roundTime } from "../../utils";
 import { Exchange as CCXT_Exchange, OHLCV } from "ccxt";
+import { Exchange } from "../../types";
 
 type FetchOHLCV = CCXT_Exchange["fetchOHLCV"];
 
-const createFetchOHLCV = (): FetchOHLCV => {
+const createFetchOHLCV = (derviedExchange?: Exchange): FetchOHLCV => {
 	return async (
 		symbol: string,
 		timeframe: string,
@@ -11,6 +12,14 @@ const createFetchOHLCV = (): FetchOHLCV => {
 		limit: number
 	): Promise<OHLCV[]> => {
 		try {
+			if (derviedExchange) {
+				return await derviedExchange.fetchOHLCV(
+					symbol,
+					timeframe,
+					since,
+					limit
+				);
+			}
 			const { periodMs } = parsePeriod(timeframe);
 			const nearestCandleToSince = roundTime(
 				new Date(since),

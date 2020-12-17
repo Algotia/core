@@ -19,7 +19,7 @@ const modifications: Record<ExchangeID, ExchangeModifications> = {
 };
 
 /** Create an exchange instance. */
-const createExchange = async (id: ExchangeID): Promise<Exchange> => {
+const createExchange = (id: ExchangeID): Exchange => {
 	const ccxt = new CCXT[id]();
 
 	const has: Exchange["has"] = {
@@ -34,6 +34,7 @@ const createExchange = async (id: ExchangeID): Promise<Exchange> => {
 		fetchOpenOrders: ccxt.has["fetchOpenOrders"],
 		fetchClosedOrders: ccxt.has["fetchClosedOrders"],
 		fetchMyTrades: ccxt.has["fetchMyTrades"],
+		loadMarkets: ccxt.has["loadMarkets"],
 	};
 
 	const exchange: Exchange = {
@@ -53,9 +54,8 @@ const createExchange = async (id: ExchangeID): Promise<Exchange> => {
 		fetchOpenOrders: ccxt.fetchOpenOrders.bind(ccxt),
 		fetchClosedOrders: ccxt.fetchClosedOrders.bind(ccxt),
 		fetchMyTrades: ccxt.fetchMyTrades.bind(ccxt),
+		loadMarkets: ccxt.loadMarkets.bind(ccxt),
 	};
-
-	/* await exchange.ccxt.loadMarkets() */
 
 	return exchange;
 };

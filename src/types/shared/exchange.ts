@@ -25,9 +25,10 @@ interface ExchangeMethods {
 	fetchOpenOrders: CCXT_Exchange["fetchOpenOrders"];
 	fetchClosedOrders: CCXT_Exchange["fetchClosedOrders"];
 	fetchMyTrades: CCXT_Exchange["fetchMyTrades"];
+	loadMarkets: CCXT_Exchange["loadMarkets"];
 }
 
-interface Fees {
+export interface Fees {
 	trading: {
 		tierBased: boolean;
 		percentage: boolean;
@@ -49,6 +50,7 @@ export interface SimulatedExchange extends Exchange {
 	id: "simulated";
 	simulated: true;
 	fees: Fees;
+	derviesFrom?: ExchangeID;
 }
 
 export interface SimulatedExchangeStore {

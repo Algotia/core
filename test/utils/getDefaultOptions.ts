@@ -17,6 +17,7 @@ describe("getDefaultOptions", () => {
 		const newOptions = getDefaultOptions();
 
 		assert.strictEqual(newOptions.pollingPeriodTable["1m"], "1s");
+		assert.notStrictEqual(options, newOptions);
 	});
 
 	it("should fail on invalid environment variable", () => {

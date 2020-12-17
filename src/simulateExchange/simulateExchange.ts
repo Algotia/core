@@ -1,8 +1,11 @@
-import { Balances } from "ccxt";
+import { Balances, Exchange as CCXT_Exchange } from "ccxt";
 import {
 	SimulatedExchangeStore,
 	SimulatedExchangeResult,
 	SimulatedExchange,
+	ExchangeID,
+	Fees,
+	Exchange,
 } from "../types/";
 import {
 	createCancelOrder,
@@ -22,6 +25,7 @@ import {
 } from "./controlMethods";
 import createFetchOHLCV from "./simulatedMethods/fetchOHLCV";
 import createFetchOrderBook from "./simulatedMethods/fetchOrderBook";
+import { createExchange } from "../createExchange";
 
 type InitialBalance = Record<string, number>;
 
@@ -47,6 +51,7 @@ const createInitalBalance = (initialBalance: InitialBalance): Balances => {
 
 interface SimulatedExchangeOptions {
 	initialBalance: InitialBalance;
+	derviesFrom?: ExchangeID;
 	fees?: SimulatedExchange["fees"];
 }
 
@@ -54,6 +59,14 @@ const simulateExchange = (
 	options: SimulatedExchangeOptions
 ): SimulatedExchangeResult => {
 	const { initialBalance } = options;
+
+	let derviesFrom: ExchangeID, derviedExchange: Exchange;
+
+	if (options && options.derviesFrom) {
+		derviesFrom = options.derviesFrom;
+		derviedExchange = createExchange(derviesFrom);
+		options.fees = derviedExchange.fees as Fees;
+	}
 
 	const defaultOptions: SimulatedExchangeOptions = {
 		initialBalance,
@@ -67,7 +80,7 @@ const simulateExchange = (
 		},
 	};
 
-	const optionsWithDefauls = Object.assign({}, options, defaultOptions);
+	const optionsWithDefauls = Object.assign({}, defaultOptions, options);
 
 	let store: SimulatedExchangeStore = {
 		currentTime: 0,
@@ -80,6 +93,7 @@ const simulateExchange = (
 
 	const exchange: SimulatedExchange = {
 		id: "simulated",
+		derviesFrom,
 		rateLimit: 0,
 		OHLCVRecordLimit: 1000,
 		simulated: true,
@@ -96,9 +110,10 @@ const simulateExchange = (
 			fetchOpenOrders: "simulated",
 			fetchClosedOrders: "simulated",
 			fetchMyTrades: "simulated",
+			loadMarkets: false,
 		},
-		fetchOHLCV: createFetchOHLCV(),
-		fetchOrderBook: createFetchOrderBook(store),
+		fetchOHLCV: createFetchOHLCV(derviedExchange),
+		fetchOrderBook: createFetchOrderBook(store, derviedExchange),
 		createOrder: createCreateOrder(store, optionsWithDefauls.fees),
 		editOrder: createEditOrder(store, optionsWithDefauls.fees),
 		cancelOrder: createCancelOrder(store),
@@ -108,7 +123,15 @@ const simulateExchange = (
 		fetchOpenOrders: createFetchOpenOrders(store),
 		fetchClosedOrders: createFetchClosedOrders(store),
 		fetchMyTrades: createFetchMyTrades(store),
+		loadMarkets: null,
 	};
+
+	if (derviesFrom) {
+		exchange["derviesFrom"] = derviesFrom;
+		exchange.has["loadMarkets"] = derviedExchange.has["loadMarkets"];
+		exchange.has["fetchOHLCV"] = derviedExchange.has["fetchOHLCV"];
+		exchange.has["fetchOrderBook"] = derviedExchange.has["fetchOrderBook"];
+	}
 
 	const fillOrders = createFillOrders(store);
 	const updateContext = createUpdateContext(store);
