@@ -30,7 +30,9 @@ jobs:
         npx standard-version --prerelease
 
     - name: Push bump artifacts
-      run: git push --follow-tags
+      run: |
+        git checkout -b release
+        git push --follow-tags
 
     - name: Setup Node.js with NPM
       uses: actions/setup-node@v2
