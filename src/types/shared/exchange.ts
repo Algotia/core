@@ -44,6 +44,8 @@ export interface Exchange extends ExchangeMethods {
 	fees: CCXT_Exchange["fees"];
 	rateLimit: CCXT_Exchange["rateLimit"];
 	has: Record<keyof ExchangeMethods, boolean | "simulated" | "emulated">;
+	symbols: CCXT_Exchange["symbols"];
+	markets: CCXT_Exchange["markets"];
 }
 
 export interface SimulatedExchange extends Exchange {

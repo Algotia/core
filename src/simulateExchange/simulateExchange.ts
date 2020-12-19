@@ -98,6 +98,8 @@ const simulateExchange = (
 		OHLCVRecordLimit: 1000,
 		simulated: true,
 		fees: optionsWithDefauls.fees,
+		symbols: null,
+		markets: null,
 		has: {
 			fetchOHLCV: "simulated",
 			fetchOrderBook: "simulated",
@@ -128,12 +130,17 @@ const simulateExchange = (
 
 	if (derviesFrom) {
 		exchange["derviesFrom"] = derviesFrom;
+		exchange["symbols"] = derviedExchange.symbols;
+		exchange["markets"] = derviedExchange.markets;
 		exchange.has["loadMarkets"] = derviedExchange.has["loadMarkets"];
 		exchange.has["fetchOHLCV"] = derviedExchange.has["fetchOHLCV"];
 		exchange.has["fetchOrderBook"] = derviedExchange.has["fetchOrderBook"];
-		exchange["loadMarkets"] = derviedExchange.loadMarkets.bind(
-			derviedExchange
-		);
+		exchange["loadMarkets"] = async () => {
+			const markets = await derviedExchange.loadMarkets();
+			exchange["markets"] = markets;
+			exchange["symbols"] = Object.keys(markets);
+			return markets;
+		};
 	}
 
 	const fillOrders = createFillOrders(store);
