@@ -68,7 +68,7 @@ describe("simulateExchange", () => {
 		}
 	});
 
-	it("should set 'has' to 'simulated' or the derived value from exchange", () => {
+	it("should set properties of 'has' to 'simulated' or the derived value from exchange", () => {
 		for (const exchangeObj of allExchangeObj) {
 			const { derivedExchange, originalExchange } = exchangeObj;
 
@@ -89,6 +89,23 @@ describe("simulateExchange", () => {
 					originalExchange.has[method]
 				);
 			}
+		}
+	});
+
+	it("should have populated 'markets' and 'symbols' property if dervies from real exchange", async () => {
+		for (const exchangeId of AllowedExchangeIDs) {
+			const { exchange } = simulateExchange({
+				initialBalance: {
+					ETH: 100,
+					BTC: 100,
+				},
+				derviesFrom: exchangeId,
+			});
+
+			await exchange.loadMarkets();
+
+			assert(Object.keys(exchange.markets).length > 1);
+			assert(exchange.symbols.length > 1);
 		}
 	});
 });

@@ -41,6 +41,8 @@ const createExchange = (id: ExchangeID): Exchange => {
 		id,
 		has,
 		fees: ccxt.fees,
+		markets: ccxt.markets,
+		symbols: ccxt.symbols,
 		rateLimit: ccxt.rateLimit,
 		OHLCVRecordLimit: modifications[id].OHLCVRecordLimit,
 		fetchOrderBook: ccxt.fetchOrderBook.bind(ccxt),
