@@ -1,6 +1,6 @@
 {
 	"name": "@algotia/core",
-	"version": "0.0.4-15",
+	"version": "0.0.4-16",
 	"author": "",
 	"license": "ISC",
 	"description": "A technical analysis driven cryptocurrency trading and back-testing platform.",
@@ -18,7 +18,7 @@
 		"start": "node dist/algotia.js",
 		"buildAndTest": "npm run build && npm t",
 		"semantic-release": "semantic-release",
-		"postinstall": "is-ci || husky install",
+		"_postinstall": "is-ci || husky install",
 		"prepublish": "pinst --disable",
 		"postpublish": "pinst --enable"
 	},
