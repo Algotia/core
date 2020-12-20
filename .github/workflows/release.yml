@@ -57,13 +57,7 @@ jobs:
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Create Pull Request with updated package files
-      uses: peter-evans/create-pull-request@v3
-      with:
-        token: ${{ secrets.GH_TOKEN }}
-        commit-message: 'chore(release): ${{ steps.extractver.outputs.version }}'
-        committer: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
-        author: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
-        title: 'chore(release): ${{ steps.extract_ver.outputs.version }}'
-        body: 'Version bump in package.json and package-lock.json for release [${{ steps.extract_ver.outputs.version }}](https://github.com/${{github.repository}}/releases/tag/v${{ steps.extract_ver.outputs.version }})'
-        branch: 'v${{ steps.extract_ver.outputs.version }}'
+    - name: Push updated package files
+      run: |
+        git checkout -b 'v${{ steps.extract_ver.outputs.version }}'
+        git push -u origin 'v${{ steps.extract_ver.outputs.version }}'
