@@ -19,7 +19,7 @@
 		"buildAndTest": "npm run build && npm t",
 		"get-version": "echo $npm_package_version",
 		"semantic-release": "semantic-release",
-		"_postinstall": "is-ci || husky install",
+		"postinstall": "is-ci || husky install",
 		"prepublish": "pinst --disable",
 		"postpublish": "pinst --enable"
 	},
