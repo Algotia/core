@@ -60,4 +60,4 @@ jobs:
     - name: Push updated package files
       run: |
         git checkout -b 'v${{ steps.extract_ver.outputs.version }}'
-        git push -u origin 'v${{ steps.extract_ver.outputs.version }}'
+        git push -u origin 'v${{ steps.extract_ver.outputs.version }}' --follow-tags
