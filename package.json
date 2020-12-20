@@ -17,6 +17,7 @@
 		"dev": "npx gulp watch",
 		"start": "node dist/algotia.js",
 		"buildAndTest": "npm run build && npm t",
+		"get-version": "echo $npm_package_version",
 		"semantic-release": "semantic-release",
 		"postinstall": "is-ci || husky install",
 		"prepublish": "pinst --disable",
