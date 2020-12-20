@@ -12,6 +12,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
+      with:
+        ref: development
 
     - name: Setup Node.js environment
       uses: actions/setup-node@v2
@@ -29,14 +31,8 @@ jobs:
         git config --global user.name "GitHub Action"
         npx standard-version --prerelease
 
-    - name: Checkout development branch
-      uses: actions/checkout@v2
-      with:
-        ref: development
-
     - name: Push bump artifacts
       run: |
-        git checkout development
         git push --follow-tags
 
     - name: Setup Node.js with NPM
