@@ -31,9 +31,12 @@ jobs:
         git config --global user.name "GitHub Action"
         npx standard-version --prerelease
 
-    - name: Push bump artifacts
-      run: |
-        git push --follow-tags
+     - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ github.ref }}
+        tags: true
 
     - name: Setup Node.js with NPM
       uses: actions/setup-node@v2
