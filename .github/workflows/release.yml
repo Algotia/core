@@ -58,10 +58,11 @@ jobs:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Create Pull Request with updated package files
-      uses: peter-evans/create-pull-request@v2.4.4
+      uses: peter-evans/create-pull-request@v3
       with:
         token: ${{ secrets.GH_TOKEN }}
         commit-message: 'chore(release): ${{ steps.extractver.outputs.version }}'
+        author: "GitHub <noreply@github.com>"
         title: 'chore(release): ${{ steps.extract_ver.outputs.version }}'
         body: 'Version bump in package.json and package-lock.json for release [${{ steps.extract_ver.outputs.version }}](https://github.com/${{github.repository}}/releases/tag/v${{ steps.extract_ver.outputs.version }})'
-        branch: ${{ steps.extract_ver.outputs.version }}
+        branch: 'v${{ steps.extract_ver.outputs.version }}'
