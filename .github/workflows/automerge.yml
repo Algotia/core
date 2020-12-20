@@ -3,6 +3,8 @@ name: Automerge release bump PR
 
 on:
   pull_request:
+    branches:
+      - master
     types:
       - labeled
       - unlabeled
