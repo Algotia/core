@@ -31,12 +31,9 @@ jobs:
         git config --global user.name "GitHub Action"
         npx standard-version --prerelease
 
-    - name: Push changes
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: ${{ github.ref }}
-        tags: true
+    - name: Extract version
+      id: extract_ver
+      run: echo "::set-output name=version::$(npm run get-version --silent)"
 
     - name: Setup Node.js with NPM
       uses: actions/setup-node@v2
@@ -61,3 +58,12 @@ jobs:
       run: npm publish
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+     - name: Create Pull Request with updated package files
+        uses: peter-evans/create-pull-request@v2.4.4
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          commit-message: 'chore(release): ${{ steps.extractver.outputs.version }}'
+          title: 'chore(release): ${{ steps.extract_ver.outputs.version }}'
+          body: 'Version bump in package.json and package-lock.json for release [${{ steps.extract_ver.outputs.version }}](https://github.com/${{github.repository}}/releases/tag/v${{ steps.extract_ver.outputs.version }})'
+          branch: ${{ steps.extract_ver.outputs.version }}
