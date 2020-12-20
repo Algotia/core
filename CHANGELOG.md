@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 0.0.4-15 (2020-12-20)
+
+
+### Bug Fixes
+
+* **gh-actions:** fixed broken workflow ([#240](https://github.com/Algotia/core/issues/240)) ([a9d88f6](https://github.com/Algotia/core/commit/a9d88f6abd72fa13f03da979508b6236c7f739c2))
+
 ### 0.0.4-13 (2020-12-19)
 
 ### 0.0.4-12 (2020-12-17)
