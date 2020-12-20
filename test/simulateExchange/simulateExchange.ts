@@ -1,11 +1,18 @@
 import { assert, describe, it } from "quyz";
-import ccxt, { Exchange as CCXT_Exchange } from "ccxt";
+import ccxt, { Exchange as CCXT_Exchange, Dictionary, Market } from "ccxt";
 import {
 	simulateExchange,
 	AllowedExchangeIDs,
 	ExchangeID,
 	SimulatedExchange,
 } from "../../src/algotia";
+import { stub } from "sinon";
+
+interface ExchangeObj {
+	originalExchange: CCXT_Exchange;
+	derivedExchange: SimulatedExchange;
+	exchangeId: ExchangeID;
+}
 
 describe("simulateExchange", () => {
 	const { exchange: defaultExchange } = simulateExchange({
@@ -20,19 +27,17 @@ describe("simulateExchange", () => {
 		assert(defaultExchange.has.loadMarkets === false);
 	});
 
-	it("should set 'has' to 'simulated' for all methods except loadMarkets", () => {
-		const { loadMarkets, ...exchangeHas } = defaultExchange.has;
+	it("should set 'has' to 'simulated' for all methods except for derived-only methods", () => {
+		const {
+			loadMarkets,
+			fetchStatus,
+			...exchangeHas
+		} = defaultExchange.has;
 
 		for (const method in exchangeHas) {
 			assert(exchangeHas[method] === "simulated");
 		}
 	});
-
-	interface ExchangeObj {
-		originalExchange: CCXT_Exchange;
-		derivedExchange: SimulatedExchange;
-		exchangeId: ExchangeID;
-	}
 
 	const allExchangeObj: ExchangeObj[] = AllowedExchangeIDs.map(
 		(exchangeId) => {
@@ -68,7 +73,7 @@ describe("simulateExchange", () => {
 		}
 	});
 
-	it("should set properties of 'has' to 'simulated' or the derived value from exchange", () => {
+	it("should set contain dervied 'has' values from exchange", () => {
 		for (const exchangeObj of allExchangeObj) {
 			const { derivedExchange, originalExchange } = exchangeObj;
 
@@ -76,6 +81,7 @@ describe("simulateExchange", () => {
 				loadMarkets,
 				fetchOHLCV,
 				fetchOrderBook,
+				fetchStatus,
 				...simulatedMethods
 			} = derivedExchange.has;
 
@@ -83,7 +89,12 @@ describe("simulateExchange", () => {
 				assert.strictEqual(simulatedMethods[method], "simulated");
 			}
 
-			for (const method in { loadMarkets, fetchOHLCV, fetchOrderBook }) {
+			for (const method in {
+				loadMarkets,
+				fetchOHLCV,
+				fetchOrderBook,
+				fetchStatus,
+			}) {
 				assert.strictEqual(
 					derivedExchange.has[method],
 					originalExchange.has[method]
@@ -92,7 +103,7 @@ describe("simulateExchange", () => {
 		}
 	});
 
-	it("should have populated 'markets' and 'symbols' property if dervies from real exchange", async () => {
+	it("should have populated properties if dervies from real exchange", async () => {
 		for (const exchangeId of AllowedExchangeIDs) {
 			const { exchange } = simulateExchange({
 				initialBalance: {
@@ -102,9 +113,28 @@ describe("simulateExchange", () => {
 				derviesFrom: exchangeId,
 			});
 
+			stub(exchange, "loadMarkets").callsFake(async () => {
+				const markets: unknown = {
+					"BTC/ETH": {},
+					"ETH/BTC": {},
+				};
+				exchange.markets = markets as Dictionary<Market>;
+
+				exchange.symbols = Object.keys(markets);
+
+				const timeframes: Dictionary<string> = {
+					"1m": "1m",
+					"5m": "5m",
+				};
+				exchange.timeframes = timeframes;
+
+				return {};
+			});
+
 			await exchange.loadMarkets();
 
 			assert(Object.keys(exchange.markets).length > 1);
+			assert(Object.keys(exchange.timeframes).length > 1);
 			assert(exchange.symbols.length > 1);
 		}
 	});

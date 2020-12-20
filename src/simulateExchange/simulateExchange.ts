@@ -100,6 +100,7 @@ const simulateExchange = (
 		fees: optionsWithDefauls.fees,
 		symbols: null,
 		markets: null,
+		timeframes: null,
 		has: {
 			fetchOHLCV: "simulated",
 			fetchOrderBook: "simulated",
@@ -113,6 +114,7 @@ const simulateExchange = (
 			fetchClosedOrders: "simulated",
 			fetchMyTrades: "simulated",
 			loadMarkets: false,
+			fetchStatus: false,
 		},
 		fetchOHLCV: createFetchOHLCV(derviedExchange),
 		fetchOrderBook: createFetchOrderBook(store, derviedExchange),
@@ -125,16 +127,26 @@ const simulateExchange = (
 		fetchOpenOrders: createFetchOpenOrders(store),
 		fetchClosedOrders: createFetchClosedOrders(store),
 		fetchMyTrades: createFetchMyTrades(store),
+		fetchStatus: null,
 		loadMarkets: null,
 	};
 
 	if (derviesFrom) {
+		// set static props
 		exchange["derviesFrom"] = derviesFrom;
 		exchange["symbols"] = derviedExchange.symbols;
 		exchange["markets"] = derviedExchange.markets;
+		exchange["timeframes"] = derviedExchange.timeframes;
+
+		// set 'has' props
+		exchange.has["fetchStatus"] = derviedExchange.has["fetchStatus"];
 		exchange.has["loadMarkets"] = derviedExchange.has["loadMarkets"];
 		exchange.has["fetchOHLCV"] = derviedExchange.has["fetchOHLCV"];
 		exchange.has["fetchOrderBook"] = derviedExchange.has["fetchOrderBook"];
+
+		// set methods if necessary
+		// fetchOHLCV and fetchOrderBook handle this in their factory functions
+		exchange.fetchStatus = derviedExchange.fetchStatus;
 		exchange["loadMarkets"] = async () => {
 			const markets = await derviedExchange.loadMarkets();
 			exchange["markets"] = markets;

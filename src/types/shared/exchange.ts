@@ -14,6 +14,7 @@ export interface OHLCV {
 }
 
 interface ExchangeMethods {
+	fetchStatus: CCXT_Exchange["fetchStatus"];
 	fetchOrderBook: CCXT_Exchange["fetchOrderBook"];
 	fetchOHLCV: CCXT_Exchange["fetchOHLCV"];
 	fetchBalance: CCXT_Exchange["fetchBalance"];
@@ -37,8 +38,8 @@ export interface Fees {
 	};
 }
 
+// Static exchange props
 export interface Exchange extends ExchangeMethods {
-	/* ccxt: CCXT_Exchange; */
 	id: ExchangeID | "simulated";
 	OHLCVRecordLimit: number;
 	fees: CCXT_Exchange["fees"];
@@ -46,6 +47,7 @@ export interface Exchange extends ExchangeMethods {
 	has: Record<keyof ExchangeMethods, boolean | "simulated" | "emulated">;
 	symbols: CCXT_Exchange["symbols"];
 	markets: CCXT_Exchange["markets"];
+	timeframes: CCXT_Exchange["timeframes"];
 }
 
 export interface SimulatedExchange extends Exchange {
