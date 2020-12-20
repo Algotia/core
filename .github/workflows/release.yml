@@ -25,8 +25,13 @@ jobs:
     - name: Bump version
       id: bump_version
       run: |
+<<<<<<< HEAD
         git config --global user.email 'github-actions[bot]@users.noreply.github.com' 
         git config --global user.name 'github-actions[bot]'
+=======
+        git config --global user.email 'github-actions[bot]'
+        git config --global user.name 'github-actions[bot]@users.noreply.github.com'
+>>>>>>> origin/master
         npx standard-version --prerelease
 
     - name: Extract version
@@ -62,7 +67,10 @@ jobs:
       with:
         token: ${{ secrets.GH_TOKEN }}
         commit-message: 'chore(release): ${{ steps.extractver.outputs.version }}'
+<<<<<<< HEAD
         committer: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+=======
+>>>>>>> origin/master
         author: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
         title: 'chore(release): ${{ steps.extract_ver.outputs.version }}'
         body: 'Version bump in package.json and package-lock.json for release [${{ steps.extract_ver.outputs.version }}](https://github.com/${{github.repository}}/releases/tag/v${{ steps.extract_ver.outputs.version }})'
