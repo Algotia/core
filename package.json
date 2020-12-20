@@ -18,7 +18,7 @@
 		"start": "node dist/algotia.js",
 		"buildAndTest": "npm run build && npm t",
 		"semantic-release": "semantic-release",
-		"_postinstall": "is-ci || husky install",
+		"postinstall": "is-ci || husky install",
 		"prepublish": "pinst --disable",
 		"postpublish": "pinst --enable"
 	},
