@@ -29,6 +29,11 @@ jobs:
         git config --global user.name "GitHub Action"
         npx standard-version --prerelease
 
+    - name: Checkout development branch
+      uses: action/checkout@v2
+      with:
+        ref: development
+
     - name: Push bump artifacts
       run: |
         git checkout development
