@@ -23,6 +23,7 @@ const createExchange = (id: ExchangeID): Exchange => {
 	const ccxt = new CCXT[id]();
 
 	const has: Exchange["has"] = {
+		fetchStatus: ccxt.has["fetchStatus"],
 		fetchOrderBook: ccxt.has["fetchOrderBook"],
 		fetchOHLCV: ccxt.has["fetchOHLCV"],
 		fetchBalance: ccxt.has["fetchBalance"],
@@ -43,8 +44,10 @@ const createExchange = (id: ExchangeID): Exchange => {
 		fees: ccxt.fees,
 		markets: ccxt.markets,
 		symbols: ccxt.symbols,
+		timeframes: ccxt.timeframes,
 		rateLimit: ccxt.rateLimit,
 		OHLCVRecordLimit: modifications[id].OHLCVRecordLimit,
+		fetchStatus: ccxt.fetchStatus.bind(ccxt),
 		fetchOrderBook: ccxt.fetchOrderBook.bind(ccxt),
 		fetchOHLCV: ccxt.fetchOHLCV.bind(ccxt),
 		fetchBalance: ccxt.fetchBalance.bind(ccxt),
