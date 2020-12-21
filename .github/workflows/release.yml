@@ -6,9 +6,31 @@ on:
       - master
 
 jobs:
-  publish:
-    name: Publish
+  check_version:
+    name: Check if version was bumped
     runs-on: ubuntu-latest
+    outputs:
+        old_ver: ${{ steps.old_ver.outputs.version }}
+        new_ver: ${{ steps.new_ver.outputs.version }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Setup Node.js environment
+      uses: actions/setup-node@v2
+
+    - name: Get last published version
+      id: old_ver
+      run: echo "::set-output name=version::${npm view @algotia/core version}"
+
+    - name: Get version from push
+      id: new_ver
+      run: echo "::set-output name=version::$(npm run get-version --silent)"
+  publish:
+    name: Publish to NPM and GPR
+    runs-on: ubuntu-latest
+    needs: check_version
+    if: ${{ needs.check_version.outputs.old_ver }} != ${{ needs.check_version.outputs.new_ver }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -21,10 +43,6 @@ jobs:
 
     - name: Build
       run: npm run build
-
-    - name: Extract version
-      id: extract_ver
-      run: echo "::set-output name=version::$(npm run get-version --silent)"
 
     - name: Setup Node.js with NPM
       uses: actions/setup-node@v2
@@ -59,9 +77,9 @@ jobs:
       id: create_release
       uses: actions/create-release@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
       with:
         tag_name: ${{ github.ref }}
         release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: true
+        draft: false
+        prerelease: true
