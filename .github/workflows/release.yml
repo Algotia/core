@@ -43,9 +43,25 @@ jobs:
       with:
         registry-url: 'https://npm.pkg.github.com/'
         scope: '@algotia'
-        
+
     - name: Publish to GPR
       id: publish_gpr
       run: npm publish
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Tag release
+      run: |
+          git tag -a v${{ steps.extract_ver.outputs.version }} -m "chore(relase): release v${{ steps.extract_ver.outputs.version }}"
+          git push --follow-tags
+
+    - name: Create Github release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: true
