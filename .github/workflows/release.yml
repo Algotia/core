@@ -22,13 +22,6 @@ jobs:
     - name: Build
       run: npm run build
 
-    - name: Bump version
-      id: bump_version
-      run: |
-        git config --global user.email 'github-actions[bot]@users.noreply.github.com' 
-        git config --global user.name 'github-actions[bot]'
-        npx standard-version --prerelease
-
     - name: Extract version
       id: extract_ver
       run: echo "::set-output name=version::$(npm run get-version --silent)"
@@ -56,8 +49,3 @@ jobs:
       run: npm publish
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Push updated package files
-      run: |
-        git checkout -b 'release-v${{ steps.extract_ver.outputs.version }}'
-        git push origin 'release-v${{ steps.extract_ver.outputs.version }}':master --follow-tags
