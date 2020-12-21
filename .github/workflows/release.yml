@@ -21,7 +21,6 @@ jobs:
 
     - name: Get last published version
       id: old_ver
-
       run: echo "::set-output name=version::$(npm view @algotia/core version)"
     - name: Get version from push
       id: new_ver
@@ -70,8 +69,10 @@ jobs:
 
     - name: Tag release
       run: |
-          git tag -a v${{ steps.extract_ver.outputs.version }} -m "chore(relase): release v${{ steps.extract_ver.outputs.version }}"
-          git push --follow-tags
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com' 
+        git config --global user.name 'github-actions[bot]'
+        git tag -a v${{ needs.check_version.outputs.new_ver }} -m "chore(relase): release v${{ needs.check_version.outputs.new_ver }}"
+        git push --follow-tags
 
     - name: Create Github release
       id: create_release
@@ -79,7 +80,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        tag_name: v${{ needs.check_version.outputs.new_ver }}
+        release_name: Release ${{ needs.check_version.outputs.new_ver}}
         draft: false
         prerelease: true
