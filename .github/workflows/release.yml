@@ -21,8 +21,8 @@ jobs:
 
     - name: Get last published version
       id: old_ver
-      run: echo "::set-output name=version::$(npm view @algotia/core version)"
 
+      run: echo "::set-output name=version::$(npm view @algotia/core version)"
     - name: Get version from push
       id: new_ver
       run: echo "::set-output name=version::$(npm run get-version --silent)"
