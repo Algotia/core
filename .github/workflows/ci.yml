@@ -21,6 +21,16 @@ jobs:
       run: npm run build
     - name: Run tests
       run: npm t
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup Node.js environment
+      uses: actions/setup-node@v2
+    - name: Install dependencies
+      run: npm ci
+    - name: Build
+      run: npm run build
     - name: Bump version
       run: |
         git config --global user.email 'github-actions[bot]@users.noreply.github.com' 
