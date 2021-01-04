@@ -1,4 +1,4 @@
-import { Exchange, OHLCV } from "../types";
+import { Exchange, OHLCV, SimulatedExchange } from "../types";
 import { parsePeriod, reshapeOHLCV, roundTime } from "../utils";
 
 /** Get the last full live candle from the exchange.
@@ -6,7 +6,7 @@ import { parsePeriod, reshapeOHLCV, roundTime } from "../utils";
 const getLiveCandle = async (
 	period: string,
 	pair: string,
-	exchange: Exchange
+	exchange: Exchange | SimulatedExchange
 ): Promise<OHLCV> => {
 	const { periodMs } = parsePeriod(period);
 

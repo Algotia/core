@@ -1,4 +1,8 @@
-import { OHLCV, SimulatedExchangeResult } from "./exchange";
+import {
+	OHLCV,
+	SimulatedExchangeResult,
+	SimulatedExchangeStore,
+} from "./exchange";
 import { Strategy } from "./shared";
 
 export interface BacktestOptions {
@@ -6,6 +10,10 @@ export interface BacktestOptions {
 	data: OHLCV[];
 	strategy: Strategy;
 }
+export type BacktestResults = Omit<
+	SimulatedExchangeStore,
+	"currentTime" | "currentPrice"
+>;
 
 export interface PaperTradeOptions {
 	simulatedExchange: SimulatedExchangeResult;

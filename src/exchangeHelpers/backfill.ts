@@ -1,4 +1,4 @@
-import { Exchange, OHLCV } from "../types";
+import { Exchange, OHLCV, SimulatedExchange } from "../types";
 import { parsePeriod, reshapeOHLCV } from "../utils/";
 
 /** If no candles were returned (e.g.: downtime, no volume), fill period with last known candle prices, with timestamp value incremented to create continuous time series */
@@ -38,14 +38,16 @@ const fillEmptyCandles = (candles: OHLCV[], periodMs: number): OHLCV[] => {
 	return fullCandleSet;
 };
 
+interface BackfillArgs {
+	from: number;
+	to: number;
+	pair: string;
+	period: string;
+	exchange: Exchange | SimulatedExchange;
+}
 /** This helper function is a wrapper around the CCXT method fetchOHLCV. It handles pagination and filling periods where no candles were returned with dummy candles. */
-const backfill = async (
-	from: number,
-	to: number,
-	pair: string,
-	period: string,
-	exchange: Exchange
-): Promise<OHLCV[]> => {
+const backfill = async (args: BackfillArgs): Promise<OHLCV[]> => {
+	const { from, to, pair, period, exchange } = args;
 	const { periodMs } = parsePeriod(period);
 
 	let recordsToFetch = Math.ceil((to - from) / periodMs);

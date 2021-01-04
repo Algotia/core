@@ -5,6 +5,7 @@ import {
 	AllowedExchangeIDs,
 	ExchangeID,
 	SimulatedExchange,
+	createExchange,
 } from "../../src/algotia";
 import { stub } from "sinon";
 
@@ -41,8 +42,9 @@ describe("simulateExchange", () => {
 
 	const allExchangeObj: ExchangeObj[] = AllowedExchangeIDs.map(
 		(exchangeId) => {
+			const exchange = createExchange(exchangeId);
 			const { exchange: derivedExchange } = simulateExchange({
-				derviesFrom: exchangeId,
+				derviesFrom: exchange,
 				initialBalance: {
 					ETH: 100,
 					BTC: 100,
@@ -105,12 +107,13 @@ describe("simulateExchange", () => {
 
 	it("should have populated properties if dervies from real exchange", async () => {
 		for (const exchangeId of AllowedExchangeIDs) {
+			const realExchange = createExchange(exchangeId);
 			const { exchange } = simulateExchange({
 				initialBalance: {
 					ETH: 100,
 					BTC: 100,
 				},
-				derviesFrom: exchangeId,
+				derviesFrom: realExchange,
 			});
 
 			stub(exchange, "loadMarkets").callsFake(async () => {

@@ -39,8 +39,9 @@ export interface Fees {
 }
 
 // Static exchange props
-export interface Exchange extends ExchangeMethods {
-	id: ExchangeID | "simulated";
+export interface Exchange<ID extends ExchangeID | "simulated" = ExchangeID>
+	extends ExchangeMethods {
+	id: ID;
 	OHLCVRecordLimit: number;
 	fees: CCXT_Exchange["fees"];
 	rateLimit: CCXT_Exchange["rateLimit"];
@@ -50,7 +51,7 @@ export interface Exchange extends ExchangeMethods {
 	timeframes: CCXT_Exchange["timeframes"];
 }
 
-export interface SimulatedExchange extends Exchange {
+export interface SimulatedExchange extends Exchange<"simulated"> {
 	id: "simulated";
 	simulated: true;
 	fees: Fees;

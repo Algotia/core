@@ -1,9 +1,4 @@
-import { SimulatedExchangeStore, BacktestOptions } from "../types";
-
-type BacktestResults = Omit<
-	SimulatedExchangeStore,
-	"currentTime" | "currentPrice"
->;
+import { BacktestResults, BacktestOptions } from "../types";
 
 /** Backtesting runs a strategy against historical data */
 const backtest = async (options: BacktestOptions): Promise<BacktestResults> => {

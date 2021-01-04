@@ -1,4 +1,4 @@
-import { Balances, Exchange as CCXT_Exchange } from "ccxt";
+import { Balances } from "ccxt";
 import {
 	SimulatedExchangeStore,
 	SimulatedExchangeResult,
@@ -25,7 +25,6 @@ import {
 } from "./controlMethods";
 import createFetchOHLCV from "./simulatedMethods/fetchOHLCV";
 import createFetchOrderBook from "./simulatedMethods/fetchOrderBook";
-import { createExchange } from "../createExchange";
 
 type InitialBalance = Record<string, number>;
 
@@ -51,7 +50,7 @@ const createInitalBalance = (initialBalance: InitialBalance): Balances => {
 
 interface SimulatedExchangeOptions {
 	initialBalance: InitialBalance;
-	derviesFrom?: ExchangeID;
+	derviesFrom?: Exchange;
 	fees?: SimulatedExchange["fees"];
 }
 
@@ -60,12 +59,11 @@ const simulateExchange = (
 ): SimulatedExchangeResult => {
 	const { initialBalance } = options;
 
-	let derviesFrom: ExchangeID, derviedExchange: Exchange;
+	let derviesFrom: Exchange
 
 	if (options && options.derviesFrom) {
 		derviesFrom = options.derviesFrom;
-		derviedExchange = createExchange(derviesFrom);
-		options.fees = derviedExchange.fees as Fees;
+		options.fees = derviesFrom.fees as Fees;
 	}
 
 	const defaultOptions: SimulatedExchangeOptions = {
@@ -93,7 +91,6 @@ const simulateExchange = (
 
 	const exchange: SimulatedExchange = {
 		id: "simulated",
-		derviesFrom,
 		rateLimit: 0,
 		OHLCVRecordLimit: 1000,
 		simulated: true,
@@ -116,8 +113,8 @@ const simulateExchange = (
 			loadMarkets: false,
 			fetchStatus: false,
 		},
-		fetchOHLCV: createFetchOHLCV(derviedExchange),
-		fetchOrderBook: createFetchOrderBook(store, derviedExchange),
+		fetchOHLCV: createFetchOHLCV(derviesFrom),
+		fetchOrderBook: createFetchOrderBook(store, derviesFrom),
 		createOrder: createCreateOrder(store, optionsWithDefauls.fees),
 		editOrder: createEditOrder(store, optionsWithDefauls.fees),
 		cancelOrder: createCancelOrder(store),
@@ -133,22 +130,22 @@ const simulateExchange = (
 
 	if (derviesFrom) {
 		// set static props
-		exchange["derviesFrom"] = derviesFrom;
-		exchange["symbols"] = derviedExchange.symbols;
-		exchange["markets"] = derviedExchange.markets;
-		exchange["timeframes"] = derviedExchange.timeframes;
+		exchange["derviesFrom"] = derviesFrom.id as ExchangeID;
+		exchange["symbols"] = derviesFrom.symbols;
+		exchange["markets"] = derviesFrom.markets;
+		exchange["timeframes"] = derviesFrom.timeframes;
 
 		// set 'has' props
-		exchange.has["fetchStatus"] = derviedExchange.has["fetchStatus"];
-		exchange.has["loadMarkets"] = derviedExchange.has["loadMarkets"];
-		exchange.has["fetchOHLCV"] = derviedExchange.has["fetchOHLCV"];
-		exchange.has["fetchOrderBook"] = derviedExchange.has["fetchOrderBook"];
+		exchange.has["fetchStatus"] = derviesFrom.has["fetchStatus"];
+		exchange.has["loadMarkets"] = derviesFrom.has["loadMarkets"];
+		exchange.has["fetchOHLCV"] = derviesFrom.has["fetchOHLCV"];
+		exchange.has["fetchOrderBook"] = derviesFrom.has["fetchOrderBook"];
 
-		// set methods if necessary
-		// fetchOHLCV and fetchOrderBook handle this in their factory functions
-		exchange.fetchStatus = derviedExchange.fetchStatus;
+		// set methods 
+		// Note: fetchOHLCV and fetchOrderBook handle this in their factory functions
+		exchange.fetchStatus = derviesFrom.fetchStatus;
 		exchange["loadMarkets"] = async () => {
-			const markets = await derviedExchange.loadMarkets();
+			const markets = await derviesFrom.loadMarkets();
 			exchange["markets"] = markets;
 			exchange["symbols"] = Object.keys(markets);
 			return markets;
