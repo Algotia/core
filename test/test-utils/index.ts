@@ -1,4 +1,4 @@
-import { simulateExchange } from "../src/algotia";
+import { simulateExchange } from "../../src/algotia";
 
 export const initialBalance = {
 	BTC: 100,

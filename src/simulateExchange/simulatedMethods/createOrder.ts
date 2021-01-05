@@ -1,4 +1,4 @@
-import { InsufficientFunds, Order } from "ccxt";
+import { BadSymbol, InsufficientFunds, Order } from "ccxt";
 import { Exchange, SimulatedExchangeStore } from "../../types";
 import { parsePair, uuid } from "../../utils";
 
@@ -7,7 +7,8 @@ type Fees = Exchange["fees"];
 
 const createCreateOrder = (
 	store: SimulatedExchangeStore,
-	fees: Fees
+	fees: Fees,
+	derivesFrom?: Exchange
 ): CreateOrder => {
 	return async (
 		symbol: string,
@@ -23,11 +24,29 @@ const createCreateOrder = (
 
 		const [base, quote] = parsePair(symbol);
 
-		/*		const { symbols } = exchange.ccxt; */
+		if (derivesFrom && derivesFrom.symbols) {
+			if (!derivesFrom.symbols.includes(symbol)) {
+				throw new BadSymbol(
+					`Symbol ${symbol} does not exist on exchange ${derivesFrom.id}`
+				);
+			}
+		} else {
+			const balanceKeys = Object.keys(balance).filter(
+				(key) => key !== "info" && key
+			);
 
-		/*		if (!symbols.includes(symbol)) { */
-		/*			throw new Error(`Symbol ${symbol} does not exist on exchange ${exchange.id}`) */
-		/*		} */
+			if (!balanceKeys.includes(base)) {
+				throw new BadSymbol(
+					`No balance initialized for currency ${base}`
+				);
+			}
+
+			if (!balanceKeys.includes(quote)) {
+				throw new BadSymbol(
+					`No balance initialized for currency ${quote}`
+				);
+			}
+		}
 
 		let costNoFee: number;
 

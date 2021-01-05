@@ -59,7 +59,7 @@ const simulateExchange = (
 ): SimulatedExchangeResult => {
 	const { initialBalance } = options;
 
-	let derviesFrom: Exchange
+	let derviesFrom: Exchange;
 
 	if (options && options.derviesFrom) {
 		derviesFrom = options.derviesFrom;
@@ -115,7 +115,11 @@ const simulateExchange = (
 		},
 		fetchOHLCV: createFetchOHLCV(derviesFrom),
 		fetchOrderBook: createFetchOrderBook(store, derviesFrom),
-		createOrder: createCreateOrder(store, optionsWithDefauls.fees),
+		createOrder: createCreateOrder(
+			store,
+			optionsWithDefauls.fees,
+			derviesFrom
+		),
 		editOrder: createEditOrder(store, optionsWithDefauls.fees),
 		cancelOrder: createCancelOrder(store),
 		fetchBalance: createFetchBalance(store),
@@ -141,7 +145,7 @@ const simulateExchange = (
 		exchange.has["fetchOHLCV"] = derviesFrom.has["fetchOHLCV"];
 		exchange.has["fetchOrderBook"] = derviesFrom.has["fetchOrderBook"];
 
-		// set methods 
+		// set methods
 		// Note: fetchOHLCV and fetchOrderBook handle this in their factory functions
 		exchange.fetchStatus = derviesFrom.fetchStatus;
 		exchange["loadMarkets"] = async () => {
