@@ -19,10 +19,10 @@ const modifications: Record<ExchangeID, ExchangeModifications> = {
 };
 
 /** Create an exchange instance. */
-const createExchange = (id: ExchangeID): Exchange => {
+const createExchange = <ID extends ExchangeID>(id: ID): Exchange<ID> => {
 	const ccxt = new CCXT[id]();
 
-	const has: Exchange["has"] = {
+	const has: Exchange<ID>["has"] = {
 		fetchStatus: ccxt.has["fetchStatus"],
 		fetchOrderBook: ccxt.has["fetchOrderBook"],
 		fetchOHLCV: ccxt.has["fetchOHLCV"],
@@ -38,7 +38,7 @@ const createExchange = (id: ExchangeID): Exchange => {
 		loadMarkets: ccxt.has["loadMarkets"],
 	};
 
-	const exchange: Exchange = {
+	const exchange: Exchange<ID> = {
 		id,
 		has,
 		fees: ccxt.fees,

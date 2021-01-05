@@ -7,14 +7,14 @@ const createFetchOrderBook = (
 	store: SimulatedExchangeStore,
 	derviedExchange?: Exchange
 ): FetchOrderBook => {
+	if (derviedExchange) {
+		return derviedExchange.fetchOrderBook;
+	}
 	return async (
 		symbol: string,
 		limit?: number,
 		params?: Params
 	): Promise<OrderBook> => {
-		if (derviedExchange) {
-			return await derviedExchange.fetchOrderBook(symbol, limit, params);
-		}
 		return {
 			nonce: 0,
 			datetime: new Date(store.currentTime).toISOString(),

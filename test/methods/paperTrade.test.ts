@@ -1,10 +1,22 @@
 import { paperTrade } from "../../src/algotia";
-import { Exchange,  Strategy, PaperTradeOptions } from "../../src/types";
+import { Exchange, Strategy, PaperTradeOptions } from "../../src/types";
 import { simulatedExchange, reset, initialBalance } from "../test-utils";
 import sinon from "sinon";
 import { EventEmitter } from "events";
 
-describe("paperTrade", async () => {
+jest.mock("../../src/exchangeHelpers/getLiveCandle", () => {
+	return jest.fn(() => {
+		return {
+			timestamp: 1000,
+			open: 1,
+			high: 1,
+			low: 1,
+			close: 1,
+			volume: 1,
+		};
+	});
+});
+describe("paperTrade", () => {
 	afterEach(() => {
 		reset();
 	});
@@ -107,22 +119,19 @@ describe("paperTrade", async () => {
 
 		expect(doneFn).toHaveBeenCalled();
 
-		const result = doneFn.mock.calls;
-		console.log(result)
-
-		expect(1).toStrictEqual(2)
+		const results = doneFn.mock.calls[0][0];
 
 		const strategyCalls = strategy.getCalls().length;
 		const exchangeFees = simulatedExchange.exchange.fees.trading.taker;
 		// Multiplying by 1 is obviously redundant here, but in general
 		// should multiply by order cost
 
-		// const totalCost = exchangeFees * 1 * strategyCalls;
-		//
-		// expect(result["balance"]["BTC"]["free"]).toBeCloseTo(
-		// 	initialBalance.ETH - totalCost,
-		// 	0.00001
-		// )
+		const totalCost = exchangeFees * 1 * strategyCalls;
+
+		expect(results["balance"]["BTC"]["free"]).toBeCloseTo(
+			initialBalance.ETH - totalCost,
+			0.00001
+		);
 
 		// expect(doneFn.getCalls().length).toStrictEqual(1);
 		clock.restore();
