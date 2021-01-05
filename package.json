@@ -1,6 +1,6 @@
 {
 	"name": "@algotia/core",
-	"version": "0.0.4-24",
+	"version": "0.0.4-25",
 	"author": "",
 	"license": "ISC",
 	"description": "A technical analysis driven cryptocurrency trading and back-testing platform.",
@@ -58,11 +58,9 @@
 		"jest": "^26.6.3",
 		"pinst": "^2.0.0",
 		"prettier": "^2.1.2",
-		"quyz": "^1.0.42",
 		"semantic-release": "^17.2.2",
 		"sinon": "^9.2.1",
 		"ts-node": "^9.0.0",
-		"typescript": "^4.0.5",
-		"winston": "^3.3.3"
+		"typescript": "^4.0.5"
 	}
 }

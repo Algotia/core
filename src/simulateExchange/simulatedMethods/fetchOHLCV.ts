@@ -4,6 +4,9 @@ import { Exchange } from "../../types";
 type FetchOHLCV = CCXT_Exchange["fetchOHLCV"];
 
 const createFetchOHLCV = (derviedExchange?: Exchange): FetchOHLCV => {
+	if (derviedExchange) {
+		return derviedExchange.fetchOHLCV;
+	}
 	return async (
 		symbol: string,
 		timeframe: string,
@@ -11,14 +14,6 @@ const createFetchOHLCV = (derviedExchange?: Exchange): FetchOHLCV => {
 		limit: number
 	): Promise<OHLCV[]> => {
 		try {
-			if (derviedExchange) {
-				return await derviedExchange.fetchOHLCV(
-					symbol,
-					timeframe,
-					since,
-					limit
-				);
-			}
 			return [];
 		} catch (err) {
 			throw err;
