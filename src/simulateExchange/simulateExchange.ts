@@ -100,7 +100,7 @@ const simulateExchange = (
 		markets: derviesFrom ? derviesFrom.markets : null,
 		timeframes: derviesFrom ? derviesFrom.timeframes : null,  
 		has: {
-			fetchOHLCV: "simulated",
+			fetchOHLCV: "simulated", @JakeAdler 
 			fetchOrderBook: "simulated",
 			createOrder: "simulated",
 			editOrder: "simulated",

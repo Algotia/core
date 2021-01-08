@@ -105,6 +105,7 @@ describe("simulateExchange", () => {
 		for (const exchangeId of AllowedExchangeIDs) {
 			const realExchange = createExchange(exchangeId);
 
+
 			const markets: any = {
 				"BTC/ETH": {},
 				"ETH/BTC": {},
@@ -129,7 +130,7 @@ describe("simulateExchange", () => {
 			await exchange.loadMarkets();
 
 			expect(loadMarketsSpy).toHaveBeenCalledTimes(1);
-
+      
 			expect(exchange.markets).toStrictEqual(markets);
 			expect(exchange.symbols).toStrictEqual(
 				Object.keys(exchange.markets)
