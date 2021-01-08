@@ -51,8 +51,7 @@ export interface Exchange<ID extends ExchangeID | "simulated" = ExchangeID>
 	timeframes: CCXT_Exchange["timeframes"];
 }
 
-export interface SimulatedExchange extends Exchange<"simulated"> {
-	id: "simulated";
+export interface SimulatedExchange extends Exchange {
 	simulated: true;
 	fees: Fees;
 	derviesFrom?: ExchangeID;
