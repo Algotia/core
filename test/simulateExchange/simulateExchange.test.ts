@@ -105,6 +105,19 @@ describe("simulateExchange", () => {
 		for (const exchangeId of AllowedExchangeIDs) {
 			const realExchange = createExchange(exchangeId);
 
+			const markets: any = {
+				"BTC/ETH": {},
+				"ETH/BTC": {},
+			};
+
+			const loadMarketsSpy = jest
+				.spyOn(realExchange, "loadMarkets")
+				.mockImplementation(async () => {
+					realExchange.markets = markets as Dictionary<Market>;
+					realExchange.symbols = Object.keys(markets);
+					return markets;
+				});
+
 			const { exchange } = simulateExchange({
 				initialBalance: {
 					ETH: 100,
@@ -113,25 +126,11 @@ describe("simulateExchange", () => {
 				derviesFrom: realExchange,
 			});
 
-			const loadMarketsSpy = jest
-				.spyOn(realExchange, "loadMarkets")
-				.mockImplementation(async () => {
-					const markets: any = {
-						"BTC/ETH": {},
-						"ETH/BTC": {},
-					};
-					exchange.markets = markets as Dictionary<Market>;
-
-					exchange.symbols = Object.keys(markets);
-					return markets;
-				});
-
 			await exchange.loadMarkets();
 
 			expect(loadMarketsSpy).toHaveBeenCalledTimes(1);
 
-			expect(Object.keys(exchange.markets).length > 1).toBeTruthy();
-			expect(Object.keys(exchange.timeframes).length > 1).toBeTruthy();
+			expect(exchange.markets).toStrictEqual(markets);
 			expect(exchange.symbols).toStrictEqual(
 				Object.keys(exchange.markets)
 			);

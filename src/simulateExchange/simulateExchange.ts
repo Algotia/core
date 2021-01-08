@@ -90,14 +90,15 @@ const simulateExchange = (
 	};
 
 	const exchange: SimulatedExchange = {
+		//@ts-ignore
 		id: "simulated",
 		rateLimit: 0,
 		OHLCVRecordLimit: 1000,
 		simulated: true,
 		fees: optionsWithDefauls.fees,
-		symbols: null,
-		markets: null,
-		timeframes: null,
+		symbols: derviesFrom ? derviesFrom.symbols : null,
+		markets: derviesFrom ? derviesFrom.markets : null,
+		timeframes: derviesFrom ? derviesFrom.timeframes : null,  
 		has: {
 			fetchOHLCV: "simulated",
 			fetchOrderBook: "simulated",
@@ -135,9 +136,6 @@ const simulateExchange = (
 	if (derviesFrom) {
 		// set static props
 		exchange["derviesFrom"] = derviesFrom.id as ExchangeID;
-		exchange["symbols"] = derviesFrom.symbols;
-		exchange["markets"] = derviesFrom.markets;
-		exchange["timeframes"] = derviesFrom.timeframes;
 
 		// set 'has' props
 		exchange.has["fetchStatus"] = derviesFrom.has["fetchStatus"];
