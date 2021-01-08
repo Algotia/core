@@ -73,42 +73,42 @@ const checkCandlesAreContinuous = (
 	}
 };
 
-// const backfillArgs = [
-// 	{
-// 		title: "Short backfill (no pagination)",
-// 		from: new Date("1/1/2020 12:00 AM GMT").getTime(),
-// 		to: new Date("1/2/2020 12:00 AM GMT").getTime(),
-// 		timeframe: "1h",
-// 	},
-// 	{
-// 		title: "Long backfill (pagination)",
-// 		from: new Date("1/1/2020 12:00 PM GMT").getTime(),
-// 		to: new Date("1/4/2020 12:00 AM GMT").getTime(),
-// 		timeframe: "1m",
-// 	},
-// ];
+const backfillArgs = [
+	{
+		title: "Short backfill (no pagination)",
+		from: new Date("1/1/2020 12:00 AM GMT").getTime(),
+		to: new Date("1/2/2020 12:00 AM GMT").getTime(),
+		timeframe: "1h",
+	},
+	{
+		title: "Long backfill (pagination)",
+		from: new Date("1/1/2020 12:00 PM GMT").getTime(),
+		to: new Date("1/4/2020 12:00 AM GMT").getTime(),
+		timeframe: "1m",
+	},
+];
 
-// describe("backfill", () => {
-// 	for (const args of backfillArgs) {
-// 		test(args.title, async () => {
-// 			const { from, to, timeframe } = args;
-// 			const candles = await backfill({
-// 				from,
-// 				to,
-// 				pair: "ETH/BTC",
-// 				period: timeframe,
-// 				exchange: simulatedExchange.exchange,
-// 			});
-//
-// 			expect(
-// 				require("../../src/exchangeHelpers/fillEmptyCandles")
-// 			).toHaveBeenCalledTimes(
-// 				Math.ceil(
-// 					candles.length / simulatedExchange.exchange.OHLCVRecordLimit
-// 				)
-// 			);
-//
-// 			checkCandlesAreContinuous(candles, timeframe, from);
-// 		});
-// 	}
-// });
+describe("backfill", () => {
+	for (const args of backfillArgs) {
+		test(args.title, async () => {
+			const { from, to, timeframe } = args;
+			const candles = await backfill({
+				from,
+				to,
+				pair: "ETH/BTC",
+				period: timeframe,
+				exchange: simulatedExchange.exchange,
+			});
+
+			expect(
+				require("../../src/exchangeHelpers/fillEmptyCandles")
+			).toHaveBeenCalledTimes(
+				Math.ceil(
+					candles.length / simulatedExchange.exchange.OHLCVRecordLimit
+				)
+			);
+
+			checkCandlesAreContinuous(candles, timeframe, from);
+		});
+	}
+});
