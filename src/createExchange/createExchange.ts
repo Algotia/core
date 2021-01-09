@@ -24,6 +24,7 @@ const createExchange = <ID extends ExchangeID>(id: ID): Exchange<ID> => {
 
 	const has: Exchange<ID>["has"] = {
 		fetchStatus: ccxt.has["fetchStatus"],
+		fetchCurrencies: ccxt.has["fetchCurrencies"],
 		fetchOrderBook: ccxt.has["fetchOrderBook"],
 		fetchOHLCV: ccxt.has["fetchOHLCV"],
 		fetchBalance: ccxt.has["fetchBalance"],
@@ -44,6 +45,7 @@ const createExchange = <ID extends ExchangeID>(id: ID): Exchange<ID> => {
 		fees: ccxt.fees,
 		markets: ccxt.markets,
 		symbols: ccxt.symbols,
+		currencies: ccxt.currencies,
 		timeframes: ccxt.timeframes,
 		rateLimit: ccxt.rateLimit,
 		OHLCVRecordLimit: modifications[id].OHLCVRecordLimit,
@@ -56,6 +58,7 @@ const createExchange = <ID extends ExchangeID>(id: ID): Exchange<ID> => {
 		cancelOrder: ccxt.cancelOrder.bind(ccxt),
 		fetchOrder: ccxt.fetchOrder.bind(ccxt),
 		fetchOrders: ccxt.fetchOrders.bind(ccxt),
+		fetchCurrencies: ccxt.fetchCurrencies.bind(ccxt),
 		fetchOpenOrders: ccxt.fetchOpenOrders.bind(ccxt),
 		fetchClosedOrders: ccxt.fetchClosedOrders.bind(ccxt),
 		fetchMyTrades: ccxt.fetchMyTrades.bind(ccxt),

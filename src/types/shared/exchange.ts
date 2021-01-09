@@ -26,6 +26,7 @@ interface ExchangeMethods {
 	fetchOpenOrders: CCXT_Exchange["fetchOpenOrders"];
 	fetchClosedOrders: CCXT_Exchange["fetchClosedOrders"];
 	fetchMyTrades: CCXT_Exchange["fetchMyTrades"];
+	fetchCurrencies: CCXT_Exchange["fetchCurrencies"];
 	loadMarkets: CCXT_Exchange["loadMarkets"];
 }
 
@@ -48,6 +49,7 @@ export interface Exchange<ID extends ExchangeID | "simulated" = ExchangeID>
 	has: Record<keyof ExchangeMethods, boolean | "simulated" | "emulated">;
 	symbols: CCXT_Exchange["symbols"];
 	markets: CCXT_Exchange["markets"];
+	currencies: CCXT_Exchange["currencies"];
 	timeframes: CCXT_Exchange["timeframes"];
 }
 

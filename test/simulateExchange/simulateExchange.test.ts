@@ -30,6 +30,7 @@ describe("simulateExchange", () => {
 		const {
 			loadMarkets,
 			fetchStatus,
+			fetchCurrencies,
 			...exchangeHas
 		} = defaultExchange.has;
 
@@ -81,6 +82,7 @@ describe("simulateExchange", () => {
 				fetchOHLCV,
 				fetchOrderBook,
 				fetchStatus,
+				fetchCurrencies,
 				...simulatedMethods
 			} = derivedExchange.has;
 
@@ -88,12 +90,13 @@ describe("simulateExchange", () => {
 				expect(simulatedMethods[method]).toStrictEqual("simulated");
 			}
 
-			for (const method in {
-				loadMarkets,
-				fetchOHLCV,
-				fetchOrderBook,
-				fetchStatus,
-			}) {
+			for (const method of [
+				"loadMarkets",
+				"fetchOHLCV",
+				"fetchOrderBook",
+				"fetchStatus",
+				"fetchCurrencies",
+			]) {
 				expect(derivedExchange.has[method]).toStrictEqual(
 					originalExchange.has[method]
 				);
@@ -105,7 +108,6 @@ describe("simulateExchange", () => {
 		for (const exchangeId of AllowedExchangeIDs) {
 			const realExchange = createExchange(exchangeId);
 
-
 			const markets: any = {
 				"BTC/ETH": {},
 				"ETH/BTC": {},
@@ -116,6 +118,8 @@ describe("simulateExchange", () => {
 				.mockImplementation(async () => {
 					realExchange.markets = markets as Dictionary<Market>;
 					realExchange.symbols = Object.keys(markets);
+					const currencies: any = { ETH: {}, BTC: {} };
+					realExchange.currencies = currencies;
 					return markets;
 				});
 
@@ -130,7 +134,7 @@ describe("simulateExchange", () => {
 			await exchange.loadMarkets();
 
 			expect(loadMarketsSpy).toHaveBeenCalledTimes(1);
-      
+
 			expect(exchange.markets).toStrictEqual(markets);
 			expect(exchange.symbols).toStrictEqual(
 				Object.keys(exchange.markets)
