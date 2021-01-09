@@ -59,11 +59,11 @@ const simulateExchange = (
 ): SimulatedExchangeResult => {
 	const { initialBalance } = options;
 
-	let derviesFrom: Exchange;
+	let derivesFrom: Exchange;
 
 	if (options && options.derviesFrom) {
-		derviesFrom = options.derviesFrom;
-		options.fees = derviesFrom.fees as Fees;
+		derivesFrom = options.derviesFrom;
+		options.fees = derivesFrom.fees as Fees;
 	}
 
 	const defaultOptions: SimulatedExchangeOptions = {
@@ -90,18 +90,16 @@ const simulateExchange = (
 	};
 
 	const exchange: SimulatedExchange = {
-		//@ts-ignore
-		id: "simulated",
+		id: derivesFrom ? derivesFrom.id : ("simulated" as ExchangeID),
 		rateLimit: 0,
 		OHLCVRecordLimit: 1000,
 		simulated: true,
 		fees: optionsWithDefauls.fees,
-		symbols: derviesFrom ? derviesFrom.symbols : null,
-		markets: derviesFrom ? derviesFrom.markets : null,
-		timeframes: derviesFrom ? derviesFrom.timeframes : null,  
+		symbols: derivesFrom ? derivesFrom.symbols : null,
+		markets: derivesFrom ? derivesFrom.markets : null,
+		currencies: derivesFrom ? derivesFrom.currencies : null,
+		timeframes: derivesFrom ? derivesFrom.timeframes : null,
 		has: {
-			fetchOHLCV: "simulated", 
-			fetchOrderBook: "simulated",
 			createOrder: "simulated",
 			editOrder: "simulated",
 			cancelOrder: "simulated",
@@ -111,15 +109,24 @@ const simulateExchange = (
 			fetchOpenOrders: "simulated",
 			fetchClosedOrders: "simulated",
 			fetchMyTrades: "simulated",
-			loadMarkets: false,
-			fetchStatus: false,
+			fetchOHLCV: derivesFrom
+				? derivesFrom.has["fetchOHLCV"]
+				: "simulated",
+			fetchOrderBook: derivesFrom
+				? derivesFrom.has["fetchOrderBook"]
+				: "simulated",
+			loadMarkets: derivesFrom ? derivesFrom.has["loadMarkets"] : false,
+			fetchStatus: derivesFrom ? derivesFrom.has["fetchStatus"] : false,
+			fetchCurrencies: derivesFrom
+				? derivesFrom.has["fetchCurrencies"]
+				: false,
 		},
-		fetchOHLCV: createFetchOHLCV(derviesFrom),
-		fetchOrderBook: createFetchOrderBook(store, derviesFrom),
+		fetchOHLCV: createFetchOHLCV(derivesFrom),
+		fetchOrderBook: createFetchOrderBook(store, derivesFrom),
 		createOrder: createCreateOrder(
 			store,
 			optionsWithDefauls.fees,
-			derviesFrom
+			derivesFrom
 		),
 		editOrder: createEditOrder(store, optionsWithDefauls.fees),
 		cancelOrder: createCancelOrder(store),
@@ -129,28 +136,19 @@ const simulateExchange = (
 		fetchOpenOrders: createFetchOpenOrders(store),
 		fetchClosedOrders: createFetchClosedOrders(store),
 		fetchMyTrades: createFetchMyTrades(store),
-		fetchStatus: null,
+		fetchCurrencies: derivesFrom ? derivesFrom.fetchCurrencies : null,
+		fetchStatus: derivesFrom ? derivesFrom.fetchStatus : null,
 		loadMarkets: null,
 	};
 
-	if (derviesFrom) {
-		// set static props
-		exchange["derviesFrom"] = derviesFrom.id as ExchangeID;
-
-		// set 'has' props
-		exchange.has["fetchStatus"] = derviesFrom.has["fetchStatus"];
-		exchange.has["loadMarkets"] = derviesFrom.has["loadMarkets"];
-		exchange.has["fetchOHLCV"] = derviesFrom.has["fetchOHLCV"];
-		exchange.has["fetchOrderBook"] = derviesFrom.has["fetchOrderBook"];
-
-		// set methods
-		// Note: fetchOHLCV and fetchOrderBook handle this in their factory functions
-		exchange.fetchStatus = derviesFrom.fetchStatus;
-		exchange["loadMarkets"] = async () => {
-			const markets = await derviesFrom.loadMarkets();
-			exchange["markets"] = markets;
-			exchange["symbols"] = Object.keys(markets);
-			return markets;
+	if (derivesFrom) {
+		exchange.derviesFrom = derivesFrom.id;
+		exchange.loadMarkets = async () => {
+			await derivesFrom.loadMarkets();
+			exchange.markets = derivesFrom.markets;
+			exchange.symbols = derivesFrom.symbols;
+			exchange.currencies = derivesFrom.currencies;
+			return exchange.markets;
 		};
 	}
 
