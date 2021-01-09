@@ -41,9 +41,12 @@ const createExchange = <ID extends ExchangeID>(id: ID): Exchange<ID> => {
 
 	const loadMarkets: typeof ccxt.loadMarkets = async () => {
 		const markets = await ccxt.loadMarkets();
-		exchange.markets = ccxt.markets;
-		exchange.symbols = ccxt.symbols;
-		exchange.currencies = ccxt.currencies;
+		const symbols = Object.keys(markets);
+		const currencies = await ccxt.fetchCurrencies();
+		exchange.currencies = currencies;
+		exchange.symbols = symbols;
+		exchange.markets = markets;
+
 		return markets;
 	};
 
