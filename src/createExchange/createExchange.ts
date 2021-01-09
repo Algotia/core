@@ -39,6 +39,14 @@ const createExchange = <ID extends ExchangeID>(id: ID): Exchange<ID> => {
 		loadMarkets: ccxt.has["loadMarkets"],
 	};
 
+	const loadMarkets: typeof ccxt.loadMarkets = async () => {
+		const markets = await ccxt.loadMarkets();
+		exchange.markets = ccxt.markets;
+		exchange.symbols = ccxt.symbols;
+		exchange.currencies = ccxt.currencies;
+		return markets;
+	};
+
 	const exchange: Exchange<ID> = {
 		id,
 		has,
@@ -62,7 +70,7 @@ const createExchange = <ID extends ExchangeID>(id: ID): Exchange<ID> => {
 		fetchOpenOrders: ccxt.fetchOpenOrders.bind(ccxt),
 		fetchClosedOrders: ccxt.fetchClosedOrders.bind(ccxt),
 		fetchMyTrades: ccxt.fetchMyTrades.bind(ccxt),
-		loadMarkets: ccxt.loadMarkets.bind(ccxt),
+		loadMarkets,
 	};
 
 	return exchange;

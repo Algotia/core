@@ -113,12 +113,12 @@ describe("simulateExchange", () => {
 				"ETH/BTC": {},
 			};
 
+			const currencies: any = { ETH: {}, BTC: {} };
 			const loadMarketsSpy = jest
 				.spyOn(realExchange, "loadMarkets")
 				.mockImplementation(async () => {
 					realExchange.markets = markets as Dictionary<Market>;
 					realExchange.symbols = Object.keys(markets);
-					const currencies: any = { ETH: {}, BTC: {} };
 					realExchange.currencies = currencies;
 					return markets;
 				});
@@ -136,6 +136,9 @@ describe("simulateExchange", () => {
 			expect(loadMarketsSpy).toHaveBeenCalledTimes(1);
 
 			expect(exchange.markets).toStrictEqual(markets);
+
+			expect(exchange.currencies).toStrictEqual(currencies);
+
 			expect(exchange.symbols).toStrictEqual(
 				Object.keys(exchange.markets)
 			);
