@@ -57,6 +57,10 @@ const createEditOrder = (
 	const makerFee = fees["trading"]["maker"];
 	const takerFee = fees["trading"]["taker"];
 
+	const prevFillCost = foundOrder.price * foundOrder.amount;
+
+	const fillCost = price * amount;
+
 	const editedOrder: Order = {
 		...foundOrder,
 		id,
@@ -72,14 +76,14 @@ const createEditOrder = (
 		average: null,
 		filled: 0,
 		remaining: amount,
-		cost: cost + (type === "market" ? takerFee * cost : makerFee * cost),
+		cost: 0,
 		trades: [],
 		info: {},
 		fee: {
 			currency: quote,
 			type: type === "market" ? "taker" : "maker",
 			rate: type === "market" ? takerFee : makerFee,
-			cost: type === "market" ? takerFee * cost : makerFee * cost,
+			cost: type === "market" ? takerFee * fillCost : makerFee * fillCost,
 		},
 	};
 
@@ -107,14 +111,21 @@ const createEditOrder = (
 		store.balance = Object.assign(store.balance, {
 			[quote]: {
 				free:
-					oldQuoteBalance.free -
-					(editedOrder.cost - foundOrder.cost) -
-					foundOrder.fee.cost,
+					oldQuoteBalance.free +
+					prevFillCost -
+					fillCost -
+					editedOrder.fee.cost,
 				used:
-					oldQuoteBalance.used + (editedOrder.cost - foundOrder.cost),
+					oldQuoteBalance.used -
+					prevFillCost +
+					fillCost +
+					editedOrder.fee.cost -
+					foundOrder.fee.cost,
 				total:
-					oldQuoteBalance.total -
-					(editedOrder.cost - foundOrder.cost) -
+					oldQuoteBalance.total +
+					prevFillCost -
+					fillCost -
+					editedOrder.fee.cost -
 					foundOrder.fee.cost,
 			},
 		});
@@ -123,14 +134,20 @@ const createEditOrder = (
 	if (side === "sell") {
 		store.balance = Object.assign(store.balance, {
 			[base]: {
-				free: oldBaseBalance.free - amount,
-				used: oldBaseBalance.used + amount,
+				free:
+					oldBaseBalance.free -
+					foundOrder.amount +
+					editedOrder.amount,
+				used:
+					oldBaseBalance.used +
+					-foundOrder.amount +
+					editedOrder.amount,
 				total: oldBaseBalance.total,
 			},
 			[quote]: {
 				free: oldQuoteBalance.free - editedOrder.fee.cost,
 				used: oldQuoteBalance.used + editedOrder.fee.cost,
-				total: oldQuoteBalance.total,
+				total: oldQuoteBalance.total - editedOrder.fee.cost,
 			},
 		});
 	}

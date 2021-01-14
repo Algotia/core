@@ -129,7 +129,7 @@ describe("paperTrade", () => {
 		const totalCost = exchangeFees * 1 * strategyCalls;
 
 		expect(results["balance"]["BTC"]["free"]).toBeCloseTo(
-			initialBalance.ETH - totalCost,
+			initialBalance.BTC - totalCost,
 			0.00001
 		);
 

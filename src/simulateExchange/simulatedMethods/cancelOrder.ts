@@ -18,17 +18,19 @@ const createCancelOrder = (store: SimulatedExchangeStore): CancelOrder => {
 			throw new Error(`No order with ID ${id} was found`);
 		}
 
-		const { side, amount, cost, symbol: pair, fee } = order;
+		const { side, amount, price, symbol: pair, fee } = order;
 
 		const [base, quote] = parsePair(pair);
 
 		const oldQuoteBalance = store.balance[quote];
 		const oldBaseBalance = store.balance[base];
 
+		const filledCost = price * amount;
+
 		if (side === "buy") {
 			store.balance[quote] = {
-				free: oldQuoteBalance.free + cost - fee.cost,
-				used: oldQuoteBalance.used - cost,
+				free: oldQuoteBalance.free + filledCost - fee.cost,
+				used: oldQuoteBalance.used - (filledCost + fee.cost),
 				total: oldQuoteBalance.total - fee.cost,
 			};
 		}

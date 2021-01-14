@@ -5,7 +5,8 @@ describe("cancelOrder", () => {
 		reset();
 	});
 
-	for (const orderType of ["limit", "market"]) {
+	const orderTypes = ["limit", "market"] as const;
+	for (const orderType of orderTypes) {
 		it(`should cancel ${orderType} order`, async () => {
 			const { exchange, updateContext, store } = simulatedExchange;
 
@@ -19,10 +20,12 @@ describe("cancelOrder", () => {
 				3
 			);
 
+			const totalCost = order.price * order.amount + order.fee.cost;
+
 			expect(store.balance["BTC"].free).toStrictEqual(
-				initialBalance.BTC - order.cost
+				initialBalance.BTC - totalCost
 			);
-			expect(store.balance["BTC"].used).toStrictEqual(order.cost);
+			expect(store.balance["BTC"].used).toStrictEqual(totalCost);
 			expect(store.balance["BTC"].total).toStrictEqual(
 				initialBalance.BTC
 			);
@@ -32,9 +35,10 @@ describe("cancelOrder", () => {
 
 			await exchange.cancelOrder(order.id);
 
-			expect(store.balance["BTC"].free).toStrictEqual(
+			expect(store.balance["BTC"].free).toBeCloseTo(
 				initialBalance.BTC - order.fee.cost
 			);
+
 			expect(store.balance["BTC"].used).toStrictEqual(0);
 
 			expect(store.balance["BTC"].total).toStrictEqual(
@@ -66,9 +70,13 @@ describe("cancelOrder", () => {
 		);
 
 		expect(store.balance["BTC"].free).toStrictEqual(
-			initialBalance.BTC - order.cost
+			initialBalance.BTC - order.price * order.amount - order.fee.cost
 		);
-		expect(store.balance["BTC"].used).toStrictEqual(order.cost);
+
+		expect(store.balance["BTC"].used).toStrictEqual(
+			order.price * order.amount + order.fee.cost
+		);
+
 		expect(store.balance["BTC"].total).toStrictEqual(initialBalance.BTC);
 
 		expect(store.openOrders.length).toStrictEqual(1);

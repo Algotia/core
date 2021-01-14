@@ -36,6 +36,7 @@ const closeOrder = (store: SimulatedExchangeStore, order: Order): Order => {
 		status: "closed",
 		filled: order.amount,
 		average: order.price,
+		cost: order.amount * order.price,
 		remaining: 0,
 		lastTradeTimestamp: trade.timestamp,
 		trades: [trade],
@@ -57,7 +58,7 @@ const createTrade = (store: SimulatedExchangeStore, order: Order): Trade => {
 	const datetime = new Date(currentTime).toISOString();
 	const timestamp = currentTime;
 
-	const { id, symbol, side, amount, fee, cost, price, type } = order;
+	const { id, symbol, side, amount, fee, price, type } = order;
 
 	const trade: Omit<Trade, "info"> = {
 		id,
@@ -68,8 +69,8 @@ const createTrade = (store: SimulatedExchangeStore, order: Order): Trade => {
 		timestamp,
 		type,
 		fee,
-		cost,
 		price,
+		cost: price * amount,
 		takerOrMaker: fee.type,
 	};
 
@@ -95,8 +96,8 @@ const updateBalance = (store: SimulatedExchangeStore, closedOrder: Order) => {
 
 			const newQuoteBalance = {
 				free: oldQuoteBalance.free,
-				used: oldQuoteBalance.used - trade.cost,
-				total: oldQuoteBalance.total - trade.cost,
+				used: oldQuoteBalance.used - (trade.cost + trade.fee.cost),
+				total: oldQuoteBalance.total - (trade.cost + trade.fee.cost),
 			};
 
 			const newBalance = Object.assign({}, store.balance, {
@@ -118,8 +119,8 @@ const updateBalance = (store: SimulatedExchangeStore, closedOrder: Order) => {
 
 			const newQuoteBalance = {
 				free: oldQuoteBalance.free + trade.cost,
-				used: oldQuoteBalance.used,
-				total: oldQuoteBalance.total + trade.price,
+				used: oldQuoteBalance.used - trade.fee.cost,
+				total: oldQuoteBalance.total + trade.cost - trade.fee.cost,
 			};
 
 			const newBalance = Object.assign({}, store.balance, {
