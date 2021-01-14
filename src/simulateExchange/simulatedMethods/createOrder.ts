@@ -65,17 +65,14 @@ const createCreateOrder = (
 		const feeCost = costNoFee * (type === "market" ? takerFee : makerFee);
 		const cost = side === "buy" ? costNoFee + feeCost : costNoFee - feeCost;
 
+		const insufficientFundsMessage = `Insufficient ${type} ${side} balance for order costing ${cost} ${symbol}`;
 		if (side === "buy") {
 			if (cost > balance[quote]["free"]) {
-				throw new InsufficientFunds(
-					`Insufficient balance for order costing ${cost} ${symbol}`
-				);
+				throw new InsufficientFunds(insufficientFundsMessage);
 			}
 		} else if (side === "sell") {
 			if (cost > balance[base]["free"]) {
-				throw new InsufficientFunds(
-					`Insufficient balance for order costing ${cost} ${symbol}`
-				);
+				throw new InsufficientFunds(insufficientFundsMessage);
 			}
 		}
 

@@ -27,11 +27,12 @@ const backtest = async (options: BacktestOptions): Promise<BacktestResults> => {
 			const formattedErr = createStrategyError({
 				timestamp: candle.timestamp,
 				message: err.message,
+				balance: store.balance,
 			});
 			store.errors.push(formattedErr);
+		} finally {
+			fillOrders(aheadCandle)
 		}
-
-		fillOrders(aheadCandle);
 	}
 
 	const { balance, closedOrders, openOrders, errors } = store;
