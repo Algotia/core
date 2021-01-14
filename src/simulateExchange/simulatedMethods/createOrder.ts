@@ -67,7 +67,6 @@ const createCreateOrder = (
 			side === "buy" ? costWithFees : amount
 		} ${side === "buy" ? base : quote}`;
 
-		const insufficientFundsMessage = `Insufficient ${type} ${side} balance for order costing ${cost} ${symbol}`;
 		if (side === "buy") {
 			if (costWithFees > balance[quote]["free"]) {
 				throw new InsufficientFunds(insufficientFundsMessage);
