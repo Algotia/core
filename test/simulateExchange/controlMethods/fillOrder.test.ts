@@ -4,6 +4,7 @@ describe("fillOrders", () => {
 	afterEach(() => {
 		reset();
 	});
+
 	it("should fill market order immediately", async () => {
 		const {
 			exchange,
@@ -44,8 +45,10 @@ describe("fillOrders", () => {
 		expect(store.closedOrders[0].status).toStrictEqual("closed");
 		expect(store.closedOrders[0].filled).toStrictEqual(1);
 		expect(store.closedOrders[0].average).toStrictEqual(currentPrice);
-		expect(store.balance["BTC"].free).toStrictEqual(
-			initialBalance.BTC - store.closedOrders[0].cost
+		expect(store.balance["BTC"].free).toBeCloseTo(
+			initialBalance.BTC -
+				store.closedOrders[0].cost -
+				store.closedOrders[0].fee.cost
 		);
 	});
 
@@ -70,7 +73,7 @@ describe("fillOrders", () => {
 		expect(store.closedOrders.length).toStrictEqual(0);
 		expect(store.openOrders.length).toStrictEqual(1);
 		expect(store.balance["BTC"].free).toStrictEqual(
-			initialBalance.BTC - order.cost
+			initialBalance.BTC - order.amount * order.price - order.fee.cost
 		);
 
 		fillOrders({
@@ -87,6 +90,7 @@ describe("fillOrders", () => {
 		expect(store.openOrders[0].status).toStrictEqual("open");
 
 		updateContext(2000, 10);
+
 		fillOrders({
 			timestamp: 2000,
 			open: 10,
@@ -100,8 +104,9 @@ describe("fillOrders", () => {
 		expect(store.closedOrders.length).toStrictEqual(1);
 
 		expect(store.balance["BTC"].free).toStrictEqual(
-			initialBalance.BTC - order.cost
+			initialBalance.BTC - order.amount * order.price - order.fee.cost
 		);
+
 		expect(store.balance["BTC"].used).toStrictEqual(0);
 		expect(store.balance["ETH"].free).toStrictEqual(
 			initialBalance.ETH + order.amount

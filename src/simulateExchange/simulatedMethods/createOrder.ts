@@ -48,31 +48,37 @@ const createCreateOrder = (
 			}
 		}
 
-		let costNoFee: number;
 
 		if (type === "limit") {
 			if (!price) {
 				throw new Error("Order type is limit, but no price passed");
 			}
-			costNoFee = amount * price;
 		}
 
 		if (type === "market") {
 			price = store.currentPrice;
-			costNoFee = amount * price;
 		}
 
+		const costNoFee = price * amount;
 		const feeCost = costNoFee * (type === "market" ? takerFee : makerFee);
-		const cost = side === "buy" ? costNoFee + feeCost : costNoFee - feeCost;
+		const costWithFees = costNoFee + feeCost;
 
-		const insufficientFundsMessage = `Insufficient ${type} ${side} balance for order costing ${cost} ${symbol}`;
+		const insufficientFundsMessage = `Insufficient balance for ${type} ${side} order costing ${
+			side === "buy" ? costWithFees : amount
+		} ${side === "buy" ? base : quote}`;
+
 		if (side === "buy") {
-			if (cost > balance[quote]["free"]) {
+			if (costWithFees > balance[quote]["free"]) {
 				throw new InsufficientFunds(insufficientFundsMessage);
 			}
 		} else if (side === "sell") {
-			if (cost > balance[base]["free"]) {
+			if (amount > balance[base]["free"]) {
 				throw new InsufficientFunds(insufficientFundsMessage);
+			}
+			if (feeCost > balance[quote]["free"]) {
+				throw new InsufficientFunds(
+					`Insufficient balance for paying fees costing ${feeCost} ${quote}`
+				);
 			}
 		}
 
@@ -84,7 +90,7 @@ const createCreateOrder = (
 			side,
 			amount,
 			price,
-			cost,
+			cost: 0,
 			datetime: new Date(currentTime).toISOString(),
 			timestamp: currentTime,
 			lastTradeTimestamp: null,
@@ -108,15 +114,15 @@ const createCreateOrder = (
 		if (side === "buy") {
 			store.balance = Object.assign(store.balance, {
 				[quote]: {
-					free: oldQuoteBalance.free - cost,
-					used: oldQuoteBalance.used + cost,
+					free: oldQuoteBalance.free - costWithFees,
+					used: oldQuoteBalance.used + costWithFees,
 					total: oldQuoteBalance.total,
 				},
 			});
 			store.balance.info = { ...store.balance };
 			delete store.balance.info.info;
 		}
-
+	
 		if (side === "sell") {
 			store.balance = Object.assign(store.balance, {
 				[base]: {
@@ -125,8 +131,8 @@ const createCreateOrder = (
 					total: oldBaseBalance.total,
 				},
 				[quote]: {
-					free: oldQuoteBalance.free,
-					used: oldQuoteBalance.used,
+					free: oldQuoteBalance.free - feeCost,
+					used: oldQuoteBalance.used + feeCost,
 					total: oldQuoteBalance.total,
 				},
 			});

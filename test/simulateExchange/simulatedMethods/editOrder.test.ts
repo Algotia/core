@@ -4,6 +4,7 @@ describe("edit order", () => {
 	afterEach(() => {
 		reset();
 	});
+
 	it(`should edit market order if not filled`, async () => {
 		const {
 			exchange,
@@ -15,7 +16,7 @@ describe("edit order", () => {
 		expect(store.balance["BTC"].free).toStrictEqual(initialBalance.BTC);
 		expect(store.balance["BTC"].used).toStrictEqual(0);
 
-		updateContext(1000, 9);
+		updateContext(1000, 10);
 
 		const order = await exchange.createOrder("ETH/BTC", "market", "buy", 1);
 
@@ -27,13 +28,18 @@ describe("edit order", () => {
 			0.5
 		);
 
+		const filledCost =
+			editedOrder.amount * editedOrder.price + editedOrder.fee.cost;
+
 		expect(store.closedOrders.length).toStrictEqual(0);
 		expect(store.openOrders.length).toStrictEqual(1);
 		expect(store.openOrders[0].amount).toStrictEqual(0.5);
+
 		expect(store.balance["BTC"].free).toBeCloseTo(
-			initialBalance.BTC - editedOrder.cost - order.fee.cost
+			initialBalance.BTC - (filledCost + order.fee.cost)
 		);
-		expect(store.balance["BTC"].used).toStrictEqual(editedOrder.cost);
+
+		expect(store.balance["BTC"].used).toStrictEqual(filledCost);
 
 		fillOrders({
 			timestamp: 1000,
@@ -61,14 +67,15 @@ describe("edit order", () => {
 			fillOrders,
 		} = simulatedExchange;
 
-		updateContext(1000, 9);
+		updateContext(1000, 10);
 
 		const order = await exchange.createOrder("ETH/BTC", "market", "buy", 1);
 
+		const filledCost = order.price * order.amount + order.fee.cost;
 		expect(store.balance["BTC"].free).toBeCloseTo(
-			initialBalance.BTC - order.cost
+			initialBalance.BTC - filledCost
 		);
-		expect(store.balance["BTC"].used).toStrictEqual(order.cost);
+		expect(store.balance["BTC"].used).toStrictEqual(filledCost);
 
 		fillOrders({
 			timestamp: 1000,
@@ -79,9 +86,13 @@ describe("edit order", () => {
 			volume: 10,
 		});
 
+		expect(store.closedOrders.length).toStrictEqual(1);
+		expect(store.openOrders.length).toStrictEqual(0);
+
 		expect(store.balance.ETH.free).toStrictEqual(
 			initialBalance.ETH + order.amount
 		);
+
 		expect(store.balance.BTC.used).toStrictEqual(0);
 
 		const editedOrder = exchange.editOrder(
