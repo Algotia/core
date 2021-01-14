@@ -2,6 +2,7 @@ import {
 	SimulatedExchangeResult,
 	pollingPeriodTable,
 	PaperTradeOptions,
+	createStrategyError,
 } from "../types";
 import { parsePeriod, roundTime } from "../utils";
 import { getLiveCandle } from "../exchangeHelpers";
@@ -66,7 +67,12 @@ const paperTrade = async (
 		try {
 			await strategy(exchange, candle);
 		} catch (err) {
-			store.errors.push(err.message);
+			const formattedErr = createStrategyError({
+				timestamp: candle.timestamp,
+				message: err.message,
+				balance: store.balance
+			});
+			store.errors.push(formattedErr);
 		}
 
 		controller.emit("strategy", simulatedExchange.store);

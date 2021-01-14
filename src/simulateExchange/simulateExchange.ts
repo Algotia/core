@@ -1,4 +1,4 @@
-import { Balances } from "ccxt";
+import { createInitialBalance } from "../utils";
 import {
 	SimulatedExchangeStore,
 	SimulatedExchangeResult,
@@ -6,6 +6,7 @@ import {
 	ExchangeID,
 	Fees,
 	Exchange,
+	InitialBalance,
 } from "../types/";
 import {
 	createCancelOrder,
@@ -25,28 +26,6 @@ import {
 } from "./controlMethods";
 import createFetchOHLCV from "./simulatedMethods/fetchOHLCV";
 import createFetchOrderBook from "./simulatedMethods/fetchOrderBook";
-
-type InitialBalance = Record<string, number>;
-
-const createInitalBalance = (initialBalance: InitialBalance): Balances => {
-	let balance: Balances;
-
-	const keys = Object.keys(initialBalance);
-
-	for (const currency of keys) {
-		balance = Object.assign({}, balance, {
-			[currency]: {
-				free: initialBalance[currency],
-				used: 0,
-				total: initialBalance[currency],
-			},
-		});
-	}
-
-	balance.info = { ...balance };
-
-	return balance;
-};
 
 interface SimulatedExchangeOptions {
 	initialBalance: InitialBalance;
@@ -86,7 +65,7 @@ const simulateExchange = (
 		openOrders: [],
 		closedOrders: [],
 		errors: [],
-		balance: createInitalBalance(initialBalance),
+		balance: createInitialBalance(initialBalance),
 	};
 
 	const exchange: SimulatedExchange = {

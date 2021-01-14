@@ -1,8 +1,11 @@
 import { Exchange as CCXT_Exchange, Order, Balances } from "ccxt";
+import { StrategyError } from "../errors";
 
 export const AllowedExchangeIDs = ["binance", "kucoin", "bitfinex"] as const;
 
 export type ExchangeID = typeof AllowedExchangeIDs[number];
+
+export type InitialBalance = Record<string, number>;
 
 export interface OHLCV {
 	timestamp: number;
@@ -65,7 +68,7 @@ export interface SimulatedExchangeStore {
 	balance: Balances;
 	openOrders: Order[];
 	closedOrders: Order[];
-	errors: string[];
+	errors: StrategyError[];
 }
 
 export interface SimulatedExchangeResult {

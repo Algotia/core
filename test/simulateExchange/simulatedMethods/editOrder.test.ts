@@ -1,9 +1,5 @@
-import {
-	simulatedExchange,
-	initialBalance,
-	reset,
-	isCloseTo,
-} from "../../test-utils";
+import { simulatedExchange, initialBalance, reset } from "../../test-utils";
+
 describe("edit order", () => {
 	afterEach(() => {
 		reset();

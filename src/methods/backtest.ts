@@ -1,4 +1,8 @@
-import { BacktestResults, BacktestOptions } from "../types";
+import {
+	BacktestResults,
+	BacktestOptions,
+	createStrategyError,
+} from "../types";
 
 /** Backtesting runs a strategy against historical data */
 const backtest = async (options: BacktestOptions): Promise<BacktestResults> => {
@@ -20,10 +24,15 @@ const backtest = async (options: BacktestOptions): Promise<BacktestResults> => {
 		try {
 			await strategy(exchange, candle);
 		} catch (err) {
-			store.errors.push(err.message);
+			const formattedErr = createStrategyError({
+				timestamp: candle.timestamp,
+				message: err.message,
+				balance: store.balance,
+			});
+			store.errors.push(formattedErr);
+		} finally {
+			fillOrders(aheadCandle)
 		}
-
-		fillOrders(aheadCandle);
 	}
 
 	const { balance, closedOrders, openOrders, errors } = store;
