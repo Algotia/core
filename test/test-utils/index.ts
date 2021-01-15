@@ -5,6 +5,8 @@ export const initialBalance = {
 	ETH: 100,
 } as const;
 
+export const initialBalanceSymbol = "BTC/ETH";
+
 export const simulatedExchange = simulateExchange({ initialBalance });
 
 export const reset = () => simulatedExchange.flushStore();

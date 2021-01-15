@@ -1,4 +1,4 @@
-import { BadSymbol, InsufficientFunds, Order } from "ccxt";
+import { BadRequest, BadSymbol, InsufficientFunds, Order } from "ccxt";
 import { Exchange, SimulatedExchangeStore } from "../../types";
 import { parsePair, uuid } from "../../utils";
 
@@ -48,10 +48,11 @@ const createCreateOrder = (
 			}
 		}
 
-
 		if (type === "limit") {
 			if (!price) {
-				throw new Error("Order type is limit, but no price passed");
+				throw new BadRequest(
+					"Order type is limit, but no price passed"
+				);
 			}
 		}
 
@@ -68,8 +69,13 @@ const createCreateOrder = (
 		} ${side === "buy" ? base : quote}`;
 
 		if (side === "buy") {
-			if (costWithFees > balance[quote]["free"]) {
+			if (costNoFee > balance[quote]["free"]) {
 				throw new InsufficientFunds(insufficientFundsMessage);
+			}
+			if (costWithFees > balance[quote]["free"]) {
+				throw new InsufficientFunds(
+					`Insufficient balance for paying fees costing ${feeCost} ${quote}`
+				);
 			}
 		} else if (side === "sell") {
 			if (amount > balance[base]["free"]) {
@@ -122,7 +128,7 @@ const createCreateOrder = (
 			store.balance.info = { ...store.balance };
 			delete store.balance.info.info;
 		}
-	
+
 		if (side === "sell") {
 			store.balance = Object.assign(store.balance, {
 				[base]: {
