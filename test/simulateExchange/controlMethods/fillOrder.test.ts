@@ -1,120 +1,144 @@
+import { OHLCV, SimulatedExchangeStore } from "../../../src/types";
+import { parsePair } from "../../../src/utils";
 import { simulatedExchange, initialBalance, reset } from "../../test-utils";
+
+const orderTypes = ["market", "limit"] as const;
+const orderSides = ["buy", "sell"] as const;
+const symbol = "ETH/BTC";
+const [base, quote] = parsePair(symbol);
+
+const checkAfterBalance = (store: SimulatedExchangeStore) => {
+	const trade = store.closedOrders[0].trades[0];
+
+	const side = trade.side;
+
+	const feeCost = trade.fee.cost;
+	const totalCost = trade.cost + feeCost;
+	const costLessFee = trade.cost - trade.fee.cost;
+
+	if (side === "buy") {
+		expect(store.balance[quote]).toStrictEqual({
+			free: initialBalance[quote] - totalCost,
+			used: 0,
+			total: initialBalance[quote] - totalCost,
+		});
+	}
+	if (side === "sell") {
+		expect(store.balance[base]).toStrictEqual({
+			free: initialBalance[base] - trade.amount,
+			used: 0,
+			total: initialBalance[base] - trade.amount,
+		});
+		expect(store.balance[quote]).toStrictEqual({
+			free: initialBalance[quote] + costLessFee,
+			used: 0,
+			total: initialBalance[base] + costLessFee,
+		});
+	}
+};
 
 describe("fillOrders", () => {
 	afterEach(() => {
 		reset();
 	});
 
-	it("should fill market order immediately", async () => {
-		const {
-			exchange,
-			updateContext,
-			store,
-			fillOrders,
-		} = simulatedExchange;
+	for (const type of orderTypes) {
+		for (const side of orderSides) {
+			it(`Should fill ${type} ${side} order`, async () => {
+				const {
+					exchange,
+					updateContext,
+					store,
+					fillOrders,
+				} = simulatedExchange;
 
-		const candle = {
-			timestamp: 100,
-			open: 1,
-			high: 1,
-			low: 1,
-			close: 75,
-			volume: 1,
-		};
+				const candle = {
+					timestamp: 100,
+					open: 5,
+					high: 5,
+					low: 5,
+					close: 5,
+					volume: 1,
+				};
 
-		const currentPrice = 5;
+				updateContext(candle.timestamp, candle.close);
 
-		updateContext(candle.timestamp, currentPrice);
+				expect(store.openOrders.length).toStrictEqual(0);
+				expect(store.closedOrders.length).toStrictEqual(0);
 
-		expect(store.openOrders.length).toStrictEqual(0);
-		expect(store.closedOrders.length).toStrictEqual(0);
+				await exchange.createOrder(symbol, type, side, 1, 5);
 
-		await exchange.createOrder("ETH/BTC", "market", "buy", 1);
+				fillOrders(candle);
 
-		expect(store.openOrders.length).toStrictEqual(1);
-		expect(store.closedOrders.length).toStrictEqual(0);
+				expect(store.closedOrders.length).toStrictEqual(1);
+				expect(store.closedOrders[0].trades.length).toStrictEqual(1);
 
-		expect(store.openOrders[0].status).toStrictEqual("open");
-		expect(store.openOrders[0].filled).toStrictEqual(0);
-		expect(store.openOrders[0].average).toStrictEqual(null);
+				checkAfterBalance(store);
+			});
+		}
+	}
+	for (const side of orderSides) {
+		it(`Should fill limit ${side} order after 1 candle`, async () => {
+			let firstCandle: OHLCV;
+			let secondCandle: OHLCV;
+			if (side === "buy") {
+				firstCandle = {
+					timestamp: 1000,
+					open: 11,
+					high: 11,
+					low: 11,
+					close: 11,
+					volume: 1,
+				};
+			}
 
-		fillOrders(candle);
+			if (side === "sell") {
+				firstCandle = {
+					timestamp: 1000,
+					open: 9,
+					high: 9,
+					low: 9,
+					close: 9,
+					volume: 1,
+				};
+			}
 
-		expect(store.closedOrders.length).toStrictEqual(1);
-		expect(store.openOrders.length).toStrictEqual(0);
-		expect(store.closedOrders[0].status).toStrictEqual("closed");
-		expect(store.closedOrders[0].filled).toStrictEqual(1);
-		expect(store.closedOrders[0].average).toStrictEqual(currentPrice);
-		expect(store.balance["BTC"].free).toBeCloseTo(
-			initialBalance.BTC -
-				store.closedOrders[0].cost -
-				store.closedOrders[0].fee.cost
-		);
-	});
+			const targetPrice = 10;
 
-	it(`should fill limit order after 2 candles`, async () => {
-		const {
-			exchange,
-			store,
-			updateContext,
-			fillOrders,
-		} = simulatedExchange;
+			const secondCandleKey =
+				(side === "buy" && "low") || (side === "sell" && "high");
 
-		updateContext(1000, 10);
+			secondCandle = {
+				...firstCandle,
+				timestamp: 2000,
+				[secondCandleKey]: targetPrice,
+			};
+			const {
+				exchange,
+				updateContext,
+				store,
+				fillOrders,
+			} = simulatedExchange;
 
-		const order = await exchange.createOrder(
-			"ETH/BTC",
-			"limit",
-			"buy",
-			1,
-			5
-		);
+			updateContext(firstCandle.timestamp, firstCandle.close);
 
-		expect(store.closedOrders.length).toStrictEqual(0);
-		expect(store.openOrders.length).toStrictEqual(1);
-		expect(store.balance["BTC"].free).toStrictEqual(
-			initialBalance.BTC - order.amount * order.price - order.fee.cost
-		);
+			expect(store.openOrders.length).toStrictEqual(0);
+			expect(store.closedOrders.length).toStrictEqual(0);
 
-		fillOrders({
-			timestamp: 1000,
-			open: 10,
-			high: 10,
-			low: 10,
-			close: 10,
-			volume: 10,
+			await exchange.createOrder(symbol, "limit", side, 1, 10);
+
+			fillOrders(firstCandle);
+
+			expect(store.openOrders.length).toStrictEqual(1);
+			expect(store.closedOrders.length).toStrictEqual(0);
+
+			fillOrders(secondCandle);
+
+			expect(store.openOrders.length).toStrictEqual(0);
+			expect(store.closedOrders.length).toStrictEqual(1);
+			expect(store.closedOrders[0].trades.length).toStrictEqual(1);
+
+			checkAfterBalance(store);
 		});
-
-		expect(store.openOrders.length).toStrictEqual(1);
-		expect(store.closedOrders.length).toStrictEqual(0);
-		expect(store.openOrders[0].status).toStrictEqual("open");
-
-		updateContext(2000, 10);
-
-		fillOrders({
-			timestamp: 2000,
-			open: 10,
-			high: 10,
-			low: 4,
-			close: 10,
-			volume: 10,
-		});
-
-		expect(store.openOrders.length).toStrictEqual(0);
-		expect(store.closedOrders.length).toStrictEqual(1);
-
-		expect(store.balance["BTC"].free).toStrictEqual(
-			initialBalance.BTC - order.amount * order.price - order.fee.cost
-		);
-
-		expect(store.balance["BTC"].used).toStrictEqual(0);
-		expect(store.balance["ETH"].free).toStrictEqual(
-			initialBalance.ETH + order.amount
-		);
-
-		const closedOrder = store.closedOrders[0];
-		expect(closedOrder.lastTradeTimestamp).toStrictEqual(2000);
-		expect(closedOrder.average).toStrictEqual(5);
-		expect(closedOrder.status).toStrictEqual("closed");
-	});
+	}
 });
